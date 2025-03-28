@@ -128,8 +128,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\source\build\a_asm.c" />
     <ClCompile Include="..\source\build\CACHE1D.C" />
     <ClCompile Include="..\source\build\ENGINE.C" />
+    <ClCompile Include="..\source\build\MMULTI.C" />
     <ClCompile Include="..\source\build\video.c" />
   </ItemGroup>
   <ItemGroup>

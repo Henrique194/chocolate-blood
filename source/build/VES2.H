@@ -1,13 +1,13 @@
 // "Build Engine & Tools" Copyright (c) 1993-1997 Ken Silverman
 // Ken Silverman's official web site: "http://www.advsys.net/ken"
 // See the included license file "BUILDLIC.TXT" for license info.
+// This file has been modified from Ken Silverman's original release
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "compat.h"
 
-short modelist[256];
 static char *screen = NULL, vesachecked = 0;
 int32_t xres, yres, bytesperline, imageSize, maxpages;
 intptr_t frameplace;
@@ -40,7 +40,6 @@ void getvalidvesamodes()
 	vesachecked = 1;
 
 	validmodecnt = 0;
-	modelist[0] = -1;
 
 	for (i = 0; modes[i].xdim != -1; i++)
 	{

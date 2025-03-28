@@ -24,6 +24,12 @@
     <ClCompile Include="..\source\build\video.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\build\MMULTI.C">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\build\a_asm.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\build\video.h">

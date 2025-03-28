@@ -89,14 +89,14 @@ static unsigned short sqrtable[4096], shlookup[4096+256];
 char pow2char[8] = {1,2,4,8,16,32,64,128};
 int32_t pow2long[32] =
 {
-	1L,2L,4L,8L,
-	16L,32L,64L,128L,
-	256L,512L,1024L,2048L,
-	4096L,8192L,16384L,32768L,
-	65536L,131072L,262144L,524288L,
-	1048576L,2097152L,4194304L,8388608L,
-	16777216L,33554432L,67108864L,134217728L,
-	268435456L,536870912L,1073741824L,2147483647L,
+	1,2,4,8,
+	16,32,64,128,
+	256,512,1024,2048,
+	4096,8192,16384,32768,
+	65536,131072,262144,524288,
+	1048576,2097152,4194304,8388608,
+	16777216,33554432,67108864,134217728,
+	268435456,536870912,1073741824,2147483647,
 };
 int32_t reciptable[2048];
 
@@ -135,7 +135,7 @@ static short bunchfirst[MAXWALLSB], bunchlast[MAXWALLSB];
 static short smost[MAXYSAVES], smostcnt;
 static short smoststart[MAXWALLSB];
 static char smostwalltype[MAXWALLSB];
-static int32_t smostwall[MAXWALLSB], smostwallcnt = -1L;
+static int32_t smostwall[MAXWALLSB], smostwallcnt = -1;
 
 static short maskwall[MAXWALLSB], maskwallcnt;
 static int32_t spritesx[MAXSPRITESONSCREEN];
@@ -151,7 +151,8 @@ static int32_t swplc[MAXXDIM], lplc[MAXXDIM];
 static int32_t swall[MAXXDIM], lwall[MAXXDIM+4];
 int32_t xdimen = -1, xdimenrecip, halfxdimen, xdimenscale, xdimscale;
 int32_t wx1, wy1, wx2, wy2, ydimen;
-int32_t viewoffset, frameoffset;
+int32_t viewoffset;
+intptr_t frameoffset;
 
 static int32_t rxi[8], ryi[8], rzi[8], rxi2[8], ryi2[8], rzi2[8];
 static int32_t xsi[8], ysi[8], *horizlookup, *horizlookup2, horizycent;
@@ -168,11 +169,13 @@ char globparaceilclip, globparaflorclip;
 int32_t xyaspect, viewingrangerecip;
 
 int32_t asm1, asm2, asm3, asm4;
-int32_t vplce[4], vince[4], palookupoffse[4], bufplce[4];
+int32_t vplce[4], vince[4];
+intptr_t palookupoffse[4], bufplce[4];
 char globalxshift, globalyshift;
 int32_t globalxpanning, globalypanning, globalshade;
 short globalpicnum, globalshiftval;
-int32_t globalzd, globalbufplc, globalyscale, globalorientation;
+int32_t globalzd, globalyscale, globalorientation;
+intptr_t globalbufplc;
 int32_t globalx1, globaly1, globalx2, globaly2, globalx3, globaly3, globalzx;
 int32_t globalx, globaly, globalz;
 
@@ -245,47 +248,47 @@ static int32_t numtilefiles, artfil = -1, artfilnum, artfilplc;
 
 int32_t totalclocklock;
 
-extern int32_t sethlinesizes(int32_t,int32_t,int32_t);
-extern int32_t setpalookupaddress(char *);
-extern int32_t setuphlineasm4(int32_t,int32_t);
-extern int32_t hlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setuprhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t rhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setuprmhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t rmhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setupqrhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t qrhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setvlinebpl(int32_t);
-extern int32_t fixtransluscence(int32_t);
-extern int32_t prevlineasm1(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t vlineasm1(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setuptvlineasm(int32_t);
+extern void sethlinesizes(int32_t,int32_t,intptr_t);
+extern void setpalookupaddress(char *);
+extern void setuphlineasm4(int32_t,int32_t);
+extern void hlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,intptr_t);
+extern void setuprhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void rhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void setuprmhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void rmhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void setupqrhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void qrhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void setvlinebpl(int32_t);
+extern void fixtransluscence(intptr_t);
+extern int32_t prevlineasm1(int32_t,intptr_t,int32_t,int32_t,intptr_t,intptr_t);
+extern int32_t vlineasm1(int32_t,intptr_t,int32_t,int32_t,intptr_t,intptr_t);
+extern void setuptvlineasm(int32_t);
 extern int32_t tvlineasm1(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setuptvlineasm2(int32_t,int32_t,int32_t);
-extern int32_t tvlineasm2(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void setuptvlineasm2(int32_t,int32_t,int32_t);
+extern void tvlineasm2(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern int32_t mvlineasm1(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setupvlineasm(int32_t);
-extern int32_t vlineasm4(int32_t,int32_t);
-extern int32_t setupmvlineasm(int32_t);
-extern int32_t mvlineasm4(int32_t,int32_t);
+extern void setupvlineasm(int32_t);
+extern void vlineasm4(int32_t,intptr_t);
+extern void setupmvlineasm(int32_t);
+extern void mvlineasm4(int32_t,int32_t);
 extern void setupspritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern void spritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern void msetupspritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern void mspritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern void tsetupspritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern void tspritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t mhline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t mhlineskipmodify(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t msethlineshift(int32_t,int32_t);
-extern int32_t thline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t thlineskipmodify(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t tsethlineshift(int32_t,int32_t);
-extern int32_t setupslopevlin(int32_t,int32_t,int32_t);
-extern int32_t slopevlin(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t settransnormal();
-extern int32_t settransreverse();
-extern int32_t setupdrawslab(int32_t,int32_t);
-extern int32_t drawslab(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void mhline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void mhlineskipmodify(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void msethlineshift(int32_t,int32_t);
+extern void thline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void thlineskipmodify(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void tsethlineshift(int32_t,int32_t);
+extern void setupslopevlin(int32_t,int32_t,int32_t);
+extern void slopevlin(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void settransnormal();
+extern void settransreverse();
+extern void setupdrawslab(int32_t,int32_t);
+extern void drawslab(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 
 static uint32_t nsqrtasm(uint32_t eax)
 {
@@ -433,7 +436,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 		{
 			ostereopixelwidth = stereopixelwidth;
 			xdimen = (windowx2-windowx1+1)+(stereopixelwidth<<1); halfxdimen = (xdimen>>1);
-			xdimenrecip = divscale32(1L,xdimen);
+			xdimenrecip = divscale32(1,xdimen);
 			setaspect((int32_t)divscale16(xdimen,windowx2-windowx1+1),yxaspect);
 		}
 
@@ -461,7 +464,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 
 	frameoffset = frameplace+viewoffset;
 
-	clearbufbyte((int32_t)(&gotsector[0]),(int32_t)((numsectors+7)>>3),0L);
+	clearbufbyte((int32_t)(&gotsector[0]),(int32_t)((numsectors+7)>>3),0);
 
 	shortptr1 = (short *)&startumost[windowx1];
 	shortptr2 = (short *)&startdmost[windowx1];
@@ -501,7 +504,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 
 	while ((numbunches > 0) && (numhits > 0))
 	{
-		clearbuf((int32_t)(&tempbuf[0]),(int32_t)((numbunches+3)>>2),0L);
+		clearbuf((int32_t)(&tempbuf[0]),(int32_t)((numbunches+3)>>2),0);
 		tempbuf[0] = 1;
 
 		closest = 0;              //Almost works, but not quite :(
@@ -1767,16 +1770,16 @@ int32_t loadboard(char *filename, int32_t *daposx, int32_t *daposy, int32_t *dap
 	i = strlen(filename)-1;
 	if (filename[i] == 255) { filename[i] = 0; i = 1; } else i = 0;
 	if ((fil = kopen4load(filename,i)) == -1)
-		{ mapversion = 7L; return(-1); }
+		{ mapversion = 7; return(-1); }
 
 	kread(fil,&mapversion,4);
-	if (mapversion != 7L) return(-1);
+	if (mapversion != 7) return(-1);
 
 	initspritelists();
 
-	clearbuf((int32_t)(&show2dsector[0]),(int32_t)((MAXSECTORS+3)>>5),0L);
-	clearbuf((int32_t)(&show2dsprite[0]),(int32_t)((MAXSPRITES+3)>>5),0L);
-	clearbuf((int32_t)(&show2dwall[0]),(int32_t)((MAXWALLS+3)>>5),0L);
+	clearbuf((int32_t)(&show2dsector[0]),(int32_t)((MAXSECTORS+3)>>5),0);
+	clearbuf((int32_t)(&show2dsprite[0]),(int32_t)((MAXSPRITES+3)>>5),0);
+	clearbuf((int32_t)(&show2dwall[0]),(int32_t)((MAXWALLS+3)>>5),0);
 
 	kread(fil,daposx,4);
 	kread(fil,daposy,4);
@@ -1858,7 +1861,7 @@ void loadtables()
 	{
 		initksqrt();
 
-		for(i=0;i<2048;i++) reciptable[i] = divscale30(2048L,i+2048);
+		for(i=0;i<2048;i++) reciptable[i] = divscale30(2048,i+2048);
 
 		if ((fil = kopen4load("tables.dat",0)) != -1)
 		{
@@ -1887,7 +1890,7 @@ void loadpalette()
 
 	if ((palookup[0] = (char *)kkmalloc(numpalookups<<8)) == NULL)
 		allocache(&palookup[0],numpalookups<<8,&permanentlock);
-	if ((transluc = (char *)kkmalloc(65536L)) == NULL)
+	if ((transluc = (char *)kkmalloc(65536)) == NULL)
 		allocache(&transluc,65536,&permanentlock);
 
 	globalpalwritten = palookup[0]; globalpal = 0;
@@ -1899,7 +1902,7 @@ void loadpalette()
 	kread(fil,transluc,65536);
 	kclose(fil);
 
-	initfastcolorlookup(30L,59L,11L);
+	initfastcolorlookup(30,59,11);
 
 	paletteloaded = 1;
 
@@ -1992,8 +1995,8 @@ int32_t setgamemode(char davidoption, int32_t daxdim, int32_t daydim)
 	numpages = 1;
 	if (vidoption == 1) numpages = min(maxpages,8);
 
-	setview(0L,0L,xdim-1,ydim-1);
-	clearallviews(0L);
+	setview(0,0,xdim-1,ydim-1);
+	clearallviews(0);
 	setbrightness((char)curbrightness,(char *)&palette[0]);
 
 	if (searchx < 0) { searchx = halfxdimen; searchy = (ydimen>>1); }
@@ -2013,7 +2016,7 @@ void hline (int32_t xr, int32_t yp)
 	r = horizlookup2[yp-globalhoriz+horizycent];
 	asm1 = globalx1*r;
 	asm2 = globaly2*r;
-	hlineasm4(xr-xl,0L,((int32_t)getpalookup((int32_t)mulscale16(r,globvis),globalshade)<<8),
+	hlineasm4(xr-xl,0,((int32_t)getpalookup((int32_t)mulscale16(r,globvis),globalshade)<<8),
 		globalx2*r+globalypanning,globaly1*r+globalxpanning,
 		ylookup[yp]+xr+frameoffset);
 }
@@ -2030,11 +2033,11 @@ void slowhline (int32_t xr, int32_t yp)
 	asm3 = (int32_t)globalpalwritten + ((int32_t)getpalookup((int32_t)mulscale16(r,globvis),globalshade)<<8);
 	if (!(globalorientation&256))
 	{
-		mhline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0L,
+		mhline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0,
 			globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset);
 		return;
 	}
-	thline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0L,
+	thline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0,
 		globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset);
 	transarea += (xr-xl);
 }
@@ -2146,7 +2149,7 @@ void initengine()
 
 	pskyoff[0] = 0; pskybits = 0;
 
-	parallaxtype = 2; parallaxyoffs = 0L; parallaxyscale = 65536;
+	parallaxtype = 2; parallaxyoffs = 0; parallaxyscale = 65536;
 	showinvisibility = 0;
 
 #ifdef SUPERBUILD
@@ -2154,7 +2157,7 @@ void initengine()
 	for(i=0;i<MAXVOXELS;i++)
 		for(j=0;j<MAXVOXMIPS;j++)
 		{
-			voxoff[i][j] = 0L;
+			voxoff[i][j] = 0;
 			voxlock[i][j] = 200;
 		}
 #endif
@@ -2165,11 +2168,11 @@ void initengine()
 
 	for(i=0;i<MAXPALOOKUPS;i++) palookup[i] = NULL;
 
-	clearbuf((int32_t)(&waloff[0]),(int32_t)MAXTILES,0L);
+	clearbuf((int32_t)(&waloff[0]),(int32_t)MAXTILES,0);
 
-	clearbuf((int32_t)(&show2dsector[0]),(int32_t)((MAXSECTORS+3)>>5),0L);
-	clearbuf((int32_t)(&show2dsprite[0]),(int32_t)((MAXSPRITES+3)>>5),0L);
-	clearbuf((int32_t)(&show2dwall[0]),(int32_t)((MAXWALLS+3)>>5),0L);
+	clearbuf((int32_t)(&show2dsector[0]),(int32_t)((MAXSECTORS+3)>>5),0);
+	clearbuf((int32_t)(&show2dsprite[0]),(int32_t)((MAXSPRITES+3)>>5),0);
+	clearbuf((int32_t)(&show2dwall[0]),(int32_t)((MAXWALLS+3)>>5),0);
 	automapping = 0;
 
 	validmodecnt = 0;
@@ -2265,7 +2268,7 @@ void nextpage()
 					copybuf(frameplace,0xa0000,64000>>2);
 					break;
 				case 6:
-					if (!activepage) redblueblit(screen,&screen[65536],64000L);
+					if (!activepage) redblueblit(screen,&screen[65536],64000);
 					activepage ^= 1;
 					break;
 			}
@@ -2321,7 +2324,7 @@ void loadtile (short tilenume)
 	{
 		if (artfil != -1) kclose(artfil);
 		artfilnum = i;
-		artfilplc = 0L;
+		artfilplc = 0;
 
 		artfilename[7] = (i%10)+48;
 		artfilename[6] = ((i/10)%10)+48;
@@ -2384,10 +2387,10 @@ int32_t loadpics(char *filename)
 	{
 		tilesizx[i] = 0;
 		tilesizy[i] = 0;
-		picanm[i] = 0L;
+		picanm[i] = 0;
 	}
 
-	artsize = 0L;
+	artsize = 0;
 
 	numtilefiles = 0;
 	do
@@ -2424,14 +2427,14 @@ int32_t loadpics(char *filename)
 	}
 	while (k != numtilefiles);
 
-	clearbuf((int32_t)(&gotpic[0]),(int32_t)((MAXTILES+31)>>5),0L);
+	clearbuf((int32_t)(&gotpic[0]),(int32_t)((MAXTILES+31)>>5),0);
 
 	//try dpmi_DETERMINEMAXREALALLOC!
 
 	cachesize = max(artsize,1048576);
 	while ((pic = (char *)kkmalloc(cachesize)) == NULL)
 	{
-		cachesize -= 65536L;
+		cachesize -= 65536;
 		if (cachesize < 65536) return(-1);
 	}
 	initcache((FP_OFF(pic)+15)&0xfffffff0,(cachesize-((-FP_OFF(pic))&15))&0xfffffff0);
@@ -2448,7 +2451,7 @@ int32_t loadpics(char *filename)
 
 	artfil = -1;
 	artfilnum = -1;
-	artfilplc = 0L;
+	artfilplc = 0;
 
 	return(0);
 }
@@ -2974,7 +2977,7 @@ void drawmaskwall(short damaskwallcnt)
 				if (lx <= rx)
 				{
 					if ((lx == xb1[z]) && (rx == xb2[z])) return;
-					clearbufbyte((int32_t)&dwall[lx],(rx-lx+1)*sizeof(dwall[0]),0L);
+					clearbufbyte((int32_t)&dwall[lx],(rx-lx+1)*sizeof(dwall[0]),0);
 				}
 				break;
 			case 1:
@@ -3145,7 +3148,7 @@ void drawsprite (int32_t snum)
 					if (dalx2 <= darx2)
 					{
 						if ((dalx2 == lx) && (darx2 == rx)) return;
-						clearbufbyte((int32_t)&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
+						clearbufbyte((int32_t)&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0);
 					}
 					break;
 				case 1:
@@ -3189,8 +3192,8 @@ void drawsprite (int32_t snum)
 		globalorientation = 0;
 		globalpicnum = tilenum;
 		if ((unsigned)globalpicnum >= (unsigned)MAXTILES) globalpicnum = 0;
-		globalxpanning = 0L;
-		globalypanning = 0L;
+		globalxpanning = 0;
+		globalypanning = 0;
 		globvis = globalvisibility;
 		if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((unsigned char)(sec->visibility+16)));
 		globalshiftval = (picsiz[globalpicnum]>>4);
@@ -3332,8 +3335,8 @@ void drawsprite (int32_t snum)
 		globalorientation = 0;
 		globalpicnum = tilenum;
 		if ((unsigned)globalpicnum >= (unsigned)MAXTILES) globalpicnum = 0;
-		globalxpanning = 0L;
-		globalypanning = 0L;
+		globalxpanning = 0;
+		globalypanning = 0;
 		globvis = globalvisibility;
 		if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((unsigned char)(sec->visibility+16)));
 		globalshiftval = (picsiz[globalpicnum]>>4);
@@ -3430,7 +3433,7 @@ void drawsprite (int32_t snum)
 							if (dalx2 <= darx2)
 							{
 								if ((dalx2 == xb1[MAXWALLSB-1]) && (darx2 == xb2[MAXWALLSB-1])) return;
-								clearbufbyte((int32_t)&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
+								clearbufbyte((int32_t)&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0);
 							}
 							break;
 						case 1:
@@ -3710,7 +3713,7 @@ void drawsprite (int32_t snum)
 					if (dalx2 <= darx2)
 					{
 						if ((dalx2 == lx) && (darx2 == rx)) return;
-						clearbufbyte((int32_t)&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
+						clearbufbyte((int32_t)&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0);
 					}
 					break;
 				case 1:
@@ -3797,7 +3800,7 @@ void drawsprite (int32_t snum)
 					if (dalx2 <= darx2)
 					{
 						if ((dalx2 == lx) && (darx2 == rx)) return;
-							clearbufbyte((int32_t)&swall[dalx2],(darx2-dalx2+1)*sizeof(swall[0]),0L);
+							clearbufbyte((int32_t)&swall[dalx2],(darx2-dalx2+1)*sizeof(swall[0]),0);
 					}
 					break;
 				case 1:
@@ -4151,10 +4154,10 @@ void ceilspritehline (int32_t x2, int32_t y)
 	asm3 = FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
 
 	if ((globalorientation&2) == 0)
-		mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset);
+		mhline(globalbufplc,bx,(x2-x1)<<16,0,by,ylookup[y]+x1+frameoffset);
 	else
 	{
-		thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset);
+		thline(globalbufplc,bx,(x2-x1)<<16,0,by,ylookup[y]+x1+frameoffset);
 		transarea += (x2-x1);
 	}
 }
@@ -5671,7 +5674,7 @@ void drawline16(int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col)
 		dx--;
 
 		koutpw(0x3ce,0x8+(lmask<<8)); drawpixel(p,readpixel(p)); p++;
-		if (dx > 0) { koutp(0x3cf,0xff); clearbufbyte(p,dx,0L); p += dx; }
+		if (dx > 0) { koutp(0x3cf,0xff); clearbufbyte(p,dx,0); p += dx; }
 		koutp(0x3cf,rmask); drawpixel(p,readpixel(p));
 		return;
 	}
@@ -5728,7 +5731,7 @@ void qsetmode640350()
 
 		koutpw(0x3ce,0x0f00);  //set/reset
 		koutpw(0x3ce,0x0f01);  //enable set/reset
-		fillscreen16(0L,0L,640L*350L);
+		fillscreen16(0,0,640*350);
 	}
 	qsetmode = 350;
 }
@@ -5753,8 +5756,8 @@ void qsetmode640480()
 
 		koutpw(0x3ce,0x0f00);  //set/reset
 		koutpw(0x3ce,0x0f01);  //enable set/reset
-		fillscreen16(0L,8L,640L*144L);
-		fillscreen16((640L*144L)>>3,0L,640L*336L);
+		fillscreen16(0,8,640*144);
+		fillscreen16((640*144)>>3,0,640*336);
 		pageoffset = 92160; ydim16 = 336;
 	}
 
@@ -5764,11 +5767,11 @@ void qsetmode640480()
 void clear2dscreen()
 {
 	if (qsetmode == 350)
-		fillscreen16(pageoffset>>3,0L,640L*350L);
+		fillscreen16(pageoffset>>3,0,640*350);
 	else if (qsetmode == 480)
 	{
-		if (ydim16 <= 336) fillscreen16(pageoffset>>3,0L,640L*336L);
-						  else fillscreen16(pageoffset>>3,0L,640L*480L);
+		if (ydim16 <= 336) fillscreen16(pageoffset>>3,0,640*336);
+						  else fillscreen16(pageoffset>>3,0,640*480);
 	}
 }
 
@@ -6348,10 +6351,10 @@ void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 	windowy2 = y2; wy2 = ((y2+1)<<12);
 
 	xdimen = (x2-x1)+1; halfxdimen = (xdimen>>1);
-	xdimenrecip = divscale32(1L,xdimen);
+	xdimenrecip = divscale32(1,xdimen);
 	ydimen = (y2-y1)+1;
 
-	setaspect(65536L,(int32_t)divscale16(ydim*320L,xdim*200L));
+	setaspect(65536,(int32_t)divscale16(ydim*320,xdim*200));
 
 	for(i=0;i<windowx1;i++) { startumost[i] = 1, startdmost[i] = 0; }
 	for(i=windowx1;i<=windowx2;i++)
@@ -6364,7 +6367,7 @@ void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 	{
 		ostereopixelwidth = stereopixelwidth;
 		xdimen = (windowx2-windowx1+1)+(stereopixelwidth<<1); halfxdimen = (xdimen>>1);
-		xdimenrecip = divscale32(1L,xdimen);
+		xdimenrecip = divscale32(1,xdimen);
 		setaspect((int32_t)divscale16(xdimen,windowx2-windowx1+1),yxaspect);
 	}
 }
@@ -6372,7 +6375,7 @@ void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 void setaspect(int32_t daxrange, int32_t daaspect)
 {
 	viewingrange = daxrange;
-	viewingrangerecip = divscale32(1L,daxrange);
+	viewingrangerecip = divscale32(1,daxrange);
 
 	yxaspect = daaspect;
 	xyaspect = divscale32(1,yxaspect);
@@ -6435,7 +6438,7 @@ void rotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, sig
 		dorotatesprite(sx,sy,z,a,picnum,dashade,dapalnum,dastat,cx1,cy1,cx2,cy2);
 
 	if ((dastat&64) && (cx1 <= 0) && (cy1 <= 0) && (cx2 >= xdim-1) && (cy2 >= ydim-1) &&
-		 (sx == (160<<16)) && (sy == (100<<16)) && (z == 65536L) && (a == 0) && ((dastat&1) == 0))
+		 (sx == (160<<16)) && (sy == (100<<16)) && (z == 65536) && (a == 0) && ((dastat&1) == 0))
 		permhead = permtail = 0;
 
 	if ((dastat&128) == 0) return;
@@ -6592,9 +6595,9 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 	setgotpic(picnum);
 	bufplc = waloff[picnum];
 
-	palookupoffs = FP_OFF(palookup[dapalnum]) + (getpalookup(0L,(int32_t)dashade)<<8);
+	palookupoffs = FP_OFF(palookup[dapalnum]) + (getpalookup(0,(int32_t)dashade)<<8);
 
-	i = divscale32(1L,z);
+	i = divscale32(1,z);
 	xv = mulscale14(sinang,i);
 	yv = mulscale14(cosang,i);
 	if (((dastat&2) != 0) || ((dastat&8) == 0)) //Don't aspect unscaled perms
@@ -6632,7 +6635,7 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 	{
 		if (((a&1023) == 0) && (ysiz <= 256))  //vlineasm4 has 256 high limit!
 		{
-			if (dastat&64) setupvlineasm(24L); else setupmvlineasm(24L);
+			if (dastat&64) setupvlineasm(24); else setupmvlineasm(24);
 			by <<= 8; yv <<= 8; yv2 <<= 8;
 
 			palookupoffse[0] = palookupoffse[1] = palookupoffse[2] = palookupoffse[3] = palookupoffs;
@@ -6726,16 +6729,16 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 				if ((xv2&0x0000ffff) == 0)
 				{
 					qlinemode = 1;
-					setupqrhlineasm4(0L,yv2<<16,(xv2>>16)*ysiz+(yv2>>16),palookupoffs,0L,0L);
+					setupqrhlineasm4(0,yv2<<16,(xv2>>16)*ysiz+(yv2>>16),palookupoffs,0,0);
 				}
 				else
 				{
 					qlinemode = 0;
-					setuprhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*ysiz+(yv2>>16),palookupoffs,ysiz,0L);
+					setuprhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*ysiz+(yv2>>16),palookupoffs,ysiz,0);
 				}
 			}
 			else
-				setuprmhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*ysiz+(yv2>>16),palookupoffs,ysiz,0L);
+				setuprmhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*ysiz+(yv2>>16),palookupoffs,ysiz,0);
 
 			y1 = uplc[x1];
 			if (((dastat&8) == 0) && (startumost[x1] > y1)) y1 = startumost[x1];
@@ -6759,9 +6762,9 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 
 								//x,y1
 							bx += xv*(y1-oy); by += yv*(y1-oy); oy = y1;
-							if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x+frameplace);
-																  else rhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
-															  } else rmhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+							if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,0    ,by<<16,ylookup[y1]+x+frameplace);
+																  else rhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+															  } else rmhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x+frameplace);
 						}
 						y1 = ny1;
 					}
@@ -6773,9 +6776,9 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 
 								//x,y1
 							bx += xv*(y1-oy); by += yv*(y1-oy); oy = y1;
-							if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x+frameplace);
-																  else rhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
-															  } else rmhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+							if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,0    ,by<<16,ylookup[y1]+x+frameplace);
+																  else rhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+															  } else rmhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x+frameplace);
 						}
 						while (y1 > ny1) lastx[y1--] = x;
 					}
@@ -6785,9 +6788,9 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 
 							//x,y2
 						bx += xv*(y2-oy); by += yv*(y2-oy); oy = y2;
-						if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y2],(bx>>16)*ysiz+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y2]+x+frameplace);
-															  else rhlineasm4(x-lastx[y2],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y2]+x+frameplace);
-														  } else rmhlineasm4(x-lastx[y2],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y2]+x+frameplace);
+						if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y2],(bx>>16)*ysiz+(by>>16)+bufplc,0,0    ,by<<16,ylookup[y2]+x+frameplace);
+															  else rhlineasm4(x-lastx[y2],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y2]+x+frameplace);
+														  } else rmhlineasm4(x-lastx[y2],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y2]+x+frameplace);
 					}
 					while (y2 < ny2) lastx[y2++] = x;
 				}
@@ -6799,9 +6802,9 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 
 							//x,y1
 						bx += xv*(y1-oy); by += yv*(y1-oy); oy = y1;
-						if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x+frameplace);
-															  else rhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
-														  } else rmhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+						if (dastat&64) {  if (qlinemode) qrhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,0    ,by<<16,ylookup[y1]+x+frameplace);
+															  else rhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+														  } else rmhlineasm4(x-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x+frameplace);
 					}
 					if (x == x2-1) { bx += xv2; by += yv2; break; }
 					y1 = uplc[x+1];
@@ -6816,9 +6819,9 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 
 					//x2,y1
 				bx += xv*(y1-oy); by += yv*(y1-oy); oy = y1;
-				if (dastat&64) {  if (qlinemode) qrhlineasm4(x2-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x2+frameplace);
-													  else rhlineasm4(x2-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x2+frameplace);
-												  } else rmhlineasm4(x2-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x2+frameplace);
+				if (dastat&64) {  if (qlinemode) qrhlineasm4(x2-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,0    ,by<<16,ylookup[y1]+x2+frameplace);
+													  else rhlineasm4(x2-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x2+frameplace);
+												  } else rmhlineasm4(x2-lastx[y1],(bx>>16)*ysiz+(by>>16)+bufplc,0,bx<<16,by<<16,ylookup[y1]+x2+frameplace);
 			}
 		}
 	}
@@ -6827,13 +6830,13 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 		if ((dastat&1) == 0)
 		{
 			if (dastat&64)
-				setupspritevline(palookupoffs,(xv>>16)*ysiz,xv<<16,ysiz,yv,0L);
+				setupspritevline(palookupoffs,(xv>>16)*ysiz,xv<<16,ysiz,yv,0);
 			else
-				msetupspritevline(palookupoffs,(xv>>16)*ysiz,xv<<16,ysiz,yv,0L);
+				msetupspritevline(palookupoffs,(xv>>16)*ysiz,xv<<16,ysiz,yv,0);
 		}
 		else
 		{
-			tsetupspritevline(palookupoffs,(xv>>16)*ysiz,xv<<16,ysiz,yv,0L);
+			tsetupspritevline(palookupoffs,(xv>>16)*ysiz,xv<<16,ysiz,yv,0);
 			if (dastat&32) settransreverse(); else settransnormal();
 		}
 		for(x=x1;x<x2;x++)
@@ -6861,13 +6864,13 @@ void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short picnum, s
 			if ((dastat&1) == 0)
 			{
 				if (dastat&64)
-					spritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*ysiz+(by>>16)+bufplc,p);
+					spritevline(0,by<<16,y2-y1+1,bx<<16,(bx>>16)*ysiz+(by>>16)+bufplc,p);
 				else
-					mspritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*ysiz+(by>>16)+bufplc,p);
+					mspritevline(0,by<<16,y2-y1+1,bx<<16,(bx>>16)*ysiz+(by>>16)+bufplc,p);
 			}
 			else
 			{
-				tspritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*ysiz+(by>>16)+bufplc,p);
+				tspritevline(0,by<<16,y2-y1+1,bx<<16,(bx>>16)*ysiz+(by>>16)+bufplc,p);
 				transarea += (y2-y1);
 			}
 			faketimerhandler();
@@ -7003,8 +7006,8 @@ void initfastcolorlookup(int32_t rscale, int32_t gscale, int32_t bscale)
 		j += 129-(i<<1);
 	}
 
-	clearbufbyte(FP_OFF(colhere),sizeof(colhere),0L);
-	clearbufbyte(FP_OFF(colhead),sizeof(colhead),0L);
+	clearbufbyte(FP_OFF(colhere),sizeof(colhere),0);
+	clearbufbyte(FP_OFF(colhead),sizeof(colhead),0);
 
 	pal1 = (char *)&palette[768-3];
 	for(i=255;i>=0;i--,pal1-=3)
@@ -7117,7 +7120,7 @@ void drawmapview (int32_t dax, int32_t day, int32_t zoome, short ang)
 	beforedrawrooms = 0;
 	totalarea += (windowx2+1-windowx1)*(windowy2+1-windowy1);
 
-	clearbuf((int32_t)(&gotsector[0]),(int32_t)((numsectors+31)>>5),0L);
+	clearbuf((int32_t)(&gotsector[0]),(int32_t)((numsectors+31)>>5),0);
 
 	cx1 = (windowx1<<16); cy1 = (windowy1<<16);
 	cx2 = ((windowx2+1)<<16)-1; cy2 = ((windowy2+1)<<16)-1;
@@ -7637,7 +7640,7 @@ void fillpolygon(int32_t npoints)
 				by = ox*asm2 - globalposy;
 
 				p = ylookup[y]+x2+frameplace;
-				hlineasm4(x2-x1,-1L,globalshade<<8,by,bx,p);
+				hlineasm4(x2-x1,-1,globalshade<<8,by,bx,p);
 			}
 			else
 			{
@@ -7648,10 +7651,10 @@ void fillpolygon(int32_t npoints)
 
 				p = ylookup[y]+x1+frameplace;
 				if (globalpolytype == 1)
-					mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p);
+					mhline(globalbufplc,bx,(x2-x1)<<16,0,by,p);
 				else
 				{
-					thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p);
+					thline(globalbufplc,bx,(x2-x1)<<16,0,by,p);
 					transarea += (x2-x1);
 				}
 			}
@@ -7703,14 +7706,14 @@ void clearallviews(int32_t dacol)
 			for(i=0;i<numpages;i++)
 			{
 				setactivepage(i);
-				clearbufbyte(frameplace,imageSize,0L);
+				clearbufbyte(frameplace,imageSize,0);
 			}
 			setactivepage(activepage);
 		case 2:
-			clearbuf(frameplace,(xdim*ydim)>>2,0L);
+			clearbuf(frameplace,(xdim*ydim)>>2,0);
 			break;
 		case 6:
-			clearbuf(screen,128000L>>2,dacol);
+			clearbuf(screen,128000>>2,dacol);
 			break;
 	}
 	faketimerhandler();
@@ -7968,7 +7971,7 @@ int32_t owallmost(short *mostbuf, int32_t w, int32_t z)
 
 	if ((bad&3) == 3)
 	{
-		clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),0L);
+		clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),0);
 		return(bad);
 	}
 
@@ -7987,12 +7990,12 @@ int32_t owallmost(short *mostbuf, int32_t w, int32_t z)
 		if ((bad&3) == 2)
 		{
 			if (xb1[w] <= xcross) { iy2 = inty; ix2 = xcross; }
-			clearbufbyte(&mostbuf[xcross+1],(xb2[w]-xcross)*sizeof(mostbuf[0]),0L);
+			clearbufbyte(&mostbuf[xcross+1],(xb2[w]-xcross)*sizeof(mostbuf[0]),0);
 		}
 		else
 		{
 			if (xcross <= xb2[w]) { iy1 = inty; ix1 = xcross; }
-			clearbufbyte(&mostbuf[xb1[w]],(xcross-xb1[w]+1)*sizeof(mostbuf[0]),0L);
+			clearbufbyte(&mostbuf[xb1[w]],(xcross-xb1[w]+1)*sizeof(mostbuf[0]),0);
 		}
 	}
 
@@ -8104,7 +8107,7 @@ int32_t wallmost(short *mostbuf, int32_t w, int32_t sectnum, char dastat)
 
 	if ((bad&3) == 3)
 	{
-		clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),0L);
+		clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),0);
 		return(bad);
 	}
 
@@ -8129,12 +8132,12 @@ int32_t wallmost(short *mostbuf, int32_t w, int32_t sectnum, char dastat)
 		if ((bad&3) == 2)
 		{
 			if (xb1[w] <= xcross) { z2 = intz; iy2 = inty; ix2 = xcross; }
-			clearbufbyte(&mostbuf[xcross+1],(xb2[w]-xcross)*sizeof(mostbuf[0]),0L);
+			clearbufbyte(&mostbuf[xcross+1],(xb2[w]-xcross)*sizeof(mostbuf[0]),0);
 		}
 		else
 		{
 			if (xcross <= xb2[w]) { z1 = intz; iy1 = inty; ix1 = xcross; }
-			clearbufbyte(&mostbuf[xb1[w]],(xcross-xb1[w]+1)*sizeof(mostbuf[0]),0L);
+			clearbufbyte(&mostbuf[xb1[w]],(xcross-xb1[w]+1)*sizeof(mostbuf[0]),0);
 		}
 	}
 
@@ -8350,7 +8353,7 @@ void parascan (int32_t dax1, int32_t dax2, int32_t sectnum, char dastat, int32_t
 	if (parallaxyscale != 65536)
 		globalhoriz = mulscale16(globalhoriz-(ydimen>>1),parallaxyscale) + (ydimen>>1);
 	globvis = globalpisibility;
-	//globalorientation = 0L;
+	//globalorientation = 0;
 	if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((unsigned char)(sec->visibility+16)));
 
 	if (dastat == 0)
