@@ -27,7 +27,7 @@
 	#define EXTERN extern
 #endif
 
-#pragma pack(push,1);
+#pragma pack(push,1)
 
 //ceilingstat/floorstat:
 //   bit 0: 1 = parallaxing, 0 = not                                 "P"
@@ -48,7 +48,7 @@
 typedef struct
 {
 	short wallptr, wallnum;
-	long ceilingz, floorz;
+	int32_t ceilingz, floorz;
 	short ceilingstat, floorstat;
 	short ceilingpicnum, ceilingheinum;
 	signed char ceilingshade;
@@ -76,7 +76,7 @@ typedef struct
 	//32 bytes
 typedef struct
 {
-	long x, y;
+	int32_t x, y;
 	short point2, nextwall, nextsector, cstat;
 	short picnum, overpicnum;
 	signed char shade;
@@ -102,7 +102,7 @@ typedef struct
 	//44 bytes
 typedef struct
 {
-	long x, y, z;
+	int32_t x, y, z;
 	short cstat, picnum;
 	signed char shade;
 	char pal, clipdist, filler;
@@ -113,35 +113,35 @@ typedef struct
 	short lotag, hitag, extra;
 } spritetype;
 
-#pragma pack(pop);
+#pragma pack(pop)
 
 EXTERN sectortype sector[MAXSECTORS];
 EXTERN walltype wall[MAXWALLS];
 EXTERN spritetype sprite[MAXSPRITES];
 
-EXTERN long spritesortcnt;
+EXTERN int32_t spritesortcnt;
 EXTERN spritetype tsprite[MAXSPRITESONSCREEN];
 
 EXTERN char vidoption;
-EXTERN long xdim, ydim, ylookup[MAXYDIM+1], numpages;
-EXTERN long yxaspect, viewingrange;
+EXTERN int32_t xdim, ydim, ylookup[MAXYDIM+1], numpages;
+EXTERN int32_t yxaspect, viewingrange;
 
-EXTERN long validmodecnt;
+EXTERN int32_t validmodecnt;
 EXTERN short validmode[256];
-EXTERN long validmodexdim[256], validmodeydim[256];
+EXTERN int32_t validmodexdim[256], validmodeydim[256];
 
 EXTERN short numsectors, numwalls;
-EXTERN volatile long totalclock;
-EXTERN long numframes, randomseed;
+EXTERN volatile int32_t totalclock;
+EXTERN int32_t numframes, randomseed;
 EXTERN short sintable[2048];
 EXTERN char palette[768];
 EXTERN short numpalookups;
 EXTERN char *palookup[MAXPALOOKUPS];
 EXTERN char parallaxtype, showinvisibility;
-EXTERN long parallaxyoffs, parallaxyscale;
-EXTERN long visibility, parallaxvisibility;
+EXTERN int32_t parallaxyoffs, parallaxyscale;
+EXTERN int32_t visibility, parallaxvisibility;
 
-EXTERN long windowx1, windowy1, windowx2, windowy2;
+EXTERN int32_t windowx1, windowy1, windowx2, windowy2;
 EXTERN short startumost[MAXXDIM], startdmost[MAXXDIM];
 
 EXTERN short pskyoff[MAXPSKYTILES], pskybits;
@@ -152,7 +152,7 @@ EXTERN short nextspritesect[MAXSPRITES], nextspritestat[MAXSPRITES];
 
 EXTERN short tilesizx[MAXTILES], tilesizy[MAXTILES];
 EXTERN char walock[MAXTILES];
-EXTERN long numtiles, picanm[MAXTILES], waloff[MAXTILES];
+EXTERN int32_t numtiles, picanm[MAXTILES], waloff[MAXTILES];
 
 	//These variables are for auto-mapping with the draw2dscreen function.
 	//When you load a new board, these bits are all set to 0 - since

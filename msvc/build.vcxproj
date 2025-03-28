@@ -129,6 +129,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\source\build\CACHE1D.C" />
+    <ClCompile Include="..\source\build\ENGINE.C" />
+    <ClCompile Include="..\source\build\video.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\build\cache1d.h" />
+    <ClInclude Include="..\source\build\compat.h" />
+    <ClInclude Include="..\source\build\video.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
