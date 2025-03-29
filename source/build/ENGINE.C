@@ -3209,7 +3209,7 @@ void drawsprite (int32_t snum)
 			globalzd = (((globalposz-z2)*globalyscale)<<8);
 		}
 
-		qinterpolatedown16((int32_t)&lwall[lx],rx-lx+1,linum,linuminc);
+		qinterpolatedown16((intptr_t)&lwall[lx],rx-lx+1,linum,linuminc);
 		clearbuf((int32_t)&swall[lx],rx-lx+1,mulscale19(yp,xdimscale));
 
 		if ((cstat&2) == 0)

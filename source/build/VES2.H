@@ -83,7 +83,7 @@ int setvesa(int32_t x, int32_t y)
 		if (modes[id].xdim != x) continue;
 		if (modes[id].ydim != y) continue;
 
-		Video_Set(xres, yres);
+		Video_Set(1, xres, yres);
 
 		bytesperline = video_row_stride;
 		maxpages = video_pages;
