@@ -1,13 +1,10 @@
 #include <malloc.h>
-#include <conio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <dos.h>
 #include <fcntl.h>
 #include <io.h>
-#include <sys\types.h>
-#include <sys\stat.h>
+#include "compat.h"
 
 #define NUMCHANNELS 16
 #define MAXWAVES 256
@@ -16,74 +13,74 @@
 #define MAXEFFECTS 16
 
 	//Actual sound parameters after initsb was called
-long samplerate, numspeakers, bytespersample, intspersec, kdmqual;
+int32_t samplerate, numspeakers, bytespersample, intspersec, kdmqual;
 
 	//KWV wave variables
-long numwaves;
+int32_t numwaves;
 char instname[MAXWAVES][16];
-long wavleng[MAXWAVES];
-long repstart[MAXWAVES], repleng[MAXWAVES];
-long finetune[MAXWAVES];
+int32_t wavleng[MAXWAVES];
+int32_t repstart[MAXWAVES], repleng[MAXWAVES];
+int32_t finetune[MAXWAVES];
 
 	//Other useful wave variables
-long totsndbytes, totsndmem, wavoffs[MAXWAVES];
+int32_t totsndbytes, totsndmem, wavoffs[MAXWAVES];
 
 	//Effects array
-long eff[MAXEFFECTS][256];
+int32_t eff[MAXEFFECTS][256];
 
 	//KDM song variables:
-long kdmversionum, numnotes, numtracks;
+int32_t kdmversionum, numnotes, numtracks;
 char trinst[MAXTRACKS], trquant[MAXTRACKS];
 char trvol1[MAXTRACKS], trvol2[MAXTRACKS];
-long nttime[MAXNOTES];
+int32_t nttime[MAXNOTES];
 char nttrack[MAXNOTES], ntfreq[MAXNOTES];
 char ntvol1[MAXNOTES], ntvol2[MAXNOTES];
 char ntfrqeff[MAXNOTES], ntvoleff[MAXNOTES], ntpaneff[MAXNOTES];
 
 	//Other useful song variables:
-long timecount, notecnt, musicstatus, musicrepeat;
+int32_t timecount, notecnt, musicstatus, musicrepeat;
 
-long kdmasm1, kdmasm2, kdmasm3, kdmasm4;
+int32_t kdmasm1, kdmasm2, kdmasm3, kdmasm4;
 
 static char digistat = 0, musistat = 0;
 
 char *snd = NULL, kwvname[20] = {""};
 
 #define MAXBYTESPERTIC 1024+128
-static long stemp[MAXBYTESPERTIC];
+static int32_t stemp[MAXBYTESPERTIC];
 
 	//Sound reading information
-long splc[NUMCHANNELS], sinc[NUMCHANNELS], soff[NUMCHANNELS];
-long svol1[NUMCHANNELS], svol2[NUMCHANNELS];
-long volookup[NUMCHANNELS<<9];
-long swavenum[NUMCHANNELS];
-long frqeff[NUMCHANNELS], frqoff[NUMCHANNELS];
-long voleff[NUMCHANNELS], voloff[NUMCHANNELS];
-long paneff[NUMCHANNELS], panoff[NUMCHANNELS];
+int32_t splc[NUMCHANNELS], sinc[NUMCHANNELS], soff[NUMCHANNELS];
+int32_t svol1[NUMCHANNELS], svol2[NUMCHANNELS];
+int32_t volookup[NUMCHANNELS<<9];
+int32_t swavenum[NUMCHANNELS];
+int32_t frqeff[NUMCHANNELS], frqoff[NUMCHANNELS];
+int32_t voleff[NUMCHANNELS], voloff[NUMCHANNELS];
+int32_t paneff[NUMCHANNELS], panoff[NUMCHANNELS];
 
-static long globposx, globposy, globxvect, globyvect;
-static long xplc[NUMCHANNELS], yplc[NUMCHANNELS], vol[NUMCHANNELS];
-static long vdist[NUMCHANNELS], sincoffs[NUMCHANNELS];
+static int32_t globposx, globposy, globxvect, globyvect;
+static int32_t xplc[NUMCHANNELS], yplc[NUMCHANNELS], vol[NUMCHANNELS];
+static int32_t vdist[NUMCHANNELS], sincoffs[NUMCHANNELS];
 static char chanstat[NUMCHANNELS];
 
-long frqtable[256];
+int32_t frqtable[256];
 
-static long mixerval = 0;
+static int32_t mixerval = 0;
 
-static long kdminprep = 0, kdmintinprep = 0;
-static long dmacheckport, dmachecksiz;
+static int32_t kdminprep = 0, kdmintinprep = 0;
+static int32_t dmacheckport, dmachecksiz;
 
-void (__interrupt __far *oldsbhandler)();
-void __interrupt __far sbhandler(void);
+//void (__interrupt __far *oldsbhandler)();
+//void __interrupt __far sbhandler(void);
 
-long samplediv, oldtimerfreq, chainbackcnt, chainbackstart;
+int32_t samplediv, oldtimerfreq, chainbackcnt, chainbackstart;
 char *pcsndptr, pcsndlookup[256], bufferside;
-long samplecount, pcsndbufsiz, pcrealmodeint;
+int32_t samplecount, pcsndbufsiz, pcrealmodeint;
 static short kdmvect = 0x8;
 static unsigned short kdmpsel, kdmrseg, kdmroff;
-static unsigned long kdmpoff;
+static uint32_t kdmpoff;
 
-void (__interrupt __far *oldpctimerhandler)();
+//void (__interrupt __far *oldpctimerhandler)();
 #define KDMCODEBYTES 256
 static char pcrealbuffer[KDMCODEBYTES] =        //See pckdm.asm
 {
@@ -92,292 +89,133 @@ static char pcrealbuffer[KDMCODEBYTES] =        //See pckdm.asm
 };
 
 	//Sound interrupt information
-long sbport = 0x220, sbirq = 0x7, sbdma8 = 0x1, sbdma16 = 0x1;
+int32_t sbport = 0x220, sbirq = 0x7, sbdma8 = 0x1, sbdma16 = 0x1;
 char dmapagenum[8] = {0x87,0x83,0x81,0x82,0x8f,0x8b,0x89,0x8a};
-long sbdma, sbver;
+int32_t sbdma, sbver;
 unsigned short sndselector;
-volatile long sndoffs, sndoffsplc, sndoffsxor, sndplc, sndend;
-static long bytespertic, sndbufsiz;
+volatile int32_t sndoffs, sndoffsplc, sndoffsxor, sndplc, sndend;
+static int32_t bytespertic, sndbufsiz;
 
 char qualookup[512*16];
-long ramplookup[64];
+int32_t ramplookup[64];
 
 unsigned short sndseg = 0;
 
-extern long monolocomb(long,long,long,long,long,long);
-#pragma aux monolocomb parm [eax][ebx][ecx][edx][esi][edi];
-extern long monohicomb(long,long,long,long,long,long);
-#pragma aux monohicomb parm [eax][ebx][ecx][edx][esi][edi];
-extern long stereolocomb(long,long,long,long,long,long);
-#pragma aux stereolocomb parm [eax][ebx][ecx][edx][esi][edi];
-extern long stereohicomb(long,long,long,long,long,long);
-#pragma aux stereohicomb parm [eax][ebx][ecx][edx][esi][edi];
-extern long setuppctimerhandler(long,long,long,long,long,long);
-#pragma aux setuppctimerhandler parm [eax][ebx][ecx][edx][esi][edi];
-extern void interrupt pctimerhandler();
-extern long pcbound2char(long,long,long);
-#pragma aux pcbound2char parm [ecx][esi][edi];
-extern long bound2char(long,long,long);
-#pragma aux bound2char parm [ecx][esi][edi];
-extern long bound2short(long,long,long);
-#pragma aux bound2short parm [ecx][esi][edi];
+extern int32_t monolocomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern int32_t monohicomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern int32_t stereolocomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern int32_t stereohicomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern int32_t setuppctimerhandler(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern int32_t pcbound2char(int32_t,int32_t,int32_t);
+extern int32_t bound2char(int32_t,int32_t,int32_t);
+extern int32_t bound2short(int32_t,int32_t,int32_t);
 
-static long oneshr10 = 0x3a800000, oneshl14 = 0x46800000;
-#pragma aux fsin =\
-	"fldpi",\
-	"fimul dword ptr [eax]",\
-	"fmul dword ptr [oneshr10]",\
-	"fsin",\
-	"fmul dword ptr [oneshl14]",\
-	"fistp dword ptr [eax]",\
-	parm [eax]\
+//static int32_t oneshr10 = 0x3a800000, oneshl14 = 0x46800000;
 
-#pragma aux convallocate =\
-	"mov ax, 0x100",\
-	"int 0x31",\
-	"jnc nocarry",\
-	"mov ax, 0",\
-	"nocarry: mov sndselector, dx",\
-	parm [bx]\
-	modify [eax edx]\
+#define _USE_MATH_DEFINES
+#include <math.h>
 
-#pragma aux convdeallocate =\
-	"mov ax, 0x101",\
-	"mov dx, sndselector",\
-	"int 0x31",\
-	parm [dx]\
-	modify [eax edx]\
-
-#pragma aux resetsb =\
-	"mov edx, sbport",\
-	"add edx, 0x6",\
-	"mov al, 1",\
-	"out dx, al",\
-	"xor al, al",\
-	"delayreset: dec al",\
-	"jnz delayreset",\
-	"out dx, al",\
-	"mov ecx, 65536",\
-	"empty: mov edx, sbport",\
-	"add edx, 0xe",\
-	"in al, dx",\
-	"test al, al",\
-	"jns nextattempt",\
-	"sub dl, 4",\
-	"in al, dx",\
-	"cmp al, 0aah",\
-	"je resetok",\
-	"dec ecx",\
-	"nextattempt: jnz empty",\
-	"mov eax, -1",\
-	"jmp resetend",\
-	"resetok: xor eax, eax",\
-	"resetend:",\
-	modify [ebx ecx edx]\
-
-#pragma aux sbin =\
-	"xor eax, eax",\
-	"mov dx, word ptr sbport[0]",\
-	"add dl, 0xe",\
-	"busy: in al, dx",\
-	"or al, al",\
-	"jns busy",\
-	"sub dl, 4",\
-	"in al, dx",\
-	modify [edx]\
-
-#pragma aux sbout =\
-	"mov dx, word ptr sbport[0]",\
-	"add dl, 0xc",\
-	"mov ah, al",\
-	"busy: in al, dx",\
-	"or al, al",\
-	"js busy",\
-	"mov al, ah",\
-	"out dx, al",\
-	parm [eax]\
-	modify [edx]\
-
-#pragma aux sbmixin =\
-	"mov dx, word ptr sbport[0]",\
-	"add dl, 0x4",\
-	"out dx, al",\
-	"inc dx",\
-	"xor eax, eax",\
-	"in al, dx",\
-	parm [eax]\
-	modify [edx]\
-
-#pragma aux sbmixout =\
-	"mov dx, word ptr sbport[0]",\
-	"add dl, 0x4",\
-	"out dx, al",\
-	"inc dx",\
-	"mov al, bl",\
-	"out dx, al",\
-	parm [eax][ebx]\
-	modify [edx]\
-
-#pragma aux findpas =\
-	"mov eax, 0x0000bc00",\
-	"mov ebx, 0x00003f3f",\
-	"int 0x2f",\
-	"xor bx, cx",\
-	"xor bx, dx",\
-	"cmp bx, 0x4d56",\
-	"stc",\
-	"jne nopasfound",\
-	"mov eax, 0x0000bc04",\
-	"int 0x2f",\
-	"mov edx, 0x0000ffff",\
-	"and ebx, edx",\
-	"and ecx, edx",\
-	"mov sbdma, ebx",\
-	"mov sbirq, ecx",\
-	"clc",\
-	"nopasfound:",\
-	"sbb eax, eax",\
-	modify [eax ebx ecx edx]\
-
-#pragma aux calcvolookupmono =\
-	"mov ecx, 64",\
-	"lea edx, [eax+ebx]",\
-	"add ebx, ebx",\
-	"begit: mov dword ptr [edi], eax",\
-	"mov dword ptr [edi+4], edx",\
-	"add eax, ebx",\
-	"add edx, ebx",\
-	"mov dword ptr [edi+8], eax",\
-	"mov dword ptr [edi+12], edx",\
-	"add eax, ebx",\
-	"add edx, ebx",\
-	"add edi, 16",\
-	"dec ecx",\
-	"jnz begit",\
-	parm [edi][eax][ebx]\
-	modify [ecx edx]\
-
-#pragma aux calcvolookupstereo =\
-	"mov esi, 128",\
-	"begit: mov dword ptr [edi], eax",\
-	"mov dword ptr [edi+4], ecx",\
-	"add eax, ebx",\
-	"add ecx, edx",\
-	"mov dword ptr [edi+8], eax",\
-	"mov dword ptr [edi+12], ecx",\
-	"add eax, ebx",\
-	"add ecx, edx",\
-	"add edi, 16",\
-	"dec esi",\
-	"jnz begit",\
-	parm [edi][eax][ebx][ecx][edx]\
-	modify [esi]\
-
-#pragma aux gettimerval =\
-	"xor eax, eax",\
-	"xor ebx, ebx",\
-	"mov ecx, 65536",\
-	"xor edx, edx",\
-	"loopit: mov al, 0x4",\
-	"out 0x43, al",\
-	"in al, 0x40",\
-	"mov dl, al",\
-	"in al, 0x40",\
-	"mov dh, al",\
-	"cmp ebx, edx",\
-	"dec ecx",\
-	"ja loopit",\
-	"jz endit",\
-	"mov ebx, edx",\
-	"jmp loopit",\
-	"endit: mov eax, ebx",\
-	modify [eax ebx ecx edx]\
-
-#pragma aux klabs =\
-	"test eax, eax",\
-	"jns skipnegate",\
-	"neg eax",\
-	"skipnegate:",\
-	parm [eax]\
-
-#pragma aux mulscale16 =\
-	"imul ebx",\
-	"shrd eax, edx, 16",\
-	parm nomemory [eax][ebx]\
-	modify exact [eax edx]\
-
-#pragma aux mulscale24 =\
-	"imul ebx",\
-	"shrd eax, edx, 24",\
-	parm nomemory [eax][ebx]\
-	modify exact [eax edx]\
-
-#pragma aux mulscale30 =\
-	"imul ebx",\
-	"shrd eax, edx, 30",\
-	parm nomemory [eax][ebx]\
-	modify exact [eax edx]\
-
-#pragma aux dmulscale28 =\
-	"imul edx",\
-	"mov ebx, eax",\
-	"mov eax, esi",\
-	"mov esi, edx",\
-	"imul edi",\
-	"add eax, ebx",\
-	"adc edx, esi",\
-	"shrd eax, edx, 28",\
-	parm nomemory [eax][edx][esi][edi]\
-	modify exact [eax ebx edx esi]\
-
-#pragma aux clearbuf =\
-	"snot: mov dword ptr [edi], eax",\
-	"add edi, 4",\
-	"loop snot",\
-	parm [edi][ecx][eax]\
-
-#pragma aux copybuf =\
-	"snot: mov eax, dword ptr [esi]",\
-	"mov dword ptr [edi], eax",\
-	"add esi, 4",\
-	"add edi, 4",\
-	"loop snot",\
-	parm [esi][edi][ecx]\
-	modify [eax]\
-
-#pragma aux koutp =\
-	"out dx, al",\
-	parm [edx][eax]\
-
-#pragma aux koutpw =\
-	"out dx, ax",\
-	parm [edx][eax]\
-
-#pragma aux kinp =\
-	"xor eax, eax",\
-	"in al, dx",\
-	parm [edx]\
-
-#pragma aux msqrtasm =\
-	"mov eax, 0x40000000",\
-	"mov ebx, 0x20000000",\
-	"begit: cmp ecx, eax",\
-	"jl skip",\
-	"sub ecx, eax",\
-	"lea eax, [eax+ebx*4]",\
-	"skip: sub eax, ebx",\
-	"shr eax, 1",\
-	"shr ebx, 2",\
-	"jnz begit",\
-	"cmp ecx, eax",\
-	"sbb eax, -1",\
-	"shr eax, 1",\
-	parm nomemory [ecx]\
-	modify exact [eax ebx ecx]\
-
-initsb(char dadigistat, char damusistat, long dasamplerate, char danumspeakers, char dabytespersample, char daintspersec, char daquality)
+static inline void fsin(int32_t *a)
 {
-	long i, j, k;
+	double f = sin(M_PI * (double)*a * (1/1024.0)) * 16384.0;
+	*a = (int32_t)f;
+}
+
+static inline void calcvolookupmono(int32_t* ptr, int32_t a, int32_t b)
+{
+	for (int i = 0; i < 256; i++)
+	{
+		ptr[i] = a;
+		a += b;
+	}
+}
+
+static inline void calcvolookupstereo(int32_t* ptr, int32_t a, int32_t b, int32_t c, int32_t d)
+{
+	for (int i = 0; i < 512; i += 2)
+	{
+		ptr[i+0] = a;
+		ptr[i+1] = c;
+		a += b;
+		c += d;
+	}
+}
+
+static inline int32_t klabs(int32_t a)
+{
+	if (a < 0)
+		return -a;
+	return a;
+}
+
+static inline int32_t mulscale16(int32_t eax, int32_t edx)
+{
+	int64_t m = (int64_t)eax * (int64_t)edx;
+	return (int32_t)(m >> 16);
+}
+
+static inline int32_t mulscale24(int32_t eax, int32_t edx)
+{
+	int64_t m = (int64_t)eax * (int64_t)edx;
+	return (int32_t)(m >> 24);
+}
+
+static inline int32_t mulscale30(int32_t eax, int32_t edx)
+{
+	int64_t m = (int64_t)eax * (int64_t)edx;
+	return (int32_t)(m >> 30);
+}
+
+static inline int32_t dmulscale28(int32_t eax, int32_t edx, int32_t esi, int32_t edi)
+{
+	int64_t m = (int64_t)eax * (int64_t)edx;
+	m += (int64_t)esi * (int64_t)edi;
+	return (int32_t)(m >> 28);
+}
+
+static inline void clearbuf(char *ptr, uint32_t cnt, uint32_t val)
+{
+	while (cnt--)
+	{
+		*(uint32_t*)ptr = val;
+		ptr += 4;
+	}
+}
+
+static inline void copybuf(char* src, char* dst, uint32_t cnt)
+{
+	while (cnt--)
+	{
+		*(uint32_t*)dst = *(uint32_t*)src;
+		dst += 4;
+		src += 4;
+	}
+}
+
+static uint32_t msqrtasm(uint32_t ecx)
+{
+	uint32_t eax = 0x40000000;
+	uint32_t ebx = 0x20000000;
+	do
+	{
+		if ((int32_t)ecx >= (int32_t)eax)
+		{
+			ecx -= 0x40000000;
+			eax += ebx * 4;
+		}
+		eax -= ebx;
+		eax >>= 1;
+		ebx >>= 2;
+	} while (ebx != 0);
+	if ((int32_t)ecx >= (int32_t)eax)
+		eax++;
+	eax >>= 1;
+	return eax;
+}
+
+void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumspeakers, char dabytespersample, char daintspersec, char daquality)
+{
+	int32_t i, j, k;
 
 	digistat = dadigistat;
 	musistat = damusistat;
@@ -423,8 +261,8 @@ initsb(char dadigistat, char damusistat, long dasamplerate, char danumspeakers, 
 
 			break;
 		case 2:
-			findpas();        // If == -1 then print not found & quit
-			koutp(0xf8a,128);
+			//findpas();        // If == -1 then print not found & quit
+			//koutp(0xf8a,128);
 			break;
 		case 13:
 			if (numspeakers == 2) numspeakers = 1;
@@ -442,7 +280,7 @@ initsb(char dadigistat, char damusistat, long dasamplerate, char danumspeakers, 
 			printf("Could not allocation conventional memory for digitized music\n");
 			exit(0);
 		}
-		sndoffs = (((long)sndseg)<<4);
+		sndoffs = (((int32_t)sndseg)<<4);
 
 		if ((sndoffs&65535)+(sndbufsiz<<(bytespersample+numspeakers-1)) >= 65536)   //64K DMA page check
 			sndoffs += (sndbufsiz<<(bytespersample+numspeakers-1));
@@ -662,7 +500,7 @@ initsb(char dadigistat, char damusistat, long dasamplerate, char danumspeakers, 
 getsbset()
 {
 	char *sbset;
-	long i;
+	int32_t i;
 
 	sbset = getenv("BLASTER");
 
@@ -802,9 +640,9 @@ uninitsb()
 	}
 }
 
-startwave(long wavnum, long dafreq, long davolume1, long davolume2, long dafrqeff, long davoleff, long dapaneff)
+startwave(int32_t wavnum, int32_t dafreq, int32_t davolume1, int32_t davolume2, int32_t dafrqeff, int32_t davoleff, int32_t dapaneff)
 {
-	long i, j, chanum;
+	int32_t i, j, chanum;
 
 	if ((davolume1|davolume2) == 0) return;
 
@@ -832,7 +670,7 @@ startwave(long wavnum, long dafreq, long davolume1, long davolume2, long dafrqef
 	chanstat[chanum] = 0; sincoffs[chanum] = 0;
 }
 
-setears(long daposx, long daposy, long daxvect, long dayvect)
+setears(int32_t daposx, int32_t daposy, int32_t daxvect, int32_t dayvect)
 {
 	globposx = daposx;
 	globposy = daposy;
@@ -840,10 +678,10 @@ setears(long daposx, long daposy, long daxvect, long dayvect)
 	globyvect = dayvect;
 }
 
-wsayfollow(char *dafilename, long dafreq, long davol, long *daxplc, long *dayplc, char followstat)
+wsayfollow(char *dafilename, int32_t dafreq, int32_t davol, int32_t *daxplc, int32_t *dayplc, char followstat)
 {
 	char ch1, ch2, bad;
-	long i, wavnum, chanum;
+	int32_t i, wavnum, chanum;
 
 	if (digistat == 0) return;
 	if (davol <= 0) return;
@@ -874,8 +712,8 @@ wsayfollow(char *dafilename, long dafreq, long davol, long *daxplc, long *dayplc
 		}
 		else
 		{
-			xplc[chanum] = ((long)daxplc);
-			yplc[chanum] = ((long)dayplc);
+			xplc[chanum] = ((int32_t)daxplc);
+			yplc[chanum] = ((int32_t)dayplc);
 		}
 		vol[chanum] = davol;
 		vdist[chanum] = 0;
@@ -894,7 +732,7 @@ wsayfollow(char *dafilename, long dafreq, long davol, long *daxplc, long *dayplc
 	}
 }
 
-getsndbufinfo(long *dasndoffsplc, long *dasndbufsiz)
+getsndbufinfo(int32_t *dasndoffsplc, int32_t *dasndbufsiz)
 {
 	*dasndoffsplc = sndoffsplc;
 	*dasndbufsiz = (sndbufsiz<<(bytespersample+numspeakers-2));
@@ -902,9 +740,9 @@ getsndbufinfo(long *dasndoffsplc, long *dasndbufsiz)
 
 preparesndbuf()
 {
-	long i, j, k, voloffs1, voloffs2, *stempptr;
-	long daswave, dasinc, dacnt;
-	long ox, oy, x, y;
+	int32_t i, j, k, voloffs1, voloffs2, *stempptr;
+	int32_t daswave, dasinc, dacnt;
+	int32_t ox, oy, x, y;
 	char *sndptr, v1, v2;
 
 	kdmintinprep++;
@@ -935,8 +773,8 @@ preparesndbuf()
 				}
 				else
 				{
-					stempptr = (long *)xplc[i]; ox = *stempptr;
-					stempptr = (long *)yplc[i]; oy = *stempptr;
+					stempptr = (int32_t *)xplc[i]; ox = *stempptr;
+					stempptr = (int32_t *)yplc[i]; oy = *stempptr;
 				}
 				ox -= globposx; oy -= globposy;
 				x = dmulscale28(oy,globxvect,-ox,globyvect);
@@ -1101,10 +939,10 @@ preparesndbuf()
 	kdminprep = 0;
 }
 
-wsay(char *dafilename, long dafreq, long volume1, long volume2)
+wsay(char *dafilename, int32_t dafreq, int32_t volume1, int32_t volume2)
 {
 	unsigned char ch1, ch2;
-	long i, j, bad;
+	int32_t i, j, bad;
 
 	if (digistat == 0) return;
 
@@ -1133,7 +971,7 @@ wsay(char *dafilename, long dafreq, long volume1, long volume2)
 
 loadwaves(char *wavename)
 {
-	long fil, i, j, dawaversionum;
+	int32_t fil, i, j, dawaversionum;
 	char filename[80];
 
 	strcpy(filename,wavename);
@@ -1199,7 +1037,7 @@ loadwaves(char *wavename)
 
 loadsong(char *filename)
 {
-	long i, fil;
+	int32_t i, fil;
 
 	if (musistat != 1) return(0);
 	musicoff();
@@ -1244,7 +1082,7 @@ musicon()
 
 musicoff()
 {
-	long i;
+	int32_t i;
 
 	musicstatus = 0;
 	for(i=0;i<NUMCHANNELS;i++)
@@ -1254,7 +1092,7 @@ musicoff()
 	notecnt = 0;
 }
 
-kdmconvalloc32 (long size)
+kdmconvalloc32 (int32_t size)
 {
 	union REGS r;
 
@@ -1263,15 +1101,15 @@ kdmconvalloc32 (long size)
 	int386(0x31,&r,&r);
 
 	if (r.x.cflag != 0)         //Failed
-		return ((long)0);
-	return ((long)((r.x.eax&0xffff)<<4));   //Returns full 32-bit offset
+		return ((int32_t)0);
+	return ((int32_t)((r.x.eax&0xffff)<<4));   //Returns full 32-bit offset
 }
 
 installbikdmhandlers()
 {
 	union REGS r;
 	struct SREGS sr;
-	long lowp;
+	int32_t lowp;
 	void far *fh;
 
 		//Get old protected mode handler
@@ -1328,7 +1166,7 @@ uninstallbikdmhandlers()
 		//restore old real mode handler
 	r.x.eax = 0x0201;   /* DPMI set real mode vector */
 	r.h.bl = kdmvect;
-	r.x.ecx = (unsigned long)kdmrseg;     //CX:DX == real mode &handler
-	r.x.edx = (unsigned long)kdmroff;
+	r.x.ecx = (uint32_t)kdmrseg;     //CX:DX == real mode &handler
+	r.x.edx = (uint32_t)kdmroff;
 	int386(0x31,&r,&r);
 }
