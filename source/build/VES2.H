@@ -31,6 +31,10 @@ vidmode_t modes[] = {
 	{ -1, -1 }
 };
 
+static inline void qlimitrate()
+{
+}
+
 void getvalidvesamodes()
 {
 	int32_t i, j, k;

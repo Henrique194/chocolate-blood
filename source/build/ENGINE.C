@@ -377,12 +377,10 @@ void parascan(int32_t dax1, int32_t dax2, int32_t sectnum, char dastat, int32_t 
 void wallscan(int32_t x1, int32_t x2, short* uwal, short* dwal, int32_t* swal, int32_t* lwal);
 void hline(int32_t xr, int32_t yp);
 void slowhline(int32_t xr, int32_t yp);
-void loadtile(short tilenume);
 void transmaskvline(int32_t x);
 void transmaskvline2(int32_t x);
 void initksqrt();
 void initfastcolorlookup(int32_t rscale, int32_t gscale, int32_t bscale);
-void setbrightness(char dabrightness, char* dapal);
 void drawmaskwall(short damaskwallcnt);
 void drawsprite(int32_t snum);
 void drawvox(int32_t dasprx, int32_t daspry, int32_t dasprz, int32_t dasprang,
@@ -392,14 +390,12 @@ void ceilspritescan(int32_t x1, int32_t x2);
 void ceilspritehline(int32_t x2, int32_t y);
 void initspritelists();
 void keepaway(int32_t *x, int32_t *y, int32_t w);
-void updatesector(int32_t x, int32_t y, short *sectnum);
-void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
-void setaspect(int32_t daxrange, int32_t daaspect);
 void dosetaspect();
 void dorotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum, signed char dashade, char dapalnum, char dastat, int32_t cx1, int32_t cy1, int32_t cx2, int32_t cy2);
 void fillpolygon(int32_t npoints);
-void clearallviews(int32_t dacol);
-
+int32_t bunchfront(int32_t b1, int32_t b2);
+int32_t wallmost(short *mostbuf, int32_t w, int32_t sectnum, char dastat);
+int32_t animateoffs(short tilenum, short fakevar);
 
 void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 			 short daang, int32_t dahoriz, short dacursectnum)
@@ -5530,19 +5526,24 @@ void rotatepoint(int32_t xpivot, int32_t ypivot, int32_t x, int32_t y, short daa
 
 int32_t initmouse()
 {
+	return(moustat = 0);
+#if 0
 	return(moustat = setupmouse());
+#endif
 }
 
 void getmousevalues(short *mousx, short *mousy, short *bstatus)
 {
 	if (moustat == 0) { *mousx = 0; *mousy = 0; *bstatus = 0; return; }
+#if 0
 	readmousexy(mousx,mousy);
 	readmousebstatus(bstatus);
+#endif
 }
 
 void printscreeninterrupt()
 {
-	int5();
+	//int5();
 }
 
 void drawline256 (int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col)
@@ -8672,4 +8673,19 @@ void setfirstwall(short sectnum, short newfirstwall)
 
 	for(i=startwall;i<endwall;i++)
 		if (wall[i].nextwall >= 0) wall[wall[i].nextwall].nextwall = i;
+}
+
+void setvmode(int a)
+{
+	switch (a)
+	{
+		case 3:
+		default:
+			Video_Set(0, 0, 0);
+			break;
+
+		case 0x13:
+			Video_Set(1, 320, 200);
+			break;
+	}
 }

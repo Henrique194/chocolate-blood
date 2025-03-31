@@ -20,6 +20,7 @@ static int music_pit_counter;
 static int music_pit_divider;
 static void (*music_pit_callback)();
 static char* blaster_dma_buffer;
+static char* blaster_dma_buffer2;
 static int blaster_dma_buffer_size;
 static int blaster_16bit;
 static int blaster_stereo;
@@ -38,6 +39,8 @@ static void (*blaster_pit_callback)();
 static char stream_blaster_buffer[BLASTER_BUFFER_SIZE];
 
 static SDL_AudioStream* stream_blaster;
+
+int blaster_type = BLASTER_TYPE_16;
 
 static bool Adlib_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {
@@ -230,8 +233,11 @@ char *Blaster_SetDmaPageSize(int size)
 	if (size == blaster_dma_buffer_size)
 		return blaster_dma_buffer;
 
+	int size2 = (size + 15) & (~15);
+	blaster_dma_buffer2 = realloc(blaster_dma_buffer2, size2);
+
 	blaster_dma_buffer_size = size;
-	blaster_dma_buffer = realloc(blaster_dma_buffer, size);
+	blaster_dma_buffer = (char*)(((intptr_t)blaster_dma_buffer + 15) & (~(intptr_t)15));
 
 	return blaster_dma_buffer;
 }
@@ -247,6 +253,11 @@ void Blaster_StartDma(int start, int count, int is_auto)
 void Blaster_StopDma()
 {
 	blaster_dma_running = 0;
+}
+
+void Blaster_SetIrqHandler(void (*handler)())
+{
+	blaster_irq_callback = handler;
 }
 
 void Sound_Init(int rate)

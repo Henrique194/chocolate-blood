@@ -5,8 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dos.h>
-#include <i86.h>
+#include <time.h>
+#include "compat.h"
+#include "multi.h"
 
 #define COMBUFSIZ 16384
 #define COMCODEBYTES 384
@@ -27,15 +28,15 @@ static char multioption = 0, comrateoption = 0;
 short numplayers = 0, myconnectindex = 0;
 short connecthead, connectpoint2[MAXPLAYERS];
 char syncbuf[MAXIPXSIZ];
-long syncbufleng, outbufindex[128], outcnt;
-long myconnectnum, otherconnectnum, mypriority;
-long crctable[256];
+int32_t syncbufleng, outbufindex[128], outcnt;
+int32_t myconnectnum, otherconnectnum, mypriority;
+int32_t crctable[256];
 
 	//COM ONLY variables
-long comnum, comvect, comspeed, comtemp, comi, comescape, comreset;
-static void interrupt far comhandler(void);
+int32_t comnum, comvect, comspeed, comtemp, comi, comescape, comreset;
+static void comhandler(void);
 static unsigned short orig_pm_sel, orig_rm_seg, orig_rm_off;
-static unsigned long orig_pm_off;
+static uint32_t orig_pm_off;
 volatile unsigned char *inbuf, *outbuf, *comerror, *incnt, *comtype;
 volatile unsigned char *comresend;
 volatile short *inbufplc, *inbufend, *outbufplc, *outbufend, *comport;
@@ -72,7 +73,7 @@ char omessout[MAXPLAYERS][NETBACKPACKETS][MAXIPXSIZ];
 short omessleng[MAXPLAYERS][NETBACKPACKETS];
 short omessconnectindex[MAXPLAYERS][NETBACKPACKETS];
 short omessnum[MAXPLAYERS];
-long connectnum[MAXPLAYERS], rmoffset32, rmsegment16, neti;
+int32_t connectnum[MAXPLAYERS], rmoffset32, rmsegment16, neti;
 volatile char *ecbget, *ecbput, *ipxin, *ipxout, *messin, *messout;
 volatile char *tempinbuf, *tempoutbuf, *rmnethandler, *netinbuf;
 volatile short *netinbufplc, *netinbufend;
@@ -87,7 +88,17 @@ static char rmnetbuffer[NETCODEBYTES] =
 	0x2e,0x89,0x1e,0xe2,0x06,0xbb,0x04,0x00,0x8c,0xc8,
 	0x8e,0xc0,0xbe,0x00,0x00,0xcd,0x7a,0xcb,
 };
-static long my7a = 0;
+
+void netoff();
+void comoff();
+void initcrc();
+void processreservedmessage(short tempbufleng, char *datempbuf);
+int comon();
+int neton();
+int getcrc(char *buffer, short bufleng);
+
+#if 0
+static int32_t my7a = 0;
 
 #pragma aux koutp =\
 	"out dx, al",\
@@ -97,18 +108,24 @@ static long my7a = 0;
 	"in al, dx",\
 	parm [edx]\
 
-convalloc32 (long size)
+#endif
+
+intptr_t convalloc32 (int32_t size)
 {
+	return 0;
+#if 0
 	union REGS r;
 
 	r.x.eax = 0x0100;           //DPMI allocate DOS memory
 	r.x.ebx = ((size+15)>>4);   //Number of paragraphs requested
 	int386(0x31,&r,&r);
 
-	if (r.x.cflag != 0) return ((long)0);   //Failed
-	return ((long)((r.x.eax&0xffff)<<4));   //Returns full 32-bit offset
+	if (r.x.cflag != 0) return ((int32_t)0);   //Failed
+	return ((int32_t)((r.x.eax&0xffff)<<4));   //Returns full 32-bit offset
+#endif
 }
 
+#if 0
 #pragma aux fixregistersaftersimulate =\
 	"cld",\
 	"push ds",\
@@ -116,12 +133,15 @@ convalloc32 (long size)
 
 static struct rminfo
 {
-	long EDI, ESI, EBP, ESP, EBX, EDX, ECX, EAX;
+	int32_t EDI, ESI, EBP, ESP, EBX, EDX, ECX, EAX;
 	short flags, ES, DS, FS, GS, IP, CS, SP, SS;
 } RMI;
+#endif
 
-simulateint(char intnum, long daeax, long daebx, long daecx, long daedx, long daesi, long daedi)
+int simulateint(char intnum, int32_t daeax, int32_t daebx, int32_t daecx, int32_t daedx, int32_t daesi, int32_t daedi)
 {
+	return 0;
+#if 0
 	union REGS regs;
 	struct SREGS sregs;
 
@@ -148,11 +168,12 @@ simulateint(char intnum, long daeax, long daebx, long daecx, long daedx, long da
 	fixregistersaftersimulate();
 
 	return(RMI.EAX);
+#endif
 }
 
-initmultiplayers(char damultioption, char dacomrateoption, char dapriority)
+void initmultiplayers(char damultioption, char dacomrateoption, char dapriority)
 {
-	long i;
+	int32_t i;
 
 	multioption = damultioption;
 	comrateoption = dacomrateoption;
@@ -191,7 +212,7 @@ initmultiplayers(char damultioption, char dacomrateoption, char dapriority)
 	numplayers = 1;
 }
 
-uninitmultiplayers()
+void uninitmultiplayers()
 {
 	if (numplayers > 0)
 	{
@@ -200,12 +221,14 @@ uninitmultiplayers()
 	}
 }
 
-neton()
+int neton()
 {
-	long i, j;
+	return -1;
+#if 0
+	int32_t i, j;
 
-	if ((simulateint(0x2f,(long)0x7a00,0L,0L,0L,0L,0L)&255) != 255) return(-1);
-	if (*(long *)(0x7a<<2) == 0)
+	if ((simulateint(0x2f,(int32_t)0x7a00,0L,0L,0L,0L,0L)&255) != 255) return(-1);
+	if (*(int32_t *)(0x7a<<2) == 0)
 	{
 		printf("Faking int 0x7a to call IPX entry at: %4x:%4x\n",RMI.ES,RMI.EDI&65535);
 		my7a = convalloc32(16L);
@@ -214,7 +237,7 @@ neton()
 
 		*(char *)(my7a+0) = 0x2e;               //call far ptr [L1]
 		*(char *)(my7a+1) = 0x9a;
-		*(long *)(my7a+2) = 7L;
+		*(int32_t *)(my7a+2) = 7L;
 		*(char *)(my7a+6) = 0xcf;               //iret
 		*(short *)(my7a+7) = (RMI.EDI&65535);   //L1: ipxoff
 		*(short *)(my7a+9) = RMI.ES;            //    ipxseg
@@ -240,14 +263,14 @@ neton()
 	netinbuf = (char *)i; i += COMBUFSIZ;
 	memcpy((void *)rmnethandler,(void *)rmnetbuffer,NETCODEBYTES);
 
-	simulateint(0x7a,0L,(long)0x1,0L,(long)socket,0L,0L);                             //Closesocket
-	if ((simulateint(0x7a,(long)0xff,0L,0L,(long)socket,0L,0L)&255) != 0) return(-2); //Opensocket
+	simulateint(0x7a,0L,(int32_t)0x1,0L,(int32_t)socket,0L,0L);                             //Closesocket
+	if ((simulateint(0x7a,(int32_t)0xff,0L,0L,(int32_t)socket,0L,0L)&255) != 0) return(-2); //Opensocket
 
-	simulateint(0x7a,0L,9L,0L,0L,(long)tempoutbuf,0L);    //Getinternetworkaddress
+	simulateint(0x7a,0L,9L,0L,0L,(int32_t)tempoutbuf,0L);    //Getinternetworkaddress
 	memcpy((void *)&mycompaddr[0],(void *)&tempoutbuf[0],10);
 	mycompaddr[10] = (socket&255);
 	mycompaddr[11] = (socket>>8);
-	myconnectnum = ((long)tempoutbuf[6])+(((long)tempoutbuf[7])<<8)+(((long)(tempoutbuf[8]^tempoutbuf[9]))<<16)+(((long)mypriority)<<24);
+	myconnectnum = ((int32_t)tempoutbuf[6])+(((int32_t)tempoutbuf[7])<<8)+(((int32_t)(tempoutbuf[8]^tempoutbuf[9]))<<16)+(((int32_t)mypriority)<<24);
 
 	netinitconnection(myconnectnum,mycompaddr);
 
@@ -269,24 +292,27 @@ neton()
 		//Netlisten
 	for(i=0;i<30;i++) ipxin[i] = 0;
 	for(i=0;i<48;i++) ecbget[i] = 0;
-	ecbget[4] = (char)(((long)rmnethandler-rmoffset32)&255), ecbget[5] = (char)(((long)rmnethandler-rmoffset32)>>8);
+	ecbget[4] = (char)(((int32_t)rmnethandler-rmoffset32)&255), ecbget[5] = (char)(((int32_t)rmnethandler-rmoffset32)>>8);
 	ecbget[6] = (char)(rmsegment16&255), ecbget[7] = (char)(rmsegment16>>8);
 	ecbget[10] = (socket&255), ecbget[11] = (socket>>8);
 	ecbget[34] = 2, ecbget[35] = 0;
-	ecbget[36] = (char)(((long)ipxin-rmoffset32)&255), ecbget[37] = (char)(((long)ipxin-rmoffset32)>>8);
+	ecbget[36] = (char)(((int32_t)ipxin-rmoffset32)&255), ecbget[37] = (char)(((int32_t)ipxin-rmoffset32)>>8);
 	ecbget[38] = (char)(rmsegment16&255), ecbget[39] = (char)(rmsegment16>>8);
 	ecbget[40] = 30, ecbget[41] = 0;
-	ecbget[42] = (char)(((long)messin-rmoffset32)&255), ecbget[43] = (char)(((long)messin-rmoffset32)>>8);
+	ecbget[42] = (char)(((int32_t)messin-rmoffset32)&255), ecbget[43] = (char)(((int32_t)messin-rmoffset32)>>8);
 	ecbget[44] = (char)(rmsegment16&255), ecbget[45] = (char)(rmsegment16>>8);
 	ecbget[46] = (MAXIPXSIZ&255), ecbget[47] = (MAXIPXSIZ>>8);
-	simulateint(0x7a,0L,(long)0x4,0L,0L,(long)ecbget,0L);               //Receivepacket
+	simulateint(0x7a,0L,(int32_t)0x4,0L,0L,(int32_t)ecbget,0L);               //Receivepacket
 
 	return(0);
+#endif
 }
 
-comon()
+int comon()
 {
-	long divisor, cnt;
+	return -1;
+#if 0
+	int32_t divisor, cnt;
 	short *ptr;
 
 	if ((comnum < 1) || (comnum > 4)) return(-1);
@@ -297,7 +323,7 @@ comon()
 	*incnt = 0; outcnt = 0;
 	*inbufplc = 0; *inbufend = 0; *outbufplc = 0; *outbufend = 0;
 
-	ptr = (short *)(0x400L+(long)((comnum-1)<<1));
+	ptr = (short *)(0x400L+(int32_t)((comnum-1)<<1));
 	*comport = *ptr;
 	if (*comport == 0)
 	{
@@ -353,17 +379,21 @@ comon()
 	syncbufleng = 0;
 
 	return(0);
+#endif
 }
 
-netoff()
+void netoff()
 {
-	if (my7a) *(long *)(0x7a<<2) = 0L;
-	simulateint(0x7a,0L,(long)0x1,0L,(long)socket,0L,0L);               //Closesocket
+#if 0
+	if (my7a) *(int32_t *)(0x7a<<2) = 0L;
+	simulateint(0x7a,0L,(int32_t)0x1,0L,(int32_t)socket,0L,0L);               //Closesocket
+#endif
 }
 
-comoff()
+void comoff()
 {
-	long i;
+#if 0
+	int32_t i;
 
 	i = 1048576;
 	while ((*outbufplc != *outbufend) && (i >= 0))
@@ -381,11 +411,13 @@ comoff()
 	}
 	_enable();
 	uninstallbicomhandlers();
+#endif
 }
 
-netsend (short otherconnectindex, short messleng)
+void netsend (short otherconnectindex, short messleng)
 {
-	long i;
+#if 0
+	int32_t i;
 
 	i = 32767;
 	while ((ecbput[8] != 0) && (i > 0)) i--;
@@ -416,17 +448,19 @@ netsend (short otherconnectindex, short messleng)
 	}
 
 	ecbput[34] = 2, ecbput[35] = 0;
-	ecbput[36] = (char)(((long)ipxout-rmoffset32)&255), ecbput[37] = (char)(((long)ipxout-rmoffset32)>>8);
+	ecbput[36] = (char)(((int32_t)ipxout-rmoffset32)&255), ecbput[37] = (char)(((int32_t)ipxout-rmoffset32)>>8);
 	ecbput[38] = (char)(rmsegment16&255), ecbput[39] = (char)(rmsegment16>>8);
 	ecbput[40] = 30, ecbput[41] = 0;
-	ecbput[42] = (char)(((long)messout-rmoffset32)&255), ecbput[43] = (char)(((long)messout-rmoffset32)>>8);
+	ecbput[42] = (char)(((int32_t)messout-rmoffset32)&255), ecbput[43] = (char)(((int32_t)messout-rmoffset32)>>8);
 	ecbput[44] = (char)(rmsegment16&255), ecbput[45] = (char)(rmsegment16>>8);
 	ecbput[46] = (char)(messleng&255), ecbput[47] = (char)(messleng>>8);
-	simulateint(0x7a,0L,(long)0x3,0L,0L,(long)ecbput,0L);               //Sendpacket
+	simulateint(0x7a,0L,(int32_t)0x3,0L,0L,(int32_t)ecbput,0L);               //Sendpacket
+#endif
 }
 
-comsend(char ch)
+void comsend(char ch)
 {
+#if 0
 	if (ch == ESC1)
 	{
 		outbuf[*outbufend] = ESC1; *outbufend = (((*outbufend)+1)&(COMBUFSIZ-1));
@@ -438,10 +472,12 @@ comsend(char ch)
 		ch = 129;
 	}
 	outbuf[*outbufend] = ch; *outbufend = (((*outbufend)+1)&(COMBUFSIZ-1));
+#endif
 }
 
-startcom()
+void startcom()
 {
+#if 0
 	if ((kinp((*comport)+5)&0x40) == 0) return;
 
 	if (*comresend != 0)
@@ -458,13 +494,15 @@ startcom()
 	}
 	else if (*outbufplc != *outbufend)
 	{
-		koutp(*comport,(long)outbuf[*outbufplc]);
+		koutp(*comport,(int32_t)outbuf[*outbufplc]);
 		*outbufplc = (((*outbufplc)+1)&(COMBUFSIZ-1));
 	}
+#endif
 }
 
-void interrupt far comhandler(void)
+void comhandler(void)
 {
+#if 0
 	do
 	{
 		comtemp = (kinp((*comport)+2)&7);
@@ -488,7 +526,7 @@ void interrupt far comhandler(void)
 				}
 				if (*outbufplc != *outbufend)
 				{
-					koutp(*comport,(long)outbuf[*outbufplc]);
+					koutp(*comport,(int32_t)outbuf[*outbufplc]);
 					*outbufplc = (((*outbufplc)+1)&(COMBUFSIZ-1));
 					continue;
 				}
@@ -518,11 +556,12 @@ void interrupt far comhandler(void)
 	}
 	while ((comtemp&1) == 0);
 	koutp(0x20,0x20);
+#endif
 }
 
-netinitconnection (long newconnectnum, char *newcompaddr)
+int netinitconnection (int32_t newconnectnum, char *newcompaddr)
 {
-	long i, j, k, newindex, templong;
+	int32_t i, j, k, newindex, templong;
 	char tempchar;
 
 		//Check to see if connection number already initialized
@@ -567,9 +606,9 @@ netinitconnection (long newconnectnum, char *newcompaddr)
 	return(1);
 }
 
-netuninitconnection(short goneindex)
+void netuninitconnection(short goneindex)
 {
-	long i, j, k;
+	int32_t i, j, k;
 
 	connectnum[goneindex] = 0x7fffffff; numplayers--;
 
@@ -583,9 +622,9 @@ netuninitconnection(short goneindex)
 	connectpoint2[k] = -1;
 }
 
-sendpacket (short otherconnectindex, char *bufptr, short messleng)
+void sendpacket (short otherconnectindex, char *bufptr, short messleng)
 {
-	long i, j, k, l;
+	int32_t i, j, k, l;
 
 	if (multioption <= 0) return;
 	if (multioption < 5)
@@ -747,7 +786,7 @@ short getpacket (short *otherconnectindex, char *bufptr)
 			{
 				i = getcrc(bufptr,messleng);
 				updatecrc16(i,syncbuf[0]);
-				if (((unsigned short)i) != ((long)syncbuf[syncbufleng-2])+((long)syncbuf[syncbufleng-1]<<8))
+				if (((unsigned short)i) != ((int32_t)syncbuf[syncbufleng-2])+((int32_t)syncbuf[syncbufleng-1]<<8))
 					bad |= 2;   //CRC error
 			}
 
@@ -849,9 +888,9 @@ short getpacket (short *otherconnectindex, char *bufptr)
 	return(0);
 }
 
-initcrc()
+void initcrc()
 {
-	long i, j, k, a;
+	int32_t i, j, k, a;
 
 	for(j=0;j<256;j++)      //Calculate CRC table
 	{
@@ -868,20 +907,21 @@ initcrc()
 	}
 }
 
-getcrc(char *buffer, short bufleng)
+int getcrc(char *buffer, short bufleng)
 {
-	long i, j;
+	int32_t i, j;
 
 	j = 0;
 	for(i=bufleng-1;i>=0;i--) updatecrc16(j,buffer[i]);
 	return(j&65535);
 }
 
-installbicomhandlers()
+void installbicomhandlers()
 {
+#if 0
 	union REGS r;
 	struct SREGS sr;
-	long lowp;
+	int32_t lowp;
 	void far *fh;
 
 		//Get old protected mode handler
@@ -930,10 +970,12 @@ installbicomhandlers()
 	r.x.ecx = ((lowp>>4)&0xffff);  //D32realseg
 	r.x.edx = COMCODEOFFS;         //D32realoff
 	int386(0x31,&r,&r);
+#endif
 }
 
 uninstallbicomhandlers()
 {
+#if 0
 	union REGS r;
 	struct SREGS sr;
 
@@ -947,14 +989,15 @@ uninstallbicomhandlers()
 		//restore old real mode handler
 	r.x.eax = 0x0201;   /* DPMI set real mode vector */
 	r.h.bl = comvect;
-	r.x.ecx = (unsigned long)orig_rm_seg;     //CX:DX == real mode &handler
-	r.x.edx = (unsigned long)orig_rm_off;
+	r.x.ecx = (unsigned int32_t)orig_rm_seg;     //CX:DX == real mode &handler
+	r.x.edx = (unsigned int32_t)orig_rm_off;
 	int386(0x31,&r,&r);
+#endif
 }
 
-processreservedmessage(short tempbufleng, char *datempbuf)
+void processreservedmessage(short tempbufleng, char *datempbuf)
 {
-	long i, j, k, daotherconnectnum, templong;
+	int32_t i, j, k, daotherconnectnum, templong;
 
 	switch(datempbuf[0])
 	{
@@ -962,7 +1005,7 @@ processreservedmessage(short tempbufleng, char *datempbuf)
 		case 253:
 			if (multioption < 5)
 			{
-				otherconnectnum = ((long)datempbuf[1])+(((long)datempbuf[2])<<8)+(((long)datempbuf[3])<<16)+(((long)datempbuf[4])<<24);
+				otherconnectnum = ((int32_t)datempbuf[1])+(((int32_t)datempbuf[2])<<8)+(((int32_t)datempbuf[3])<<16)+(((int32_t)datempbuf[4])<<24);
 
 				datempbuf[0] = 254;
 				sendpacket(-1,datempbuf,1);
@@ -973,7 +1016,7 @@ processreservedmessage(short tempbufleng, char *datempbuf)
 			}
 			else if (multioption >= 5)
 			{
-				daotherconnectnum = ((long)datempbuf[1])+((long)(datempbuf[2]<<8))+((long)(datempbuf[3]<<16))+((long)(datempbuf[4]<<24));
+				daotherconnectnum = ((int32_t)datempbuf[1])+((int32_t)(datempbuf[2]<<8))+((int32_t)(datempbuf[3]<<16))+((int32_t)(datempbuf[4]<<24));
 				if (daotherconnectnum != myconnectnum)
 				{
 					netinitconnection(daotherconnectnum,&datempbuf[5]);
@@ -1020,7 +1063,7 @@ processreservedmessage(short tempbufleng, char *datempbuf)
 				j = 1;
 				while (j < tempbufleng)
 				{
-					templong = ((long)datempbuf[j])+((long)(datempbuf[j+1]<<8))+((long)(datempbuf[j+2]<<16))+((long)(datempbuf[j+3]<<24));
+					templong = ((int32_t)datempbuf[j])+((int32_t)(datempbuf[j+1]<<8))+((int32_t)(datempbuf[j+2]<<16))+((int32_t)(datempbuf[j+3]<<24));
 					netinitconnection(templong,&datempbuf[j+4]);
 					j += 14;
 				}
@@ -1033,9 +1076,9 @@ processreservedmessage(short tempbufleng, char *datempbuf)
 	}
 }
 
-sendlogon()
+void sendlogon()
 {
-	long i;
+	int32_t i;
 	char tempbuf[16];
 
 	if (multioption <= 0)
@@ -1044,11 +1087,16 @@ sendlogon()
 	tempbuf[0] = 253;
 	if (multioption < 5)
 	{
+		tempbuf[1] = time(NULL);
+		tempbuf[2] = time(NULL)+1;
+		tempbuf[3] = time(NULL)+2;
+#if 0
 		tempbuf[1] = kinp(0x40);
 		tempbuf[2] = kinp(0x40);
 		tempbuf[3] = kinp(0x40);
+#endif
 		tempbuf[4] = mypriority;
-		myconnectnum = ((long)tempbuf[1])+(((long)tempbuf[2])<<8)+(((long)tempbuf[3])<<16)+(((long)mypriority)<<24);
+		myconnectnum = ((int32_t)tempbuf[1])+(((int32_t)tempbuf[2])<<8)+(((int32_t)tempbuf[3])<<16)+(((int32_t)mypriority)<<24);
 		sendpacket(-1,tempbuf,5);
 	}
 	else
@@ -1064,10 +1112,10 @@ sendlogon()
 	}
 }
 
-sendlogoff()
+void sendlogoff()
 {
 	char tempbuf[16];
-	long i;
+	int32_t i;
 
 	if ((numplayers <= 1) || (multioption <= 0)) return;
 
@@ -1085,7 +1133,7 @@ sendlogoff()
 	}
 }
 
-getoutputcirclesize()
+int getoutputcirclesize()
 {
 	if ((multioption >= 1) && (multioption <= 4))
 	{
@@ -1095,9 +1143,11 @@ getoutputcirclesize()
 	return(0);
 }
 
-setsocket(short newsocket)
+int setsocket(short newsocket)
 {
-	long i;
+	return 0;
+#if 0
+	int32_t i;
 
 	if (multioption < 5)
 	{
@@ -1105,12 +1155,12 @@ setsocket(short newsocket)
 		return(0);
 	}
 
-	simulateint(0x7a,0L,(long)0x1,0L,(long)socket,0L,0L);                             //Closesocket
+	simulateint(0x7a,0L,(int32_t)0x1,0L,(int32_t)socket,0L,0L);                             //Closesocket
 
 	socket = newsocket;
 
-	simulateint(0x7a,0L,(long)0x1,0L,(long)socket,0L,0L);                             //Closesocket
-	if ((simulateint(0x7a,(long)0xff,0L,0L,(long)socket,0L,0L)&255) != 0) return(-2); //Opensocket
+	simulateint(0x7a,0L,(int32_t)0x1,0L,(int32_t)socket,0L,0L);                             //Closesocket
+	if ((simulateint(0x7a,(int32_t)0xff,0L,0L,(int32_t)socket,0L,0L)&255) != 0) return(-2); //Opensocket
 	mycompaddr[10] = (socket&255);
 	mycompaddr[11] = (socket>>8);
 	ecbget[10] = (socket&255);
@@ -1121,4 +1171,5 @@ setsocket(short newsocket)
 		compaddr[i][11] = (socket>>8);
 	}
 	return(0);
+#endif
 }

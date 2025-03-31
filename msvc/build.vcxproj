@@ -133,18 +133,20 @@
     <ClCompile Include="..\source\build\a_asm.c" />
     <ClCompile Include="..\source\build\CACHE1D.C" />
     <ClCompile Include="..\source\build\ENGINE.C" />
-    <ClCompile Include="..\source\build\MMULTI.C" />
     <ClCompile Include="..\source\build\opl3.c" />
     <ClCompile Include="..\source\build\sound.c" />
+    <ClCompile Include="..\source\build\system.c" />
     <ClCompile Include="..\source\build\video.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\build\BUILD.H" />
     <ClInclude Include="..\source\build\cache1d.h" />
     <ClInclude Include="..\source\build\compat.h" />
+    <ClInclude Include="..\source\build\multi.h" />
     <ClInclude Include="..\source\build\opl3.h" />
     <ClInclude Include="..\source\build\PRAGMAS.H" />
     <ClInclude Include="..\source\build\sound.h" />
+    <ClInclude Include="..\source\build\system.h" />
     <ClInclude Include="..\source\build\VES2.H" />
     <ClInclude Include="..\source\build\video.h" />
   </ItemGroup>

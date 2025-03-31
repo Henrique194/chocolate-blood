@@ -5,6 +5,9 @@
 #include <fcntl.h>
 #include <io.h>
 #include "compat.h"
+#include "sound.h"
+#include "kdmeng.h"
+#include "cache1d.h"
 
 #define NUMCHANNELS 16
 #define MAXWAVES 256
@@ -71,7 +74,7 @@ static int32_t kdminprep = 0, kdmintinprep = 0;
 static int32_t dmacheckport, dmachecksiz;
 
 //void (__interrupt __far *oldsbhandler)();
-//void __interrupt __far sbhandler(void);
+void sbhandler(void);
 
 int32_t samplediv, oldtimerfreq, chainbackcnt, chainbackstart;
 char *pcsndptr, pcsndlookup[256], bufferside;
@@ -93,13 +96,18 @@ int32_t sbport = 0x220, sbirq = 0x7, sbdma8 = 0x1, sbdma16 = 0x1;
 char dmapagenum[8] = {0x87,0x83,0x81,0x82,0x8f,0x8b,0x89,0x8a};
 int32_t sbdma, sbver;
 unsigned short sndselector;
-volatile int32_t sndoffs, sndoffsplc, sndoffsxor, sndplc, sndend;
+volatile int32_t sndplc, sndend;
+volatile intptr_t sndoffs, sndoffsplc, sndoffsxor;
 static int32_t bytespertic, sndbufsiz;
 
 char qualookup[512*16];
 int32_t ramplookup[64];
 
 unsigned short sndseg = 0;
+
+void getsbset();
+void preparesndbuf();
+void loadwaves(char *wavename);
 
 extern int32_t monolocomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
 extern int32_t monohicomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
@@ -243,11 +251,23 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 	{
 		case 1:
 			getsbset();
-			if (resetsb() != 0) { digistat = musistat = 0; break; }
+			if (blaster_type == BLASTER_TYPE_NONE) { digistat = musistat = 0; break; }
 
-			sbout(0xe1);
-			sbver = (sbin()<<8);
-			sbver += sbin();
+			switch (blaster_type)
+			{
+				case BLASTER_TYPE_1:
+					sbver = 0x200;
+					break;
+				case BLASTER_TYPE_2:
+					sbver = 0x201;
+					break;
+				case BLASTER_TYPE_PRO:
+					sbver = 0x300;
+					break;
+				case BLASTER_TYPE_16:
+					sbver = 0x400;
+					break;
+			}
 
 			if (sbver < 0x0201) samplerate = min(samplerate,22050);
 			if (sbver < 0x0300) numspeakers = 1;
@@ -275,12 +295,12 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 
 	if (sndseg == 0)    //Allocate DMA buffer in conventional memory
 	{
-		if ((sndseg = convallocate(((sndbufsiz<<(bytespersample+numspeakers))+15)>>4)) == 0)
+		int size = ((sndbufsiz<<(bytespersample+numspeakers))+15)>>4;
+		if ((sndoffs = Blaster_SetDmaPageSize(size)) == 0)
 		{
 			printf("Could not allocation conventional memory for digitized music\n");
 			exit(0);
 		}
-		sndoffs = (((int32_t)sndseg)<<4);
 
 		if ((sndoffs&65535)+(sndbufsiz<<(bytespersample+numspeakers-1)) >= 65536)   //64K DMA page check
 			sndoffs += (sndbufsiz<<(bytespersample+numspeakers-1));
@@ -338,6 +358,8 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 	switch(digistat)
 	{
 		case 1: case 2:
+			Blaster_SetIrqHandler(sbhandler);
+#if 0
 			if (sbirq < 8)
 			{
 				oldsbhandler = _dos_getvect(sbirq+0x8);           //Set new IRQ7 vector
@@ -350,6 +372,7 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 				_disable(); _dos_setvect(sbirq+0x68, sbhandler); _enable();
 				koutp(0xa1,kinp(0xa1) & ~(1<<(sbirq&7)));
 			}
+#endif
 			break;
 	}
 
@@ -362,6 +385,7 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 
 		if ((digistat == 1) || (digistat == 2))
 		{
+#if 0
 			if (sbdma < 4)
 			{
 				dmacheckport = (sbdma<<1)+1;
@@ -392,60 +416,44 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 				koutp(dmapagenum[sbdma],((sndoffs>>16)&255));
 				koutp(0xd4,sbdma&3);
 			}
+#endif
 		}
 
 		switch(digistat)
 		{
 			case 1:
-				sbout(0xd1);                                    //SB Speaker on
-
+			{
+				int tc = -1;
 				if (sbver < 0x0400)
 				{
-					sbout(0x40);                            //SB Set speed
-					sbout(256-(1000000/(samplerate<<(numspeakers-1))));
+					tc = 256-(1000000/(samplerate<<(numspeakers-1)));
 				}
 
 				if (sbver < 0x0200)
 				{
-					sbout(0x14);                                 //SB 1-shot mode
-					i = sndbufsiz-1;
-					sbout(i&255);
-					sbout((i>>8)&255);
+					Blaster_Init(tc, -1, 1, 0);
+					Blaster_StartDma(0, sndbufsiz-1, 0);
 				}
 				else
 				{
 					if (sbver < 0x0400)
 					{
+						Blaster_Init(tc, -1, numspeakers, 0);
 							//Set length for auto-init mode
 						i = (sndbufsiz<<(numspeakers+bytespersample-2))-1;
-						sbout(0x48);
-						sbout(i&255);
-						sbout((i>>8)&255);
-						if (numspeakers == 2)                   //SB set stereo
-						{
-							sbmixout(0L,0L);
-							sbmixout(0xe,sbmixin(0xe)|2);
-						}
-						if ((samplerate<<(numspeakers-1)) <= 22050)
-							sbout(0x1c);                         //Start SB interrupts!
-						else
-							sbout(0x90);                         //High Speed DMA
+						Blaster_StartDma(0, i, 1);
 					}
 					else
 					{
-						sbout(0x41);
-						sbout((samplerate>>8)&255);
-						sbout(samplerate&255);
-
-						sbout(0xc6-((bytespersample-1)<<4));
-						sbout(((bytespersample-1)<<4)+((numspeakers-1)<<5));
+						Blaster_Init(-1, samplerate, numspeakers, bytespersample - 1);
 						i = (sndbufsiz<<(numspeakers-1))-1;
-						sbout(i&255);
-						sbout((i>>8)&255);
+						Blaster_StartDma(0, i, 1);
 					}
 				}
 				break;
+			}
 			case 2:
+#if 0
 				koutp(0xf88,128);
 				koutp(0xb8a,0);
 
@@ -459,8 +467,10 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 				koutp(0xb8b,0x8);
 				koutp(0xf8a,0xd9+((2-numspeakers)<<5));    //0xd9=play/0xc9=record
 				koutp(0xb8a,0xe1);
+#endif
 				break;
 			case 13:
+#if 0
 				samplecount = sndbufsiz;
 				pcsndptr = (char *)sndoffs;
 				bufferside = 0;
@@ -485,20 +495,26 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 				chainbackcnt = chainbackstart;
 				setuppctimerhandler(sndoffs+sndbufsiz,oldtimerfreq,0L,0L,0L,0L);
 
-				_disable();
-				oldpctimerhandler = _dos_getvect(0x8);
-				installbikdmhandlers();
-				koutp(0x43,0x34); koutp(0x40,samplediv&255); koutp(0x40,(samplediv>>8)&255);
-				koutp(0x43,0x90);
-				koutp(97,kinp(97)|3);
-				_enable();
+				//_disable();
+				//oldpctimerhandler = _dos_getvect(0x8);
+				//installbikdmhandlers();
+				//koutp(0x43,0x34); koutp(0x40,samplediv&255); koutp(0x40,(samplediv>>8)&255);
+				//koutp(0x43,0x90);
+				//koutp(97,kinp(97)|3);
+				//_enable();
+#endif
 				break;
 		}
 	}
 }
 
-getsbset()
+void getsbset()
 {
+	sbport = 0x220;
+	sbirq = 5;
+	sbdma8 = 1;
+	sbdma16 = 3;
+#if 0
 	char *sbset;
 	int32_t i;
 
@@ -558,13 +574,15 @@ getsbset()
 				break;
 		}
 	}
+#endif
 }
 
-void __interrupt __far sbhandler()
+void sbhandler()
 {
 	switch(digistat)
 	{
 		case 1:
+#if 0
 			if (sbver < 0x0200)
 			{
 				sbout(0x14);                           //SB 1-shot mode
@@ -578,69 +596,71 @@ void __interrupt __far sbhandler()
 				if (mixerval&1) kinp(sbport+0xe);      //Acknowledge 8-bit DMA
 				if (mixerval&2) kinp(sbport+0xf);      //Acknowledge 16-bit DMA
 			}
+#endif
 			break;
 		case 2:
-			if ((kinp(0xb89)&8) > 0) koutp(0xb89,0);
+			//if ((kinp(0xb89)&8) > 0) koutp(0xb89,0);
 			break;
 	}
-	if (sbirq >= 8) koutp(0xa0,0x20);
+	/*if (sbirq >= 8) koutp(0xa0, 0x20);
 	koutp(0x20,0x20);
-	_enable(); preparesndbuf();
+	_enable(); */preparesndbuf();
 }
 
-uninitsb()
+void uninitsb()
 {
 	if ((digistat == 0) && (musistat != 1))
 		return;
 
 	if (digistat != 255)
 	{
-		if ((digistat == 1) || (digistat == 2))  //Mask off DMA
-		{
-			if (sbdma < 4) koutp(0xa,sbdma+4); else koutp(0xd4,sbdma);
-		}
+		//if ((digistat == 1) || (digistat == 2))  //Mask off DMA
+		//{
+		//	if (sbdma < 4) koutp(0xa,sbdma+4); else koutp(0xd4,sbdma);
+		//}
 
 		switch(digistat)
 		{
 			case 1:
-				if (sbver >= 0x0400) sbout(0xda-(bytespersample-1));
-				resetsb();
-				sbout(0xd3);                           //Turn speaker off
+				//if (sbver >= 0x0400) sbout(0xda-(bytespersample-1));
+				//resetsb();
+				//sbout(0xd3);                           //Turn speaker off
 				break;
 			case 2:
-				koutp(0xb8a,32);                       //Stop interrupts
-				koutp(0xf8a,0x9);                      //DMA stop
+				//koutp(0xb8a,32);                       //Stop interrupts
+				//koutp(0xf8a,0x9);                      //DMA stop
 				break;
 			case 13:
-				koutp(97,kinp(97)&252);
-				koutp(0x43,0x34); koutp(0x40,0); koutp(0x40,0);
-				koutp(0x43,0xbc);
-				uninstallbikdmhandlers();
+				//koutp(97,kinp(97)&252);
+				//koutp(0x43,0x34); koutp(0x40,0); koutp(0x40,0);
+				//koutp(0x43,0xbc);
+				//uninstallbikdmhandlers();
 				break;
 		}
 	}
 
 	if (snd != 0) free(snd), snd = 0;
-	if (sndseg != 0) convdeallocate(sndseg), sndseg = 0;
+	//if (sndseg != 0) convdeallocate(sndseg), sndseg = 0;
 
 	switch(digistat)
 	{
 		case 1: case 2:
-			if (sbirq < 8)
-			{
-				koutp(0x21,kinp(0x21) | (1<<(sbirq&7)));
-				_disable(); _dos_setvect(sbirq+0x8, oldsbhandler); _enable();
-			}
-			else
-			{
-				koutp(0xa1,kinp(0xa1) | (1<<(sbirq&7)));
-				_disable(); _dos_setvect(sbirq+0x68, oldsbhandler); _enable();
-			}
+			//if (sbirq < 8)
+			//{
+			//	koutp(0x21,kinp(0x21) | (1<<(sbirq&7)));
+			//	_disable(); _dos_setvect(sbirq+0x8, oldsbhandler); _enable();
+			//}
+			//else
+			//{
+			//	koutp(0xa1,kinp(0xa1) | (1<<(sbirq&7)));
+			//	_disable(); _dos_setvect(sbirq+0x68, oldsbhandler); _enable();
+			//}
+			Blaster_SetIrqHandler(NULL);
 			break;
 	}
 }
 
-startwave(int32_t wavnum, int32_t dafreq, int32_t davolume1, int32_t davolume2, int32_t dafrqeff, int32_t davoleff, int32_t dapaneff)
+void startwave(int32_t wavnum, int32_t dafreq, int32_t davolume1, int32_t davolume2, int32_t dafrqeff, int32_t davoleff, int32_t dapaneff)
 {
 	int32_t i, j, chanum;
 
@@ -670,7 +690,7 @@ startwave(int32_t wavnum, int32_t dafreq, int32_t davolume1, int32_t davolume2, 
 	chanstat[chanum] = 0; sincoffs[chanum] = 0;
 }
 
-setears(int32_t daposx, int32_t daposy, int32_t daxvect, int32_t dayvect)
+void setears(int32_t daposx, int32_t daposy, int32_t daxvect, int32_t dayvect)
 {
 	globposx = daposx;
 	globposy = daposy;
@@ -678,7 +698,7 @@ setears(int32_t daposx, int32_t daposy, int32_t daxvect, int32_t dayvect)
 	globyvect = dayvect;
 }
 
-wsayfollow(char *dafilename, int32_t dafreq, int32_t davol, int32_t *daxplc, int32_t *dayplc, char followstat)
+void wsayfollow(char *dafilename, int32_t dafreq, int32_t davol, int32_t *daxplc, int32_t *dayplc, char followstat)
 {
 	char ch1, ch2, bad;
 	int32_t i, wavnum, chanum;
@@ -732,13 +752,13 @@ wsayfollow(char *dafilename, int32_t dafreq, int32_t davol, int32_t *daxplc, int
 	}
 }
 
-getsndbufinfo(int32_t *dasndoffsplc, int32_t *dasndbufsiz)
+void getsndbufinfo(int32_t *dasndoffsplc, int32_t *dasndbufsiz)
 {
 	*dasndoffsplc = sndoffsplc;
 	*dasndbufsiz = (sndbufsiz<<(bytespersample+numspeakers-2));
 }
 
-preparesndbuf()
+void preparesndbuf()
 {
 	int32_t i, j, k, voloffs1, voloffs2, *stempptr;
 	int32_t daswave, dasinc, dacnt;
@@ -939,7 +959,7 @@ preparesndbuf()
 	kdminprep = 0;
 }
 
-wsay(char *dafilename, int32_t dafreq, int32_t volume1, int32_t volume2)
+void wsay(char *dafilename, int32_t dafreq, int32_t volume1, int32_t volume2)
 {
 	unsigned char ch1, ch2;
 	int32_t i, j, bad;
@@ -969,7 +989,7 @@ wsay(char *dafilename, int32_t dafreq, int32_t volume1, int32_t volume2)
 	} while (i >= 0);
 }
 
-loadwaves(char *wavename)
+void loadwaves(char *wavename)
 {
 	int32_t fil, i, j, dawaversionum;
 	char filename[80];
@@ -1035,7 +1055,7 @@ loadwaves(char *wavename)
 	snd[totsndbytes] = snd[totsndbytes+1] = 128;
 }
 
-loadsong(char *filename)
+int loadsong(char *filename)
 {
 	int32_t i, fil;
 
@@ -1069,7 +1089,7 @@ loadsong(char *filename)
 	return(0);
 }
 
-musicon()
+void musicon()
 {
 	if (musistat != 1)
 		return;
@@ -1080,7 +1100,7 @@ musicon()
 	musicstatus = 1;
 }
 
-musicoff()
+void musicoff()
 {
 	int32_t i;
 
@@ -1092,6 +1112,7 @@ musicoff()
 	notecnt = 0;
 }
 
+#if 0
 kdmconvalloc32 (int32_t size)
 {
 	union REGS r;
@@ -1170,3 +1191,4 @@ uninstallbikdmhandlers()
 	r.x.edx = (uint32_t)kdmroff;
 	int386(0x31,&r,&r);
 }
+#endif

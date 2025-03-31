@@ -3,17 +3,21 @@
 // See the included license file "BUILDLIC.TXT" for license info.
 // This file has been modified from Ken Silverman's original release
 
-#include <fcntl.h>
 #include <io.h>
+#include <fcntl.h>
 #include <sys\types.h>
 #include <sys\stat.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <dos.h>
+#include "compat.h"
 #include "build.h"
 #include "names.h"
 #include "pragmas.h"
+#include "cache1d.h"
+#include "system.h"
+#include "multi.h"
+#include "kdmeng.h"
 
 #define TIMERINTSPERSECOND 280
 #define MOVESPERSECOND 40
@@ -89,7 +93,7 @@ KEN'S STATUS DEFINITIONS:  (Please define your own statuses for your games)
 
 typedef struct
 {
-	long x, y, z;
+	int32_t x, y, z;
 } point3d;
 
 typedef struct
@@ -98,23 +102,21 @@ typedef struct
 	short bits;
 } input;
 
-static long screentilt = 0;
+static int32_t screentilt = 0;
 
-void (__interrupt __far *oldtimerhandler)();
-void __interrupt __far timerhandler(void);
+void timerhandler(void);
 
 #define KEYFIFOSIZ 64
-void (__interrupt __far *oldkeyhandler)();
-void __interrupt __far keyhandler(void);
+void keyhandler(void);
 volatile char keystatus[256], keyfifo[KEYFIFOSIZ], keyfifoplc, keyfifoend;
 volatile char readch, oldreadch, extended, keytemp;
 
-static long fvel, svel, avel;
-static long fvel2, svel2, avel2;
+static int32_t fvel, svel, avel;
+static int32_t fvel2, svel2, avel2;
 
 #define NUMOPTIONS 8
 #define NUMKEYS 19
-static long vesares[13][2] = {320,200,360,200,320,240,360,240,320,400,
+static int32_t vesares[13][2] = {320,200,360,200,320,240,360,240,320,400,
 									360,400,640,350,640,400,640,480,800,600,
 									1024,768,1280,1024,1600,1200};
 static char option[NUMOPTIONS] = {0,0,0,0,0,0,1,0};
@@ -125,27 +127,27 @@ static char keys[NUMKEYS] =
 	0x9c,0x1c,0xd,0xc,0xf,
 };
 
-static long digihz[7] = {6000,8000,11025,16000,22050,32000,44100};
+static int32_t digihz[7] = {6000,8000,11025,16000,22050,32000,44100};
 
 static char frame2draw[MAXPLAYERS];
-static long frameskipcnt[MAXPLAYERS];
+static int32_t frameskipcnt[MAXPLAYERS];
 
 #define LAVASIZ 128
 #define LAVALOGSIZ 7
 #define LAVAMAXDROPS 32
 static char lavabakpic[(LAVASIZ+4)*(LAVASIZ+4)], lavainc[LAVASIZ];
-static long lavanumdrops, lavanumframes;
-static long lavadropx[LAVAMAXDROPS], lavadropy[LAVAMAXDROPS];
-static long lavadropsiz[LAVAMAXDROPS], lavadropsizlookup[LAVAMAXDROPS];
-static long lavaradx[24][96], lavarady[24][96], lavaradcnt[32];
+static int32_t lavanumdrops, lavanumframes;
+static int32_t lavadropx[LAVAMAXDROPS], lavadropy[LAVAMAXDROPS];
+static int32_t lavadropsiz[LAVAMAXDROPS], lavadropsizlookup[LAVAMAXDROPS];
+static int32_t lavaradx[24][96], lavarady[24][96], lavaradcnt[32];
 
 	//Shared player variables
-static long posx[MAXPLAYERS], posy[MAXPLAYERS], posz[MAXPLAYERS];
-static long horiz[MAXPLAYERS], zoom[MAXPLAYERS], hvel[MAXPLAYERS];
+static int32_t posx[MAXPLAYERS], posy[MAXPLAYERS], posz[MAXPLAYERS];
+static int32_t horiz[MAXPLAYERS], zoom[MAXPLAYERS], hvel[MAXPLAYERS];
 static short ang[MAXPLAYERS], cursectnum[MAXPLAYERS], ocursectnum[MAXPLAYERS];
 static short playersprite[MAXPLAYERS], deaths[MAXPLAYERS];
-static long lastchaingun[MAXPLAYERS];
-static long health[MAXPLAYERS], flytime[MAXPLAYERS];
+static int32_t lastchaingun[MAXPLAYERS];
+static int32_t health[MAXPLAYERS], flytime[MAXPLAYERS];
 static short oflags[MAXPLAYERS];
 static short numbombs[MAXPLAYERS];
 static short numgrabbers[MAXPLAYERS];   // Andy did this
@@ -153,13 +155,13 @@ static short nummissiles[MAXPLAYERS];   // Andy did this
 static char dimensionmode[MAXPLAYERS];
 static char revolvedoorstat[MAXPLAYERS];
 static short revolvedoorang[MAXPLAYERS], revolvedoorrotang[MAXPLAYERS];
-static long revolvedoorx[MAXPLAYERS], revolvedoory[MAXPLAYERS];
+static int32_t revolvedoorx[MAXPLAYERS], revolvedoory[MAXPLAYERS];
 
 	//ENGINE CONTROLLED MULTIPLAYER VARIABLES:
 extern short numplayers, myconnectindex;
 extern short connecthead, connectpoint2[MAXPLAYERS];   //Player linked list variables (indeces, not connection numbers)
 
-static long nummoves;
+static int32_t nummoves;
 // Bug: NUMSTATS used to be equal to the greatest tag number,
 // so that the last statrate[] entry was random memory junk
 // because stats 0-NUMSTATS required NUMSTATS+1 bytes.   -Andy
@@ -168,48 +170,48 @@ static signed char statrate[NUMSTATS] = {-1,0,-1,0,0,0,1,3,0,3,15,-1,-1};
 
 	//Input structures
 static char networkmode;     //0 is 2(n-1) mode, 1 is n(n-1) mode
-static long locselectedgun, locselectedgun2;
+static int32_t locselectedgun, locselectedgun2;
 static input loc, oloc, loc2;
 static input ffsync[MAXPLAYERS], osync[MAXPLAYERS], sync[MAXPLAYERS];
 	//Input faketimerhandler -> movethings fifo
-static long movefifoplc, movefifoend[MAXPLAYERS];
+static int32_t movefifoplc, movefifoend[MAXPLAYERS];
 static input baksync[MOVEFIFOSIZ][MAXPLAYERS];
 	//Game recording variables
-static long reccnt, recstat = 1;
+static int32_t reccnt, recstat = 1;
 static input recsync[16384][2];
 
 static signed char otherlag[MAXPLAYERS] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-static long averagelag[MAXPLAYERS] = {512,512,512,512,512,512,512,512,512,512,512,512,512,512,512,512};
+static int32_t averagelag[MAXPLAYERS] = {512,512,512,512,512,512,512,512,512,512,512,512,512,512,512,512};
 
-static long fakemovefifoplc;
-static long myx, myy, myz, omyx, omyy, omyz, myzvel;
-static long myhoriz, omyhoriz;
+static int32_t fakemovefifoplc;
+static int32_t myx, myy, myz, omyx, omyy, omyz, myzvel;
+static int32_t myhoriz, omyhoriz;
 static short myang, omyang, mycursectnum;
-static long myxbak[MOVEFIFOSIZ], myybak[MOVEFIFOSIZ], myzbak[MOVEFIFOSIZ];
-static long myhorizbak[MOVEFIFOSIZ];
+static int32_t myxbak[MOVEFIFOSIZ], myybak[MOVEFIFOSIZ], myzbak[MOVEFIFOSIZ];
+static int32_t myhorizbak[MOVEFIFOSIZ];
 static short myangbak[MOVEFIFOSIZ];
 
 	//MULTI.OBJ sync state variables
 extern char syncstate;
 	//GAME.C sync state variables
 static char syncstat, syncval[MOVEFIFOSIZ], othersyncval[MOVEFIFOSIZ];
-static long syncvaltottail, syncvalhead, othersyncvalhead, syncvaltail;
+static int32_t syncvaltottail, syncvalhead, othersyncvalhead, syncvaltail;
 
 static char detailmode = 0, ready2send = 0;
-static long ototalclock = 0, gotlastpacketclock = 0, smoothratio;
-static long oposx[MAXPLAYERS], oposy[MAXPLAYERS], oposz[MAXPLAYERS];
-static long ohoriz[MAXPLAYERS], ozoom[MAXPLAYERS];
+static int32_t ototalclock = 0, gotlastpacketclock = 0, smoothratio;
+static int32_t oposx[MAXPLAYERS], oposy[MAXPLAYERS], oposz[MAXPLAYERS];
+static int32_t ohoriz[MAXPLAYERS], ozoom[MAXPLAYERS];
 static short oang[MAXPLAYERS];
 
 static point3d osprite[MAXSPRITES];
 
 #define MAXINTERPOLATIONS 1024
-static long numinterpolations = 0, startofdynamicinterpolations = 0;
-static long oldipos[MAXINTERPOLATIONS];
-static long bakipos[MAXINTERPOLATIONS];
-static long *curipos[MAXINTERPOLATIONS];
+static int32_t numinterpolations = 0, startofdynamicinterpolations = 0;
+static int32_t oldipos[MAXINTERPOLATIONS];
+static int32_t bakipos[MAXINTERPOLATIONS];
+static int32_t *curipos[MAXINTERPOLATIONS];
 
-extern long cachecount, transarea;
+extern int32_t cachecount, transarea;
 
 static char playerreadyflag[MAXPLAYERS];
 
@@ -220,14 +222,14 @@ static short tempshort[MAXSECTORS];
 static short screenpeek = 0, oldmousebstatus = 0, brightness = 0;
 static short screensize, screensizeflag = 0;
 static short neartagsector, neartagwall, neartagsprite;
-static long lockclock, neartagdist, neartaghitdist;
-extern long frameplace, pageoffset, ydim16;
-static long globhiz, globloz, globhihit, globlohit;
-static long stereomode = 0;
-extern long stereowidth, stereopixelwidth, activepage;
+static int32_t lockclock, neartagdist, neartaghitdist;
+extern int32_t frameplace, pageoffset, ydim16;
+static int32_t globhiz, globloz, globhihit, globlohit;
+static int32_t stereomode = 0;
+extern int32_t stereowidth, stereopixelwidth, activepage;
 
 	//Over the shoulder mode variables
-static long cameradist = -1, cameraang = 0, cameraclock = 0;
+static int32_t cameradist = -1, cameraang = 0, cameraclock = 0;
 
 	//Board animation variables
 #define MAXMIRRORS 64
@@ -239,25 +241,25 @@ static short xpanningsectorlist[16], xpanningsectorcnt;
 static short ypanningwalllist[64], ypanningwallcnt;
 static short floorpanninglist[64], floorpanningcnt;
 static short dragsectorlist[16], dragxdir[16], dragydir[16], dragsectorcnt;
-static long dragx1[16], dragy1[16], dragx2[16], dragy2[16], dragfloorz[16];
+static int32_t dragx1[16], dragy1[16], dragx2[16], dragy2[16], dragfloorz[16];
 static short swingcnt, swingwall[32][5], swingsector[32];
 static short swingangopen[32], swingangclosed[32], swingangopendir[32];
 static short swingang[32], swinganginc[32];
-static long swingx[32][8], swingy[32][8];
+static int32_t swingx[32][8], swingy[32][8];
 static short revolvesector[4], revolveang[4], revolvecnt;
-static long revolvex[4][16], revolvey[4][16];
-static long revolvepivotx[4], revolvepivoty[4];
+static int32_t revolvex[4][16], revolvey[4][16];
+static int32_t revolvepivotx[4], revolvepivoty[4];
 static short subwaytracksector[4][128], subwaynumsectors[4], subwaytrackcnt;
-static long subwaystop[4][8], subwaystopcnt[4];
-static long subwaytrackx1[4], subwaytracky1[4];
-static long subwaytrackx2[4], subwaytracky2[4];
-static long subwayx[4], subwaygoalstop[4], subwayvel[4], subwaypausetime[4];
+static int32_t subwaystop[4][8], subwaystopcnt[4];
+static int32_t subwaytrackx1[4], subwaytracky1[4];
+static int32_t subwaytrackx2[4], subwaytracky2[4];
+static int32_t subwayx[4], subwaygoalstop[4], subwayvel[4], subwaypausetime[4];
 static short waterfountainwall[MAXPLAYERS], waterfountaincnt[MAXPLAYERS];
 static short slimesoundcnt[MAXPLAYERS];
 
 	//Variables that let you type messages to other player
 static char getmessage[162], getmessageleng;
-static long getmessagetimeoff;
+static int32_t getmessagetimeoff;
 static char typemessage[162], typemessageleng = 0, typemode = 0;
 static char scantoasc[128] =
 {
@@ -286,8 +288,8 @@ static char scantoascwithshift[128] =
 	//walls, or sprites (They are NOT to be used for changing the [].picnum's)
 	//See the setanimation(), and getanimategoal() functions for more details.
 #define MAXANIMATES 512
-static long *animateptr[MAXANIMATES], animategoal[MAXANIMATES];
-static long animatevel[MAXANIMATES], animateacc[MAXANIMATES], animatecnt = 0;
+static int32_t *animateptr[MAXANIMATES], animategoal[MAXANIMATES];
+static int32_t animatevel[MAXANIMATES], animateacc[MAXANIMATES], animatecnt = 0;
 
 	//These parameters are in exact order of sprite structure in BUILD.H
 #define spawnsprite(newspriteindex2,x2,y2,z2,cstat2,shade2,pal2,       \
@@ -312,9 +314,52 @@ static long animatevel[MAXANIMATES], animateacc[MAXANIMATES], animatecnt = 0;
 		show2dsprite[newspriteindex2>>3] |= (1<<(newspriteindex2&7));    \
 }                                                                      \
 
-main(short int argc,char **argv)
+
+void updatesectorz(int32_t x, int32_t y, int32_t z, short *sectnum);
+void inittimer();
+void uninittimer();
+void initkeys();
+void uninitkeys();
+void fakedomovethings();
+void drawstatusbar(short snum);
+void prepareboard(char *daboardfilename);
+void shootgun(short snum, int32_t x, int32_t y, int32_t z,
+			short daang, int32_t dahoriz, short dasectnum, char guntype);
+void drawscreen(short snum, int32_t dasmoothratio);
+void initplayersprite(short snum);
+void playback();
+void setup3dscreen();
+void findrandomspot(int32_t *x, int32_t *y, short *sectnum);
+void warpsprite(short spritenum);
+void initlava();
+void movelava();
+void doanimations();
+void checkmasterslaveswitch();
+void getpackets();
+void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang);
+void searchmap(short startsector);
+void setinterpolation(int32_t *posptr);
+void stopinterpolation(int32_t *posptr);
+void updateinterpolations();
+void dointerpolations();
+void restoreinterpolations();
+void printext(int32_t x, int32_t y, char *buffer, short tilenum, char invisiblecol);
+void drawtilebackground (int32_t thex, int32_t they, short tilenum,
+								  signed char shade, int32_t cx1, int32_t cy1,
+								  int32_t cx2, int32_t cy2, char dapalnum);
+int loadgame();
+int savegame();
+void domovethings();
+int getanimationgoal(intptr_t animptr);
+int setanimation(int32_t *animptr, int32_t thegoal, int32_t thevel, int32_t theacc);
+int movesprite(short spritenum, int32_t dx, int32_t dy, int32_t dz, int32_t ceildist, int32_t flordist, int32_t clipmask);
+void activatehitag(short dahitag);
+void bombexplode(int32_t i);
+int testneighborsectors(short sect1, short sect2);
+
+int main(short int argc,char **argv)
 {
-	long i, j, k, l, fil, waitplayers, x1, y1, x2, y2;
+	int32_t i, j, k, l, fil, waitplayers, x1, y1, x2, y2;
 	short other, packleng;
 	char *ptr;
 
@@ -322,12 +367,12 @@ main(short int argc,char **argv)
 
 	if ((argc >= 2) && (stricmp("-net",argv[1]) != 0) && (stricmp("/net",argv[1]) != 0))
 	{
-		strcpy(&boardfilename,argv[1]);
+		strcpy(boardfilename,argv[1]);
 		if(strchr(boardfilename,'.') == 0)
 			strcat(boardfilename,".map");
 	}
 	else
-		strcpy(&boardfilename,"nukeland.map");
+		strcpy(boardfilename,"nukeland.map");
 
 	if ((fil = open("setup.dat",O_BINARY|O_RDWR,S_IREAD)) != -1)
 	{
@@ -532,10 +577,10 @@ main(short int argc,char **argv)
 	return(0);
 }
 
-operatesector(short dasector)
+void operatesector(short dasector)
 {     //Door code
-	long i, j, k, s, nexti, good, cnt, datag;
-	long dax, day, daz, dax2, day2, daz2, centx, centy;
+	int32_t i, j, k, s, nexti, good, cnt, datag;
+	int32_t dax, day, daz, dax2, day2, daz2, centx, centy;
 	short startwall, endwall, wallfind[2];
 
 	datag = sector[dasector].lotag;
@@ -554,7 +599,7 @@ operatesector(short dasector)
 		//Simple door that moves up  (tag 8 is a combination of tags 6 & 7)
 	if ((datag == 6) || (datag == 8))    //If the sector in front is a door
 	{
-		i = getanimationgoal((long)&sector[dasector].ceilingz);
+		i = getanimationgoal((intptr_t)&sector[dasector].ceilingz);
 		if (i >= 0)      //If door already moving, reverse its direction
 		{
 			if (datag == 8)
@@ -586,7 +631,7 @@ operatesector(short dasector)
 		//Simple door that moves down
 	if ((datag == 7) || (datag == 8)) //If the sector in front's elevator
 	{
-		i = getanimationgoal((long)&sector[dasector].floorz);
+		i = getanimationgoal((intptr_t)&sector[dasector].floorz);
 		if (i >= 0)      //If elevator already moving, reverse its direction
 		{
 			if (datag == 8)
@@ -775,9 +820,9 @@ operatesector(short dasector)
 	}
 }
 
-operatesprite(short dasprite)
+void operatesprite(short dasprite)
 {
-	long datag;
+	int32_t datag;
 
 	datag = sprite[dasprite].lotag;
 
@@ -789,9 +834,9 @@ operatesprite(short dasprite)
 	}
 }
 
-changehealth(short snum, short deltahealth)
+int changehealth(short snum, short deltahealth)
 {
-	long dax, day;
+	int32_t dax, day;
 	short good, k, startwall, endwall, s;
 
 	if (health[snum] > 0)
@@ -819,7 +864,7 @@ changehealth(short snum, short deltahealth)
 	return(health[snum] <= 0);      //You were just injured
 }
 
-changenumbombs(short snum, short deltanumbombs) {   // Andy did this
+void changenumbombs(short snum, short deltanumbombs) {   // Andy did this
 	numbombs[snum] += deltanumbombs;
 	if (numbombs[snum] > 999) numbombs[snum] = 999;
 	if (numbombs[snum] <= 0) {
@@ -833,7 +878,7 @@ changenumbombs(short snum, short deltanumbombs) {   // Andy did this
 	}
 }
 
-changenummissiles(short snum, short deltanummissiles) {   // Andy did this
+void changenummissiles(short snum, short deltanummissiles) {   // Andy did this
 	nummissiles[snum] += deltanummissiles;
 	if (nummissiles[snum] > 999) nummissiles[snum] = 999;
 	if (nummissiles[snum] <= 0) {
@@ -847,7 +892,7 @@ changenummissiles(short snum, short deltanummissiles) {   // Andy did this
 	}
 }
 
-changenumgrabbers(short snum, short deltanumgrabbers) {   // Andy did this
+void changenumgrabbers(short snum, short deltanumgrabbers) {   // Andy did this
 	numgrabbers[snum] += deltanumgrabbers;
 	if (numgrabbers[snum] > 999) numgrabbers[snum] = 999;
 	if (numgrabbers[snum] <= 0) {
@@ -861,9 +906,9 @@ changenumgrabbers(short snum, short deltanumgrabbers) {   // Andy did this
 	}
 }
 
-static long ostatusflytime = 0x80000000;
-drawstatusflytime(short snum) {   // Andy did this
-	long nstatusflytime;
+static int32_t ostatusflytime = 0x80000000;
+void drawstatusflytime(short snum) {   // Andy did this
+	int32_t nstatusflytime;
 
 	if ((snum == screenpeek) && (screensize <= xdim)) {
 		nstatusflytime = (((flytime[snum] + 119) - lockclock) / 120);
@@ -878,8 +923,8 @@ drawstatusflytime(short snum) {   // Andy did this
 	}
 }
 
-drawstatusbar(short snum) {   // Andy did this
-	long nstatusflytime;
+void drawstatusbar(short snum) {   // Andy did this
+	int32_t nstatusflytime;
 
 	if ((snum == screenpeek) && (screensize <= xdim)) {
 		sprintf(&tempbuf,"Deaths:%d",deaths[snum]);
@@ -911,10 +956,10 @@ drawstatusbar(short snum) {   // Andy did this
 	}
 }
 
-prepareboard(char *daboardfilename)
+void prepareboard(char *daboardfilename)
 {
 	short startwall, endwall, dasector;
-	long i, j, k, s, dax, day, daz, dax2, day2;
+	int32_t i, j, k, s, dax, day, daz, dax2, day2;
 
 	getmessageleng = 0;
 	typemessageleng = 0;
@@ -1356,9 +1401,9 @@ prepareboard(char *daboardfilename)
 	startofdynamicinterpolations = numinterpolations;
 }
 
-checktouchsprite(short snum, short sectnum)
+void checktouchsprite(short snum, short sectnum)
 {
-	long i, nexti;
+	int32_t i, nexti;
 
 	if ((sectnum < 0) || (sectnum >= numsectors)) return;
 
@@ -1460,9 +1505,9 @@ checktouchsprite(short snum, short sectnum)
 	}
 }
 
-checkgrabbertouchsprite(short snum, short sectnum)   // Andy did this
+void checkgrabbertouchsprite(short snum, short sectnum)   // Andy did this
 {
-	long i, nexti;
+	int32_t i, nexti;
 	short onum;
 
 	if ((sectnum < 0) || (sectnum >= numsectors)) return;
@@ -1566,11 +1611,11 @@ checkgrabbertouchsprite(short snum, short sectnum)   // Andy did this
 	}
 }
 
-shootgun(short snum, long x, long y, long z,
-			short daang, long dahoriz, short dasectnum, char guntype)
+void shootgun(short snum, int32_t x, int32_t y, int32_t z,
+			short daang, int32_t dahoriz, short dasectnum, char guntype)
 {
 	short hitsect, hitwall, hitsprite, daang2;
-	long i, j, daz2, hitx, hity, hitz;
+	int32_t i, j, daz2, hitx, hity, hitz;
 
 	switch(guntype)
 	{
@@ -1653,7 +1698,7 @@ shootgun(short snum, long x, long y, long z,
 
 					//Sprite starts out with center exactly on wall.
 					//This moves it back enough to see it at all angles.
-				movesprite((short)j,-(((long)sintable[(512+daang)&2047]*TICSPERFRAME)<<4),-(((long)sintable[daang]*TICSPERFRAME)<<4),0L,4L<<8,4L<<8,CLIPMASK1);
+				movesprite((short)j,-(((int32_t)sintable[(512+daang)&2047]*TICSPERFRAME)<<4),-(((int32_t)sintable[daang]*TICSPERFRAME)<<4),0L,4L<<8,4L<<8,CLIPMASK1);
 			}
 			break;
 		case 1:    //Shoot silver sphere bullet
@@ -1685,9 +1730,9 @@ shootgun(short snum, long x, long y, long z,
 
 #define MAXVOXMIPS 5
 extern char *voxoff[][MAXVOXMIPS];
-analyzesprites(long dax, long day)
+void analyzesprites(int32_t dax, int32_t day)
 {
-	long i, j, k, *longptr;
+	int32_t i, j, k, *longptr;
 	point3d *ospr;
 	spritetype *tspr;
 
@@ -1718,7 +1763,7 @@ analyzesprites(long dax, long day)
 				if ((tspr->cstat&2) == 0)
 				{
 					tspr->cstat |= 48;
-					longptr = (long *)voxoff[0][0];
+					longptr = (int32_t *)voxoff[0][0];
 					tspr->xrepeat = scale(tspr->xrepeat,56,longptr[2]);
 					tspr->yrepeat = scale(tspr->yrepeat,56,longptr[2]);
 					tspr->picnum = 0;
@@ -1766,9 +1811,9 @@ analyzesprites(long dax, long day)
 	}
 }
 
-tagcode()
+void tagcode()
 {
-	long i, nexti, j, k, l, s, dax, day, daz, dax2, day2, cnt, good;
+	int32_t i, nexti, j, k, l, s, dax, day, daz, dax2, day2, cnt, good;
 	short startwall, endwall, dasector, p, oldang;
 
 	for(p=connecthead;p>=0;p=connectpoint2[p])
@@ -2066,11 +2111,11 @@ tagcode()
 	}
 }
 
-statuslistcode()
+void statuslistcode()
 {
 	short p, target, hitobject, daang, osectnum, movestat;
-	long i, nexti, j, nextj, k, l, dax, day, daz, dist, ox, oy, mindist;
-	long doubvel, xvect, yvect;
+	int32_t i, nexti, j, nextj, k, l, dax, day, daz, dist, ox, oy, mindist;
+	int32_t doubvel, xvect, yvect;
 
 		//Go through active BROWNMONSTER list
 	for(i=headspritestat[1];i>=0;i=nexti)
@@ -2102,13 +2147,13 @@ statuslistcode()
 				xvect = 0, yvect = 0;
 				if (sync[target].fvel != 0)
 				{
-					xvect += ((((long)sync[target].fvel)*doubvel*(long)sintable[(ang[target]+512)&2047])>>3);
-					yvect += ((((long)sync[target].fvel)*doubvel*(long)sintable[ang[target]&2047])>>3);
+					xvect += ((((int32_t)sync[target].fvel)*doubvel*(int32_t)sintable[(ang[target]+512)&2047])>>3);
+					yvect += ((((int32_t)sync[target].fvel)*doubvel*(int32_t)sintable[ang[target]&2047])>>3);
 				}
 				if (sync[target].svel != 0)
 				{
-					xvect += ((((long)sync[target].svel)*doubvel*(long)sintable[ang[target]&2047])>>3);
-					yvect += ((((long)sync[target].svel)*doubvel*(long)sintable[(ang[target]+1536)&2047])>>3);
+					xvect += ((((int32_t)sync[target].svel)*doubvel*(int32_t)sintable[ang[target]&2047])>>3);
+					yvect += ((((int32_t)sync[target].svel)*doubvel*(int32_t)sintable[(ang[target]+1536)&2047])>>3);
 				}
 
 				ox = posx[target]; oy = posy[target];
@@ -2155,7 +2200,7 @@ statuslistcode()
 		doubvel = max(mulscale7(sprite[i].xrepeat,sprite[i].yrepeat),4);
 
 		osectnum = sprite[i].sectnum;
-		movestat = movesprite((short)i,(long)sintable[(sprite[i].ang+512)&2047]*doubvel,(long)sintable[sprite[i].ang]*doubvel,0L,4L<<8,4L<<8,CLIPMASK0);
+		movestat = movesprite((short)i,(int32_t)sintable[(sprite[i].ang+512)&2047]*doubvel,(int32_t)sintable[sprite[i].ang]*doubvel,0L,4L<<8,4L<<8,CLIPMASK0);
 		if (globloz > sprite[i].z+(48<<8))
 			{ sprite[i].x = dax; sprite[i].y = day; movestat = 1; }
 		else
@@ -2333,9 +2378,9 @@ statuslistcode()
 			 //If the sprite is a bullet then...
 		if ((sprite[i].picnum == BULLET) || (sprite[i].picnum == GRABBER) || (sprite[i].picnum == MISSILE) || (sprite[i].picnum == BOMB))
 		{
-			dax = ((((long)sprite[i].xvel)*TICSPERFRAME)<<12);
-			day = ((((long)sprite[i].yvel)*TICSPERFRAME)<<12);
-			daz = ((((long)sprite[i].zvel)*TICSPERFRAME)>>2);
+			dax = ((((int32_t)sprite[i].xvel)*TICSPERFRAME)<<12);
+			day = ((((int32_t)sprite[i].yvel)*TICSPERFRAME)<<12);
+			daz = ((((int32_t)sprite[i].zvel)*TICSPERFRAME)>>2);
 			if (sprite[i].picnum == BOMB) daz = 0;
 
 			osectnum = sprite[i].sectnum;
@@ -2822,9 +2867,9 @@ bulletisdeletedskip: continue;
 	}
 }
 
-activatehitag(short dahitag)
+void activatehitag(short dahitag)
 {
-	long i, nexti;
+	int32_t i, nexti;
 
 	for(i=0;i<numsectors;i++)
 		if (sector[i].hitag == dahitag) operatesector(i);
@@ -2836,9 +2881,9 @@ activatehitag(short dahitag)
 	}
 }
 
-bombexplode(long i)
+void bombexplode(int32_t i)
 {
-	long j, nextj, k, daang, dax, day, dist;
+	int32_t j, nextj, k, daang, dax, day, dist;
 
 	spawnsprite(j,sprite[i].x,sprite[i].y,sprite[i].z,0,-4,0,
 		32,64,64,0,0,EXPLOSION,sprite[i].ang,
@@ -2920,11 +2965,11 @@ bombexplode(long i)
 	deletesprite((short)i);
 }
 
-processinput(short snum)
+void processinput(short snum)
 {
-	long oldposx, oldposy, nexti;
-	long i, j, k, doubvel, xvect, yvect, goalz;
-	long dax, day, dax2, day2, odax, oday, odax2, oday2;
+	int32_t oldposx, oldposy, nexti;
+	int32_t i, j, k, doubvel, xvect, yvect, goalz;
+	int32_t dax, day, dax2, day2, odax, oday, odax2, oday2;
 	short startwall, endwall;
 	char *ptr;
 
@@ -2937,13 +2982,13 @@ processinput(short snum)
 		xvect = 0, yvect = 0;
 		if (sync[snum].fvel != 0)
 		{
-			xvect += ((((long)sync[snum].fvel)*doubvel*(long)sintable[(ang[snum]+512)&2047])>>3);
-			yvect += ((((long)sync[snum].fvel)*doubvel*(long)sintable[ang[snum]&2047])>>3);
+			xvect += ((((int32_t)sync[snum].fvel)*doubvel*(int32_t)sintable[(ang[snum]+512)&2047])>>3);
+			yvect += ((((int32_t)sync[snum].fvel)*doubvel*(int32_t)sintable[ang[snum]&2047])>>3);
 		}
 		if (sync[snum].svel != 0)
 		{
-			xvect += ((((long)sync[snum].svel)*doubvel*(long)sintable[ang[snum]&2047])>>3);
-			yvect += ((((long)sync[snum].svel)*doubvel*(long)sintable[(ang[snum]+1536)&2047])>>3);
+			xvect += ((((int32_t)sync[snum].svel)*doubvel*(int32_t)sintable[ang[snum]&2047])>>3);
+			yvect += ((((int32_t)sync[snum].svel)*doubvel*(int32_t)sintable[(ang[snum]+1536)&2047])>>3);
 		}
 		if (flytime[snum] > lockclock) { xvect += xvect; yvect += yvect; }   // DOuble flying speed
 		clipmove(&posx[snum],&posy[snum],&posz[snum],&cursectnum[snum],xvect,yvect,128L,4<<8,4<<8,CLIPMASK0);
@@ -2970,7 +3015,7 @@ processinput(short snum)
 		doubvel = TICSPERFRAME;
 		if ((sync[snum].bits&256) > 0)  //Lt. shift makes turn velocity 50% faster
 			doubvel += (TICSPERFRAME>>1);
-		ang[snum] += ((((long)sync[snum].avel)*doubvel)>>4);
+		ang[snum] += ((((int32_t)sync[snum].avel)*doubvel)>>4);
 		ang[snum] &= 2047;
 	}
 
@@ -3318,11 +3363,11 @@ processinput(short snum)
 	oflags[snum] = sync[snum].bits;
 }
 
-view (short snum, long *vx, long *vy, long *vz,
-		short *vsectnum, short ang, long horiz)
+void view (short snum, int32_t *vx, int32_t *vy, int32_t *vz,
+		short *vsectnum, short ang, int32_t horiz)
 {
 	spritetype *sp;
-	long i, nx, ny, nz, hx, hy, hz, hitx, hity, hitz;
+	int32_t i, nx, ny, nz, hx, hy, hz, hitx, hity, hitz;
 	short bakcstat, hitsect, hitwall, hitsprite, daang;
 
 	nx = (sintable[(ang+1536)&2047]>>4);
@@ -3367,10 +3412,10 @@ view (short snum, long *vx, long *vy, long *vz,
 	sp->cstat = bakcstat;
 }
 
-void updatesectorz(long x, long y, long z, short *sectnum)
+void updatesectorz(int32_t x, int32_t y, int32_t z, short *sectnum)
 {
 	walltype *wal;
-	long i, j, cz, fz;
+	int32_t i, j, cz, fz;
 
 	getzsofslope(*sectnum,x,y,&cz,&fz);
 	if ((z >= cz) && (z <= fz))
@@ -3405,12 +3450,12 @@ void updatesectorz(long x, long y, long z, short *sectnum)
 	*sectnum = -1;
 }
 
-drawscreen(short snum, long dasmoothratio)
+void drawscreen(short snum, int32_t dasmoothratio)
 {
-	long i, j, k, l, charsperline, templong;
-	long x1, y1, x2, y2, ox1, oy1, ox2, oy2, dist, maxdist;
-	long cposx, cposy, cposz, choriz, czoom, tposx, tposy;
-	long tiltlock, *longptr, ovisibility, oparallaxvisibility;
+	int32_t i, j, k, l, charsperline, templong;
+	int32_t x1, y1, x2, y2, ox1, oy1, ox2, oy2, dist, maxdist;
+	int32_t cposx, cposy, cposz, choriz, czoom, tposx, tposy;
+	int32_t tiltlock, *longptr, ovisibility, oparallaxvisibility;
 	short cang, tang, csect;
 	char ch, *ptr, *ptr2, *ptr3, *ptr4;
 	spritetype *tspr;
@@ -3425,7 +3470,7 @@ drawscreen(short snum, long dasmoothratio)
 		cposy = omyy+mulscale16(myy-omyy,smoothratio);
 		cposz = omyz+mulscale16(myz-omyz,smoothratio);
 		choriz = omyhoriz+mulscale16(myhoriz-omyhoriz,smoothratio);
-		cang = omyang+mulscale16((long)(((myang+1024-omyang)&2047)-1024),smoothratio);
+		cang = omyang+mulscale16((int32_t)(((myang+1024-omyang)&2047)-1024),smoothratio);
 	}
 	else
 	{
@@ -3437,7 +3482,7 @@ drawscreen(short snum, long dasmoothratio)
 	}
 	czoom = ozoom[snum]+mulscale16(zoom[snum]-ozoom[snum],smoothratio);
 
-	setears(cposx,cposy,(long)sintable[(cang+512)&2047]<<14,(long)sintable[cang&2047]<<14);
+	setears(cposx,cposy,(int32_t)sintable[(cang+512)&2047]<<14,(int32_t)sintable[cang&2047]<<14);
 
 	if (typemode != 0)
 	{
@@ -3743,7 +3788,7 @@ drawscreen(short snum, long dasmoothratio)
 			}
 
 				//WARNING!  Assuming (MIRRORLABEL&31) = 0 and MAXMIRRORS = 64
-			longptr = (long *)FP_OFF(gotpic[MIRRORLABEL>>3]);
+			longptr = (int32_t *)FP_OFF(gotpic[MIRRORLABEL>>3]);
 			if (longptr[0]|longptr[1])
 				for(i=MAXMIRRORS-1;i>=0;i--)
 					if (gotpic[(i+MIRRORLABEL)>>3]&(1<<(i&7)))
@@ -3890,8 +3935,8 @@ drawscreen(short snum, long dasmoothratio)
 	if (syncstate != 0) printext256(68L,92L,31,0,"Missed Network packet!",0);
 
 //   //Uncomment this to test cache locks
-//extern long cacnum;
-//typedef struct { long *hand, leng; char *lock; } cactype;
+//extern int32_t cacnum;
+//typedef struct { int32_t *hand, leng; char *lock; } cactype;
 //extern cactype cac[];
 //
 //   j = 0;
@@ -4023,9 +4068,9 @@ drawscreen(short snum, long dasmoothratio)
 	restoreinterpolations();
 }
 
-movethings()
+void movethings()
 {
-	long i;
+	int32_t i;
 
 	gotlastpacketclock = totalclock;
 	for(i=connecthead;i>=0;i=connectpoint2[i])
@@ -4038,7 +4083,7 @@ movethings()
 void fakedomovethings(void)
 {
 	input *syn;
-	long i, j, k, doubvel, xvect, yvect, goalz;
+	int32_t i, j, k, doubvel, xvect, yvect, goalz;
 	short bakcstat;
 
 	syn = (input *)&baksync[fakemovefifoplc][myconnectindex];
@@ -4059,13 +4104,13 @@ void fakedomovethings(void)
 		xvect = 0, yvect = 0;
 		if (syn->fvel != 0)
 		{
-			xvect += ((((long)syn->fvel)*doubvel*(long)sintable[(myang+512)&2047])>>3);
-			yvect += ((((long)syn->fvel)*doubvel*(long)sintable[myang&2047])>>3);
+			xvect += ((((int32_t)syn->fvel)*doubvel*(int32_t)sintable[(myang+512)&2047])>>3);
+			yvect += ((((int32_t)syn->fvel)*doubvel*(int32_t)sintable[myang&2047])>>3);
 		}
 		if (syn->svel != 0)
 		{
-			xvect += ((((long)syn->svel)*doubvel*(long)sintable[myang&2047])>>3);
-			yvect += ((((long)syn->svel)*doubvel*(long)sintable[(myang+1536)&2047])>>3);
+			xvect += ((((int32_t)syn->svel)*doubvel*(int32_t)sintable[myang&2047])>>3);
+			yvect += ((((int32_t)syn->svel)*doubvel*(int32_t)sintable[(myang+1536)&2047])>>3);
 		}
 		if (flytime[myconnectindex] > lockclock) { xvect += xvect; yvect += yvect; }   // DOuble flying speed
 		clipmove(&myx,&myy,&myz,&mycursectnum,xvect,yvect,128L,4<<8,4<<8,CLIPMASK0);
@@ -4079,7 +4124,7 @@ void fakedomovethings(void)
 		doubvel = TICSPERFRAME;
 		if ((syn->bits&256) > 0)  //Lt. shift makes turn velocity 50% faster
 			doubvel += (TICSPERFRAME>>1);
-		myang += ((((long)syn->avel)*doubvel)>>4);
+		myang += ((((int32_t)syn->avel)*doubvel)>>4);
 		myang &= 2047;
 	}
 
@@ -4158,9 +4203,9 @@ void fakedomovethings(void)
 }
 
 	//Prediction correction
-fakedomovethingscorrect()
+void fakedomovethingscorrect()
 {
-	long i;
+	int32_t i;
 
 	if ((networkmode == 0) && (myconnectindex == connecthead)) return;
 
@@ -4185,7 +4230,7 @@ fakedomovethingscorrect()
 	while (fakemovefifoplc != movefifoend[myconnectindex]) fakedomovethings();
 }
 
-domovethings()
+void domovethings()
 {
 	short i, j, startwall, endwall;
 	spritetype *spr;
@@ -4269,10 +4314,10 @@ domovethings()
 	checkmasterslaveswitch();
 }
 
-getinput()
+void getinput()
 {
 	char ch, keystate, *ptr;
-	long i, j, k;
+	int32_t i, j, k;
 	short mousx, mousy, bstatus;
 
 	if (typemode == 0)           //if normal game keys active
@@ -4481,9 +4526,9 @@ getinput()
 	}
 }
 
-initplayersprite(short snum)
+void initplayersprite(short snum)
 {
-	long i;
+	int32_t i;
 
 	if (playersprite[snum] >= 0) return;
 
@@ -4505,9 +4550,9 @@ initplayersprite(short snum)
 	makepalookup(snum,tempbuf,0,0,0,1);
 }
 
-playback()
+void playback()
 {
-	long i, j, k;
+	int32_t i, j, k;
 
 	ready2send = 0;
 	recstat = 0; i = reccnt;
@@ -4561,9 +4606,9 @@ playback()
 	exit(0);
 }
 
-setup3dscreen()
+void setup3dscreen()
 {
-	long i, dax, day, dax2, day2;
+	int32_t i, dax, day, dax2, day2;
 
 	i = setgamemode(option[0],vesares[option[6]&15][0],vesares[option[6]&15][1]);
 	if (i < 0)
@@ -4628,10 +4673,10 @@ setup3dscreen()
 	}
 }
 
-findrandomspot(long *x, long *y, short *sectnum)
+void findrandomspot(int32_t *x, int32_t *y, short *sectnum)
 {
 	short startwall, endwall, s, dasector;
-	long dax, day, daz, minx, maxx, miny, maxy, cnt;
+	int32_t dax, day, daz, minx, maxx, miny, maxy, cnt;
 
 	for(cnt=256;cnt>=0;cnt--)
 	{
@@ -4674,10 +4719,10 @@ findrandomspot(long *x, long *y, short *sectnum)
 	}
 }
 
-warp(long *x, long *y, long *z, short *daang, short *dasector)
+void warp(int32_t *x, int32_t *y, int32_t *z, short *daang, short *dasector)
 {
 	short startwall, endwall, s;
-	long i, j, dax, day, ox, oy;
+	int32_t i, j, dax, day, ox, oy;
 
 	ox = *x; oy = *y;
 
@@ -4716,7 +4761,7 @@ warp(long *x, long *y, long *z, short *daang, short *dasector)
 	wsayfollow("warp.wav",4096L+(krand()&127)-64,256L,x,y,0);
 }
 
-warpsprite(short spritenum)
+void warpsprite(short spritenum)
 {
 	short dasectnum;
 
@@ -4732,9 +4777,9 @@ warpsprite(short spritenum)
 		show2dsprite[spritenum>>3] |= (1<<(spritenum&7));
 }
 
-initlava()
+void initlava()
 {
-	long x, y, z, r;
+	int32_t x, y, z, r;
 
 	for(z=0;z<32;z++) lavaradcnt[z] = 0;
 	for(x=-16;x<=16;x++)
@@ -4756,22 +4801,23 @@ initlava()
 	lavanumframes = 0;
 }
 
-#pragma aux addlava =\
-	"mov al, byte ptr [ebx-133]",\
-	"mov dl, byte ptr [ebx-1]",\
-	"add al, byte ptr [ebx-132]",\
-	"add dl, byte ptr [ebx+131]",\
-	"add al, byte ptr [ebx-131]",\
-	"add dl, byte ptr [ebx+132]",\
-	"add al, byte ptr [ebx+1]",\
-	"add al, dl",\
-	parm [ebx]\
-	modify exact [eax edx]\
-
-movelava(char *dapic)
+static char addlava(char* ptr)
 {
-	long i, j, x, y, z, zz, dalavadropsiz, dadropsizlookup;
-	long dalavax, dalavay, *ptr, *ptr2;
+	char a = ptr[-133];
+	char d = ptr[-1];
+	a += ptr[-132];
+	d += ptr[131];
+	a += ptr[-131];
+	d += ptr[132];
+	a += ptr[1];
+	return a + d;
+}
+
+
+void movelava(char *dapic)
+{
+	int32_t i, j, x, y, z, zz, dalavadropsiz, dadropsizlookup;
+	int32_t dalavax, dalavay, *ptr, *ptr2;
 
 	for(z=min(LAVAMAXDROPS-lavanumdrops-1,3);z>=0;z--)
 	{
@@ -4806,8 +4852,8 @@ movelava(char *dapic)
 
 		//Back up dapic with 1 pixel extra on each boundary
 		//(to prevent anding for wrap-around)
-	ptr = (long *)dapic;
-	ptr2 = (long *)((LAVASIZ+4)+1+((long)lavabakpic));
+	ptr = (int32_t *)dapic;
+	ptr2 = (int32_t *)((LAVASIZ+4)+1+((int32_t)lavabakpic));
 	for(x=0;x<LAVASIZ;x++)
 	{
 		for(y=(LAVASIZ>>2);y>0;y--) *ptr2++ = ((*ptr++)&0x1f1f1f1f);
@@ -4828,10 +4874,10 @@ movelava(char *dapic)
 	lavabakpic[(LAVASIZ+4)*(LAVASIZ+1)] = (dapic[LAVASIZ-1]&31);
 	lavabakpic[(LAVASIZ+4)*(LAVASIZ+2)-1] = (dapic[0]&31);
 
-	ptr = (long *)dapic;
+	ptr = (int32_t *)dapic;
 	for(x=0;x<LAVASIZ;x++)
 	{
-		i = (long)&lavabakpic[(x+1)*(LAVASIZ+4)+1];
+		i = (int32_t)&lavabakpic[(x+1)*(LAVASIZ+4)+1];
 		j = i+LAVASIZ;
 		for(y=i;y<j;y+=4)
 		{
@@ -4846,9 +4892,9 @@ movelava(char *dapic)
 	lavanumframes++;
 }
 
-doanimations()
+void doanimations()
 {
-	long i, j;
+	int32_t i, j;
 
 	for(i=animatecnt-1;i>=0;i--)
 	{
@@ -4877,18 +4923,18 @@ doanimations()
 	}
 }
 
-getanimationgoal(long animptr)
+int getanimationgoal(intptr_t animptr)
 {
-	long i;
+	int32_t i;
 
 	for(i=animatecnt-1;i>=0;i--)
-		if ((long *)animptr == animateptr[i]) return(i);
+		if ((int32_t *)animptr == animateptr[i]) return(i);
 	return(-1);
 }
 
-setanimation(long *animptr, long thegoal, long thevel, long theacc)
+int setanimation(int32_t *animptr, int32_t thegoal, int32_t thevel, int32_t theacc)
 {
-	long i, j;
+	int32_t i, j;
 
 	if (animatecnt >= MAXANIMATES) return(-1);
 
@@ -4907,9 +4953,9 @@ setanimation(long *animptr, long thegoal, long thevel, long theacc)
 	return(j);
 }
 
-checkmasterslaveswitch()
+void checkmasterslaveswitch()
 {
-	long i, j;
+	int32_t i, j;
 
 	if (option[4] == 0) return;
 
@@ -4961,52 +5007,38 @@ checkmasterslaveswitch()
 	}
 }
 
-inittimer()
+void inittimer()
 {
-	outp(0x43,0x34);
-	outp(0x40,(1193181/TIMERINTSPERSECOND)&255);
-	outp(0x40,(1193181/TIMERINTSPERSECOND)>>8);
-	oldtimerhandler = _dos_getvect(0x8);
-	_disable(); _dos_setvect(0x8, timerhandler); _enable();
+	Sys_SetTimer(1193181 / TIMERINTSPERSECOND, timerhandler);
 }
 
-uninittimer()
+void uninittimer()
 {
-	outp(0x43,0x34); outp(0x40,0); outp(0x40,0);
-	_disable(); _dos_setvect(0x8, oldtimerhandler); _enable();
+	Sys_SetTimer(0, NULL);
 }
 
-void __interrupt __far timerhandler()
+void timerhandler()
 {
 	totalclock++;
-	//_chain_intr(oldtimerhandler);
-	outp(0x20,0x20);
 }
 
-initkeys()
+void initkeys()
 {
-	long i;
+	int32_t i;
 
 	keyfifoplc = 0; keyfifoend = 0;
 	for(i=0;i<256;i++) keystatus[i] = 0;
-	oldkeyhandler = _dos_getvect(0x9);
-	_disable(); _dos_setvect(0x9, keyhandler); _enable();
+	Sys_SetKeyboardHandler(keyhandler);
 }
 
-uninitkeys()
+void uninitkeys()
 {
-	short *ptr;
-
-	_dos_setvect(0x9, oldkeyhandler);
-		//Turn off shifts to prevent stucks with quitting
-	ptr = (short *)0x417; *ptr &= ~0x030f;
+	Sys_SetKeyboardHandler(NULL);
 }
 
-void __interrupt __far keyhandler()
+void keyhandler()
 {
-	oldreadch = readch; readch = kinp(0x60);
-	keytemp = kinp(0x61); koutp(0x61,keytemp|128); koutp(0x61,keytemp&127);
-	koutp(0x20,0x20);
+	oldreadch = readch; readch = kb_byte;
 	if ((readch|1) == 0xe1) { extended = 128; return; }
 	if (oldreadch != readch)
 	{
@@ -5033,7 +5065,7 @@ void __interrupt __far keyhandler()
 	extended = 0;
 }
 
-testneighborsectors(short sect1, short sect2)
+int testneighborsectors(short sect1, short sect2)
 {
 	short i, startwall, num1, num2;
 
@@ -5056,10 +5088,10 @@ testneighborsectors(short sect1, short sect2)
 	return(0);
 }
 
-loadgame()
+int loadgame()
 {
-	long i;
-	long fil;
+	int32_t i;
+	int32_t fil;
 
 	if ((fil = kopen4load("save0000.gam",0)) == -1) return(-1);
 
@@ -5196,7 +5228,7 @@ loadgame()
 		//Warning: only works if all pointers are in sector structures!
 	kdfread(animateptr,4,MAXANIMATES,fil);
 	for(i=MAXANIMATES-1;i>=0;i--)
-		animateptr[i] = (long *)(animateptr[i]+((long)sector));
+		animateptr[i] = (int32_t *)(animateptr[i]+((int32_t)sector));
 
 	kdfread(animategoal,4,MAXANIMATES,fil);
 	kdfread(animatevel,4,MAXANIMATES,fil);
@@ -5236,9 +5268,9 @@ loadgame()
 	return(0);
 }
 
-savegame()
+int savegame()
 {
-	long i;
+	int32_t i;
 	FILE *fil;
 
 	if ((fil = fopen("save0000.gam","wb")) == 0) return(-1);
@@ -5372,10 +5404,10 @@ savegame()
 
 		//Warning: only works if all pointers are in sector structures!
 	for(i=MAXANIMATES-1;i>=0;i--)
-		animateptr[i] = (long *)(animateptr[i]-((long)sector));
+		animateptr[i] = (int32_t *)(animateptr[i]-((int32_t)sector));
 	dfwrite(animateptr,4,MAXANIMATES,fil);
 	for(i=MAXANIMATES-1;i>=0;i--)
-		animateptr[i] = (long *)(animateptr[i]+((long)sector));
+		animateptr[i] = (int32_t *)(animateptr[i]+((int32_t)sector));
 
 	dfwrite(animategoal,4,MAXANIMATES,fil);
 	dfwrite(animatevel,4,MAXANIMATES,fil);
@@ -5406,10 +5438,10 @@ savegame()
 	return(0);
 }
 
-faketimerhandler()
+void faketimerhandler()
 {
 	short other, packbufleng;
-	long i, j, k, l;
+	int32_t i, j, k, l;
 
 	if ((totalclock < ototalclock+(TIMERINTSPERSECOND/MOVESPERSECOND)) || (ready2send == 0)) return;
 	ototalclock += (TIMERINTSPERSECOND/MOVESPERSECOND);
@@ -5532,9 +5564,9 @@ faketimerhandler()
 	}
 }
 
-getpackets()
+void getpackets()
 {
-	long i, j, k, l;
+	int32_t i, j, k, l;
 	short other, packbufleng, movecnt;
 
 	if (option[4] == 0) return;
@@ -5639,12 +5671,12 @@ getpackets()
 	}
 }
 
-drawoverheadmap(long cposx, long cposy, long czoom, short cang)
+void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
 {
-	long i, j, k, l, x1, y1, x2, y2, x3, y3, x4, y4, ox, oy, xoff, yoff;
-	long dax, day, cosang, sinang, xspan, yspan, sprx, spry;
-	long xrepeat, yrepeat, z1, z2, startwall, endwall, tilenum, daang;
-	long xvect, yvect, xvect2, yvect2;
+	int32_t i, j, k, l, x1, y1, x2, y2, x3, y3, x4, y4, ox, oy, xoff, yoff;
+	int32_t dax, day, cosang, sinang, xspan, yspan, sprx, spry;
+	int32_t xrepeat, yrepeat, z1, z2, startwall, endwall, tilenum, daang;
+	int32_t xvect, yvect, xvect2, yvect2;
 	char col;
 	walltype *wal, *wal2;
 	spritetype *spr;
@@ -5770,7 +5802,7 @@ drawoverheadmap(long cposx, long cposy, long czoom, short cang)
 					case 16:
 						x1 = sprx; y1 = spry;
 						tilenum = spr->picnum;
-						xoff = (long)((signed char)((picanm[tilenum]>>8)&255))+((long)spr->xoffset);
+						xoff = (int32_t)((signed char)((picanm[tilenum]>>8)&255))+((int32_t)spr->xoffset);
 						if ((spr->cstat&4) > 0) xoff = -xoff;
 						k = spr->ang; l = spr->xrepeat;
 						dax = sintable[k&2047]*l; day = sintable[(k+1536)&2047]*l;
@@ -5794,8 +5826,8 @@ drawoverheadmap(long cposx, long cposy, long czoom, short cang)
 						if (dimensionmode[screenpeek] == 1)
 						{
 							tilenum = spr->picnum;
-							xoff = (long)((signed char)((picanm[tilenum]>>8)&255))+((long)spr->xoffset);
-							yoff = (long)((signed char)((picanm[tilenum]>>16)&255))+((long)spr->yoffset);
+							xoff = (int32_t)((signed char)((picanm[tilenum]>>8)&255))+((int32_t)spr->xoffset);
+							yoff = (int32_t)((signed char)((picanm[tilenum]>>16)&255))+((int32_t)spr->yoffset);
 							if ((spr->cstat&4) > 0) xoff = -xoff;
 							if ((spr->cstat&8) > 0) yoff = -yoff;
 
@@ -5886,9 +5918,9 @@ drawoverheadmap(long cposx, long cposy, long czoom, short cang)
 	//parameters global (&globhiz,&globhihit,&globloz,&globlohit) so they
 	//don't need to be passed everywhere.  Also this should make this
 	//movesprite function compatible with the older movesprite functions.
-movesprite(short spritenum, long dx, long dy, long dz, long ceildist, long flordist, long clipmask)
+int movesprite(short spritenum, int32_t dx, int32_t dy, int32_t dz, int32_t ceildist, int32_t flordist, int32_t clipmask)
 {
-	long daz, zoffs, templong;
+	int32_t daz, zoffs, templong;
 	short retval, dasectnum, datempshort;
 	spritetype *spr;
 
@@ -5902,7 +5934,7 @@ movesprite(short spritenum, long dx, long dy, long dz, long ceildist, long flord
 	dasectnum = spr->sectnum;  //Can't modify sprite sectors directly becuase of linked lists
 	daz = spr->z+zoffs;  //Must do this if not using the new centered centering (of course)
 	retval = clipmove(&spr->x,&spr->y,&daz,&dasectnum,dx,dy,
-							((long)spr->clipdist)<<2,ceildist,flordist,clipmask);
+							((int32_t)spr->clipdist)<<2,ceildist,flordist,clipmask);
 
 	if (dasectnum < 0) retval = -1;
 
@@ -5914,7 +5946,7 @@ movesprite(short spritenum, long dx, long dy, long dz, long ceildist, long flord
 	datempshort = spr->cstat; spr->cstat &= ~1;
 	getzrange(spr->x,spr->y,spr->z-1,spr->sectnum,
 				 &globhiz,&globhihit,&globloz,&globlohit,
-				 ((long)spr->clipdist)<<2,clipmask);
+				 ((int32_t)spr->clipdist)<<2,clipmask);
 	spr->cstat = datempshort;
 
 	daz = spr->z+zoffs + dz;
@@ -5927,9 +5959,9 @@ movesprite(short spritenum, long dx, long dy, long dz, long ceildist, long flord
 	return(retval);
 }
 
-waitforeverybody()
+void waitforeverybody()
 {
-	long i, j, oldtotalclock;
+	int32_t i, j, oldtotalclock;
 
 	if (numplayers < 2) return;
 
@@ -5971,9 +6003,9 @@ waitforeverybody()
 	}
 }
 
-searchmap(short startsector)
+void searchmap(short startsector)
 {
-	long i, j, dasect, splc, send, startwall, endwall;
+	int32_t i, j, dasect, splc, send, startwall, endwall;
 	short dapic;
 	walltype *wal;
 
@@ -6027,9 +6059,9 @@ searchmap(short startsector)
 	}
 }
 
-setinterpolation(long *posptr)
+void setinterpolation(int32_t *posptr)
 {
-	long i;
+	int32_t i;
 
 	if (numinterpolations >= MAXINTERPOLATIONS) return;
 	for(i=numinterpolations-1;i>=0;i--)
@@ -6039,9 +6071,9 @@ setinterpolation(long *posptr)
 	numinterpolations++;
 }
 
-stopinterpolation(long *posptr)
+void stopinterpolation(int32_t *posptr)
 {
-	long i;
+	int32_t i;
 
 	for(i=numinterpolations-1;i>=startofdynamicinterpolations;i--)
 		if (curipos[i] == posptr)
@@ -6053,16 +6085,16 @@ stopinterpolation(long *posptr)
 		}
 }
 
-updateinterpolations()  //Stick at beginning of domovethings
+void updateinterpolations()  //Stick at beginning of domovethings
 {
-	long i;
+	int32_t i;
 
 	for(i=numinterpolations-1;i>=0;i--) oldipos[i] = *curipos[i];
 }
 
-dointerpolations()       //Stick at beginning of drawscreen
+void dointerpolations()       //Stick at beginning of drawscreen
 {
-	long i, j, odelta, ndelta;
+	int32_t i, j, odelta, ndelta;
 
 	ndelta = 0; j = 0;
 	for(i=numinterpolations-1;i>=0;i--)
@@ -6074,16 +6106,16 @@ dointerpolations()       //Stick at beginning of drawscreen
 	}
 }
 
-restoreinterpolations()  //Stick at end of drawscreen
+void restoreinterpolations()  //Stick at end of drawscreen
 {
-	long i;
+	int32_t i;
 
 	for(i=numinterpolations-1;i>=0;i--) *curipos[i] = bakipos[i];
 }
 
-printext(long x, long y, char *buffer, short tilenum, char invisiblecol)
+void printext(int32_t x, int32_t y, char *buffer, short tilenum, char invisiblecol)
 {
-	long i;
+	int32_t i;
 	char ch;
 
 	for(i=0;buffer[i]!=0;i++)
@@ -6095,11 +6127,11 @@ printext(long x, long y, char *buffer, short tilenum, char invisiblecol)
 	}
 }
 
-drawtilebackground (long thex, long they, short tilenum,
-								  signed char shade, long cx1, long cy1,
-								  long cx2, long cy2, char dapalnum)
+void drawtilebackground (int32_t thex, int32_t they, short tilenum,
+								  signed char shade, int32_t cx1, int32_t cy1,
+								  int32_t cx2, int32_t cy2, char dapalnum)
 {
-	long x, y, xsiz, ysiz, tx1, ty1, tx2, ty2;
+	int32_t x, y, xsiz, ysiz, tx1, ty1, tx2, ty2;
 
 	xsiz = tilesizx[tilenum]; tx1 = cx1/xsiz; tx2 = cx2/xsiz;
 	ysiz = tilesizy[tilenum]; ty1 = cy1/ysiz; ty2 = cy2/ysiz;

@@ -8,5 +8,6 @@
 #define open _open
 #define read _read
 #define close _close
+#define stricmp _stricmp
 #endif
 

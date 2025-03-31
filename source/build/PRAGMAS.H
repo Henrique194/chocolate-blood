@@ -3,6 +3,11 @@
 // See the included license file "BUILDLIC.TXT" for license info.
 // This file has been modified from Ken Silverman's original release
 
+static inline int32_t sqr(int32_t eax)
+{
+	return eax * eax;
+}
+
 static inline int32_t scale(int32_t eax, int32_t edx, int32_t ecx)
 {
 	int64_t m = (int64_t)eax * (int64_t)edx;

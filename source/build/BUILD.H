@@ -278,3 +278,75 @@ OTHER VARIABLES:
 		NUMSECTORS - the total number of existing sectors.  Modified every time
 			you call the loadboard function.
 ***************************************************************************/
+
+
+void initengine();
+void faketimerhandler();
+int32_t initmouse();
+void getmousevalues(short *mousx, short *mousy, short *bstatus);
+int32_t loadpics(char *filename);
+void qloadkvx(int32_t voxindex, char *filename);
+int32_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz);
+void copytilepiece(int32_t tilenume1, int32_t sx1, int32_t sy1, int32_t xsiz, int32_t ysiz,
+				  int32_t tilenume2, int32_t sx2, int32_t sy2);
+void makepalookup(int32_t palnum, char *remapbuf, signed char r, signed char g, signed char b, char dastat);
+void printext256(int32_t xpos, int32_t ypos, short col, short backcol, char name[82], char fontsize);
+void nextpage();
+void uninitengine();
+void setvmode(int a);
+int32_t nextsectorneighborz(short sectnum, int32_t thez, short topbottom, short direction);
+int32_t krand();
+int32_t loadboard(char *filename, int32_t *daposx, int32_t *daposy, int32_t *daposz,
+			 short *daang, short *dacursectnum);
+int32_t lastwall(short point);
+int32_t insertsprite(short sectnum, short statnum);
+int32_t deletesprite(short spritenum);
+int32_t changespritesect(short spritenum, short newsectnum);
+int32_t changespritestat(short spritenum, short newstatnum);
+void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+int32_t hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum, int32_t vx, int32_t vy, int32_t vz,
+	short *hitsect, short *hitwall, short *hitsprite,
+	int32_t *hitx, int32_t *hity, int32_t *hitz, uint32_t cliptype);
+void dragpoint(short pointhighlight, int32_t dax, int32_t day);
+int32_t setsprite(short spritenum, int32_t newx, int32_t newy, int32_t newz);
+void rotatepoint(int32_t xpivot, int32_t ypivot, int32_t x, int32_t y, short daang, int32_t *x2, int32_t *y2);
+int32_t clipinsidebox(int32_t x, int32_t y, short wallnum, int32_t walldist);
+int32_t cansee(int32_t x1, int32_t y1, int32_t z1, short sect1, int32_t x2, int32_t y2, int32_t z2, short sect2);
+int32_t ksqrt(int32_t num);
+extern int32_t clipmoveboxtracenum;
+int32_t clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
+			 int32_t xvect, int32_t yvect,
+			 int32_t walldist, int32_t ceildist, int32_t flordist, uint32_t cliptype);
+int32_t getangle(int32_t xvect, int32_t yvect);
+int32_t getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32_t *florz);
+int32_t pushmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
+			 int32_t walldist, int32_t ceildist, int32_t flordist, uint32_t cliptype);
+int32_t getceilzofslope(short sectnum, int32_t dax, int32_t day);
+int32_t getflorzofslope(short sectnum, int32_t dax, int32_t day);
+int32_t neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange, short *neartagsector, short *neartagwall, short *neartagsprite, int32_t *neartaghitdist, int32_t neartagrange, char tagsearch);
+int32_t inside(int32_t x, int32_t y, short sectnum);
+int32_t getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
+			 int32_t *ceilz, int32_t *ceilhit, int32_t *florz, int32_t *florhit,
+			 int32_t walldist, uint32_t cliptype);
+void flushperms();
+void rotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum, signed char dashade, char dapalnum, char dastat, int32_t cx1, int32_t cy1, int32_t cx2, int32_t cy2);
+void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
+			 short daang, int32_t dahoriz, short dacursectnum);
+void drawmasks();
+void setviewtotile(short tilenume, int32_t xsiz, int32_t ysiz);
+void setaspect(int32_t daxrange, int32_t daaspect);
+void preparemirror(int32_t dax, int32_t day, int32_t daz, short daang, int32_t dahoriz, short dawall, short dasector, int32_t *tposx, int32_t *tposy, short *tang);
+void completemirror();
+void setviewback();
+void clearview(int32_t dacol);
+void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang);
+int32_t screencapture(char* filename, char inverseit);
+void getvalidvesamodes();
+int32_t setgamemode(char davidoption, int32_t daxdim, int32_t daydim);
+void printscreeninterrupt();
+void setbrightness(char dabrightness, char *dapal);
+void clearallviews(int32_t dacol);
+int VBE_setPalette(int32_t start, int32_t num, char *dapal);
+void updatesector(int32_t x, int32_t y, short* sectnum);
+void loadtile(short tilenume);
+void drawline256(int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col);

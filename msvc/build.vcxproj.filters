@@ -24,9 +24,6 @@
     <ClCompile Include="..\source\build\video.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\build\MMULTI.C">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\build\a_asm.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -34,6 +31,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\source\build\opl3.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\build\system.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,6 +60,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="..\source\build\PRAGMAS.H">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\build\system.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\build\multi.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
