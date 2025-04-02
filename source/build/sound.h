@@ -16,3 +16,4 @@ char *Blaster_SetDmaPageSize(int size);
 void Blaster_Init(int tc, int rate, int channels, int is16bit);
 void Blaster_StartDma(int start, int dma_count, int count, int is_auto);
 int Blaster_GetDmaCount();
+void Adlib_Write(int offset, int data);

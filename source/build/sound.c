@@ -118,6 +118,12 @@ void Adlib_Write(int offset, int data)
 	}
 }
 
+void Music_SetTimer(int divider, void (*handler)())
+{
+	music_pit_divider = divider;
+	music_pit_callback = handler;
+}
+
 static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {
 	if (stream != stream_blaster)
