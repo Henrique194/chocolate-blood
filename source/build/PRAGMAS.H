@@ -826,7 +826,7 @@ static inline void qinterpolatedown16short(int16_t *dst, uint32_t cnt, int32_t b
 	}
 
 	cnt -= 2;
-	if (((uintptr_t)cnt < (uintptr_t)(intptr_t)-2))
+	if (cnt < (uint32_t)-2)
 	{
 		do
 		{
@@ -838,7 +838,7 @@ static inline void qinterpolatedown16short(int16_t *dst, uint32_t cnt, int32_t b
 			*(int32_t*)dst = val;
 			dst += 2;
 			cnt -= 2;
-		} while (((uintptr_t)cnt < (uintptr_t)(intptr_t)-2));
+		} while (cnt < (uint32_t)-2);
 
 		if ((cnt & 1) == 0)
 			return;

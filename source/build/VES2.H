@@ -97,7 +97,10 @@ int setvesa(int32_t x, int32_t y)
 		//Linear mode
 		buffermode = (maxpages<=1);
 		imageSize = bytesperline*yres;
-		frameplace = globlinplace;
+		if (buffermode)
+			frameplace = FP_OFF(screen);
+		else
+			frameplace = globlinplace;
 		j = 0;
 		for(i=0;i<maxpages;i++)
 		{
@@ -113,12 +116,14 @@ int setvesa(int32_t x, int32_t y)
 
 void setactivepage(int32_t dapagenum)
 {
+	if (buffermode != 0) { frameplace = FP_OFF(screen); return; }
 	frameplace = activepagelookup[dapagenum];
 }
 
 void setvisualpage(int32_t dapagenum)
 {
-	int32_t i, j, p, dx, cx1, cy1, cx2, cy2, delta, x, y, y1, y2, ny1, ny2;
+	int32_t j, dx, cx1, cy1, cx2, cy2, x, y, y1, y2, ny1, ny2;
+	intptr_t i, p, delta;
 
 	if (buffermode != 0)
 	{

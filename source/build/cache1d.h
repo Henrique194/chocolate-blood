@@ -3,8 +3,8 @@
 #include "compat.h"
 
 
-void initcache(int32_t dacachestart, int32_t dacachesize);
-void allocache(int32_t *newhandle, int32_t newbytes, char *newlockptr);
+void initcache(intptr_t dacachestart, int32_t dacachesize);
+void allocache(intptr_t *newhandle, int32_t newbytes, char *newlockptr);
 void suckcache(int32_t *suckptr);
 void agecache();
 

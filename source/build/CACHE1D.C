@@ -4,7 +4,9 @@
 // This file has been modified from Ken Silverman's original release
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "compat.h"
+#include "build.h"
 #include "cache1d.h"
 #include "pragmas.h"
 
@@ -41,14 +43,15 @@
 static int32_t cachesize = 0;
 int32_t cachecount = 0;
 char zerochar = 0;
-int32_t cachestart = 0, cacnum = 0, agecount = 0;
-typedef struct { int32_t *hand, leng; char *lock; } cactype;
+intptr_t cachestart = 0;
+int32_t cacnum = 0, agecount = 0;
+typedef struct { intptr_t *hand; int32_t leng; char *lock; } cactype;
 cactype cac[MAXCACHEOBJECTS];
 static int32_t lockrecip[200];
 
 void reportandexit();
 
-void initcache(int32_t dacachestart, int32_t dacachesize)
+void initcache(intptr_t dacachestart, int32_t dacachesize)
 {
 	int32_t i;
 
@@ -62,7 +65,7 @@ void initcache(int32_t dacachestart, int32_t dacachesize)
 	cacnum = 1;
 }
 
-void allocache (int32_t *newhandle, int32_t newbytes, char *newlockptr)
+void allocache (intptr_t *newhandle, int32_t newbytes, char *newlockptr)
 {
 	int32_t i, j, z, zz, bestz, daval, bestval, besto, o1, o2, sucklen, suckz;
 
@@ -150,7 +153,7 @@ void suckcache (int32_t *suckptr)
 
 		//Can't exit early, because invalid pointer might be same even though lock = 0
 	for(i=0;i<cacnum;i++)
-		if ((int32_t)(*cac[i].hand) == (int32_t)suckptr)
+		if ((intptr_t)(*cac[i].hand) == (intptr_t)suckptr)
 		{
 			if (*cac[i].lock) *cac[i].hand = 0;
 			cac[i].lock = &zerochar;
@@ -197,7 +200,7 @@ void reportandexit()
 	for(i=0;i<cacnum;i++)
 	{
 		printf("%ld- ",i);
-		printf("ptr: 0x%x, ",*cac[i].hand);
+		printf("ptr: 0x%x, ",(uint32_t)*cac[i].hand);
 		printf("leng: %ld, ",cac[i].leng);
 		printf("lock: %ld\n",*cac[i].lock);
 		j += cac[i].leng;

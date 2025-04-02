@@ -8,7 +8,7 @@ extern int32_t asm1, asm4;
 extern intptr_t asm2, asm3;
 extern int32_t reciptable[];
 extern union {
-	uint32_t i;
+	int32_t i;
 	float f;
 } fpuasm;
 
@@ -78,18 +78,16 @@ void setpalookupaddress(char* eax)
 	setpalookupaddress_eax = eax;
 }
 
-static int32_t setuphlineasm4_eax, setuphlineasm4_ebx;
+static uint64_t hlineasm4_sub;
 void setuphlineasm4(int32_t eax, int32_t ebx)
 {
-	uint32_t a = (uint32_t)eax << sethlinesizes_al;
-	a |= (uint32_t)eax >> (32 - sethlinesizes_al);
-	setuphlineasm4_eax = a;
-	ebx &= ~255;
-	ebx |= a & 255;
-	setuphlineasm4_ebx = ebx;
+	hlineasm4_sub = (uint32_t)(eax << sethlinesizes_al);
+	hlineasm4_sub |= (uint32_t)eax >> (32 - sethlinesizes_al);
+	uint32_t h = ebx;
+	h &= ~255;
+	h |= hlineasm4_sub & 255;
+	hlineasm4_sub |= (uint64_t)h << 32;
 }
-
-static uint64_t hlineasm4_sub;
 
 void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, intptr_t edi)
 {
@@ -101,7 +99,7 @@ void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, 
 			uint32_t a = (uint32_t)esi >> sethlinesizes_al_n;
 			a <<= sethlinesizes_bl;
 			a |= (uint32_t)edx >> sethlinesizes_bl_n;
-			*(char*)edi = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			*(char*)edi = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 			esi -= asm1;
 			edx -= asm2;
 			edi--;
@@ -112,13 +110,13 @@ void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, 
 			uint32_t a = (uint32_t)esi >> sethlinesizes_al_n;
 			a <<= sethlinesizes_bl;
 			a |= (uint32_t)edx >> sethlinesizes_bl_n;
-			char bh = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			char bh = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 			esi -= asm1;
 			edx -= asm2;
 			a = (uint32_t)esi >> sethlinesizes_al_n;
 			a <<= sethlinesizes_bl;
 			a |= (uint32_t)edx >> sethlinesizes_bl_n;
-			char bl = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			char bl = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 			esi -= asm1;
 			edx -= asm2;
 			*(uint16_t*)(edi - 1) = (bh << 8) | bl;
@@ -137,10 +135,11 @@ void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, 
 
 		if (ebx >= 0)
 		{
-			hlineasm4_sub = asm1;
+			hlineasm4_sub = (uint32_t)(asm1 << sethlinesizes_al);
+			hlineasm4_sub |= (uint32_t)asm1 >> (32 - sethlinesizes_al);
 			uint32_t h = asm2;
 			h &= ~255;
-			h |= asm1 & 255;
+			h |= hlineasm4_sub & 255;
 			hlineasm4_sub |= (uint64_t)h << 32;
 		}
 		while (1)
@@ -153,31 +152,31 @@ void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, 
 			edi -= 4;
 
 			col32_t col;
-			col.d = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			col.d = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 
 			a = (uint32_t)crd.h << sethlinesizes_bl;
 			a |= (uint32_t)crd.h >> (32 - sethlinesizes_bl);
 			a &= sethlinesizes_mask;
 			crd.m -= hlineasm4_sub;
 
-			col.c = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			col.c = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 
 			a = (uint32_t)crd.h << sethlinesizes_bl;
 			a |= (uint32_t)crd.h >> (32 - sethlinesizes_bl);
 			a &= sethlinesizes_mask;
 			crd.m -= hlineasm4_sub;
 
-			col.b = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			col.b = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 
 			a = (uint32_t)crd.h << sethlinesizes_bl;
 			a |= (uint32_t)crd.h >> (32 - sethlinesizes_bl);
 			a &= sethlinesizes_mask;
 			crd.m -= hlineasm4_sub;
 
-			col.a = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			col.a = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 
 			ebp -= 4;
-			if (ebp >= 0)
+			if ((uint32_t)ebp < (uint32_t)-4)
 			{
 				*(uint32_t*)edi = col.m;
 				continue;
@@ -185,13 +184,13 @@ void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, 
 
 			if (ebp & 2)
 			{
-				*(uint32_t*)(edi + 2) = col.m >> 16;
+				*(short*)(edi + 2) = col.m >> 16;
 				col.d = col.b;
 				edi -= 2;
 			}
 			if (ebp & 1)
 			{
-				*(uint32_t*)(edi + 3) = col.d;
+				*(char*)(edi + 3) = col.d;
 			}
 			break;
 		}
@@ -203,7 +202,7 @@ void hlineasm4(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, 
 			uint32_t a = (uint32_t)esi >> sethlinesizes_al_n;
 			a <<= sethlinesizes_bl;
 			a |= (uint32_t)edx >> sethlinesizes_bl_n;
-			*(char*)edi = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a)];
+			*(char*)edi = setpalookupaddress_eax[*(char*)(sethlinesizes_ecx + a) + ecx];
 			esi -= asm1;
 			edx -= asm2;
 			edi--;
@@ -259,7 +258,7 @@ int32_t vlineasm1(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, intptr_t 
 		uint32_t a = (uint32_t)edx >> setupvlineasm_al;
 		edx += eax;
 		edi += setvlinebpl_eax;
-		*(char*)edi = *(char*)(ebx + (char*)(esi + a));
+		*(char*)edi = *(char*)(ebx + *(char*)(esi + a));
 	} while (--ecx);
 
 	return edx;
@@ -271,7 +270,7 @@ int32_t mvlineasm1(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, intptr_t
 	{
 		uint32_t a = (uint32_t)edx >> setupmvlineasm_al;
 		edx += eax;
-		char c = (char*)(esi + a);
+		char c = *(char*)(esi + a);
 		if (c != 255)
 			*(char*)edi = *(char*)(ebx + c);
 		edi += setvlinebpl_eax;
@@ -301,14 +300,14 @@ void settransreverse()
 	trans_s2 = 0;
 }
 
-int32_t tvlineasm1(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, int32_t edi)
+int32_t tvlineasm1(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, intptr_t esi, intptr_t edi)
 {
 	ecx++;
 	do
 	{
 		uint32_t a = (uint32_t)edx >> setuptvlineasm_al;
 		edx += eax;
-		char c = (char*)(esi + a);
+		char c = *(char*)(esi + a);
 		if (c != 255)
 		{
 			c = *(char*)(ebx + c);
@@ -330,7 +329,7 @@ void vlineasm4(int32_t ecx, intptr_t edi)
 	uint64_t add1 = va & 0xffff0000;
 	add1 |= (uint64_t)(vince[2] + (va & 0x1ff)) << 32;
 	uint16_t add2_l = vb >> 16;
-	uint32_t add2_h = vince[2] + (va & 0x1ff);
+	uint32_t add2_h = vince[0] + (va & 0x1ff);
 
 	va = ((uint32_t)vplce[3] << setupvlineasm_al_n) | (((uint32_t)vplce[3] >> (32 - setupvlineasm_al_n)));
 	vb = ((uint32_t)vplce[1] << setupvlineasm_al_n) | (((uint32_t)vplce[1] >> (32 - setupvlineasm_al_n)));
@@ -354,9 +353,9 @@ void vlineasm4(int32_t ecx, intptr_t edi)
 		crd_h2 += add2_h;
 
 		*(char*)&o0 = *(char*)(bufplce[0] + o0);
-		*(char*)&o1 = *(char*)(bufplce[0] + o1);
-		*(char*)&o2 = *(char*)(bufplce[0] + o2);
-		*(char*)&o3 = *(char*)(bufplce[0] + o3);
+		*(char*)&o1 = *(char*)(bufplce[1] + o1);
+		*(char*)&o2 = *(char*)(bufplce[2] + o2);
+		*(char*)&o3 = *(char*)(bufplce[3] + o3);
 
 		col32_t col;
 		col.a = *(char*)(palookupoffse[0] + o0);
@@ -399,13 +398,13 @@ void mvlineasm4(int32_t ecx, intptr_t edi)
 			uint32_t o2 = plc2 >> setupmvlineasm_al;
 			uint32_t o3 = plc3 >> setupmvlineasm_al;
 
-			*(char*)&o0 = (char*)(bufplce[0] + o0);
-			*(char*)&o1 = (char*)(bufplce[1] + o1);
-			*(char*)&o2 = (char*)(bufplce[2] + o2);
-			*(char*)&o3 = (char*)(bufplce[3] + o3);
+			*(char*)&o0 = *(char*)(bufplce[0] + o0);
+			*(char*)&o1 = *(char*)(bufplce[1] + o1);
+			*(char*)&o2 = *(char*)(bufplce[2] + o2);
+			*(char*)&o3 = *(char*)(bufplce[3] + o3);
 
-			plc0 += vince[0];
-			plc1 += vince[1];
+			plc0 += vince[0] & ~255;
+			plc1 += vince[1] & ~255;
 			plc2 += vince[2];
 			plc3 += vince[3];
 
@@ -419,10 +418,10 @@ void mvlineasm4(int32_t ecx, intptr_t edi)
 			cas |= (char)o0 < 255;
 
 			col32_t col;
-			col.a = (char*)(palookupoffse[0] + o0);
-			col.b = (char*)(palookupoffse[1] + o1);
-			col.c = (char*)(palookupoffse[2] + o2);
-			col.d = (char*)(palookupoffse[3] + o3);
+			col.a = *(char*)(palookupoffse[0] + o0);
+			col.b = *(char*)(palookupoffse[1] + o1);
+			col.c = *(char*)(palookupoffse[2] + o2);
+			col.d = *(char*)(palookupoffse[3] + o3);
 
 			edi += setvlinebpl_eax;
 
@@ -496,11 +495,11 @@ static int32_t setupspritevline_esi;
 static int32_t setupspritevline_ebx;
 static int32_t setupspritevline_ecx;
 static int32_t setupspritevline_edx;
-void setupspritevline(intptr_t eax, int32_t edx, int32_t ebx, int32_t ecx, int32_t esi, int32_t edi)
+void setupspritevline(intptr_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, int32_t edi)
 {
 	setupspritevline_eax = eax;
 	setupspritevline_esi = esi << 16;
-	setupspritevline_ebx = ebx + (setupspritevline_esi >> 16);
+	setupspritevline_ebx = ebx + (esi >> 16);
 	setupspritevline_edx = setupspritevline_ebx + edx;
 	setupspritevline_ecx = ecx;
 }
@@ -510,11 +509,11 @@ void spritevline(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t es
 	while (--ecx)
 	{
 		char c = *(char*)esi;
-		*(char*)edi = (char*)(setupspritevline_eax + c);
+		*(char*)edi = *(char*)(setupspritevline_eax + c);
 		edi += setvlinebpl_eax;
 
 		edx += setupspritevline_ecx;
-		if ((uint32_t)edx < (uint32_t)setupspritevline_ecx)
+		if ((uint32_t)edx >= (uint32_t)setupspritevline_ecx)
 			esi += setupspritevline_ebx;
 		else
 			esi += setupspritevline_edx;
@@ -529,11 +528,11 @@ static int32_t msetupspritevline_esi;
 static int32_t msetupspritevline_ebx;
 static int32_t msetupspritevline_ecx;
 static int32_t msetupspritevline_edx;
-void msetupspritevline(intptr_t eax, int32_t edx, int32_t ebx, int32_t ecx, int32_t esi, int32_t edi)
+void msetupspritevline(intptr_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, int32_t edi)
 {
 	msetupspritevline_eax = eax;
 	msetupspritevline_esi = esi << 16;
-	msetupspritevline_ebx = ebx + (msetupspritevline_esi >> 16);
+	msetupspritevline_ebx = ebx + (esi >> 16);
 	msetupspritevline_edx = msetupspritevline_ebx + edx;
 	msetupspritevline_ecx = ecx;
 }
@@ -544,16 +543,16 @@ void mspritevline(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t e
 	{
 		char c = *(char*)esi;
 		if (c != 255)
-			*(char*)edi = (char*)(setupspritevline_eax + c);
+			*(char*)edi = *(char*)(setupspritevline_eax + c);
 		edi += setvlinebpl_eax;
 
 		edx += msetupspritevline_ecx;
-		if ((uint32_t)edx < (uint32_t)msetupspritevline_ecx)
+		if ((uint32_t)edx >= (uint32_t)msetupspritevline_ecx)
 			esi += msetupspritevline_ebx;
 		else
 			esi += msetupspritevline_edx;
-		ebx += setupspritevline_esi;
-		if ((uint32_t)ebx < (uint32_t)setupspritevline_esi)
+		ebx += msetupspritevline_esi;
+		if ((uint32_t)ebx < (uint32_t)msetupspritevline_esi)
 			esi++;
 	}
 }
@@ -563,11 +562,11 @@ static int32_t tsetupspritevline_esi;
 static int32_t tsetupspritevline_ebx;
 static int32_t tsetupspritevline_ecx;
 static int32_t tsetupspritevline_edx;
-void tsetupspritevline(intptr_t eax, int32_t edx, int32_t ebx, int32_t ecx, int32_t esi, int32_t edi)
+void tsetupspritevline(intptr_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, int32_t edi)
 {
 	tsetupspritevline_eax = eax;
 	tsetupspritevline_esi = esi << 16;
-	tsetupspritevline_ebx = ebx + (tsetupspritevline_esi >> 16);
+	tsetupspritevline_ebx = ebx + (esi >> 16);
 	tsetupspritevline_edx = tsetupspritevline_ebx + edx;
 	tsetupspritevline_ecx = ecx;
 }
@@ -579,18 +578,18 @@ void tspritevline(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t e
 		char c = *(char*)esi;
 		if (c != 255)
 		{
-			c = *(char*)(setupspritevline_eax + c);
+			c = *(char*)(tsetupspritevline_eax + c);
 			*(char*)edi = *(char*)(fixtransluscence_eax + (*(char*)edi << trans_s2) + (c << trans_s1));
 		}
 		edi += setvlinebpl_eax;
 
-		edx += msetupspritevline_ecx;
-		if ((uint32_t)edx < (uint32_t)msetupspritevline_ecx)
-			esi += msetupspritevline_ebx;
+		edx += tsetupspritevline_ecx;
+		if ((uint32_t)edx >= (uint32_t)tsetupspritevline_ecx)
+			esi += tsetupspritevline_ebx;
 		else
-			esi += msetupspritevline_edx;
-		ebx += setupspritevline_esi;
-		if ((uint32_t)ebx < (uint32_t)setupspritevline_esi)
+			esi += tsetupspritevline_edx;
+		ebx += tsetupspritevline_esi;
+		if ((uint32_t)ebx < (uint32_t)tsetupspritevline_esi)
 			esi++;
 	}
 }
@@ -603,13 +602,13 @@ void msethlineshift(int32_t eax, int32_t ebx)
 	msethlineshift_bl = ebx;
 }
 
-void mhlineskipmodify(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, int32_t edi);
+void mhlineskipmodify(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, intptr_t edi);
 
 static intptr_t mhline_eax;
 static int32_t mhline_asm1;
 static int32_t mhline_asm2;
 static intptr_t mhline_asm3;
-void mhline(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, intptr_t edi)
+void mhline(intptr_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, intptr_t edi)
 {
 	mhline_eax = eax;
 	mhline_asm1 = asm1;
@@ -681,7 +680,7 @@ static intptr_t thline_eax;
 static int32_t thline_asm1;
 static int32_t thline_asm2;
 static intptr_t thline_asm3;
-void thline(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, intptr_t edi)
+void thline(intptr_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_t esi, intptr_t edi)
 {
 	thline_eax = eax;
 	thline_asm1 = asm1;
@@ -749,9 +748,9 @@ void thlineskipmodify(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, int32_
 }
 
 static uint8_t setuptvlineasm2_al;
-static uint32_t setuptvlineasm2_ebx;
-static uint32_t setuptvlineasm2_ecx;
-void setuptvlineasm2(int32_t eax, int32_t ebx, int32_t ecx)
+static intptr_t setuptvlineasm2_ebx;
+static intptr_t setuptvlineasm2_ecx;
+void setuptvlineasm2(int32_t eax, intptr_t ebx, intptr_t ecx)
 {
 	setuptvlineasm2_al = eax;
 	setuptvlineasm2_ebx = ebx;
@@ -778,6 +777,8 @@ void tvlineasm2(int32_t eax, int32_t ebx, intptr_t ecx, intptr_t edx, int32_t es
 			col16_t c;
 			c.m = *(short*) (edi + asm2);
 
+			c1 = *(char*)(setuptvlineasm2_ebx + c1);
+			c2 = *(char*)(setuptvlineasm2_ecx + c2);
 			c.a = *(char*)(fixtransluscence_eax + (c.a << trans_s2) + (c1 << trans_s1));
 			c.b = *(char*)(fixtransluscence_eax + (c.b << trans_s2) + (c2 << trans_s1));
 
@@ -785,12 +786,12 @@ void tvlineasm2(int32_t eax, int32_t ebx, intptr_t ecx, intptr_t edx, int32_t es
 		}
 		else if (c1 != 255)
 		{
-			c1 = *(char*)(thline_asm3 + c1);
+			c1 = *(char*)(setuptvlineasm2_ebx + c1);
 			*(char*)(edi + asm2) = *(char*)(fixtransluscence_eax + (*(char*)(edi + asm2) << trans_s2) + (c1 << trans_s1));
 		}
 		else if (c2 != 255)
 		{
-			c2 = *(char*)(thline_asm3 + c2);
+			c2 = *(char*)(setuptvlineasm2_ecx + c2);
 			*(char*)(edi + asm2 + 1) = *(char*)(fixtransluscence_eax + (*(char*)(edi + asm2 + 1) << trans_s2) + (c2 << trans_s1));
 		}
 
@@ -846,14 +847,14 @@ void slopevlin(intptr_t eax, int32_t ebx, intptr_t ecx, int32_t edx, int32_t esi
 	esi += (ebx << 3) * globalx3;
 	edi += (ebx << 3) * globaly3;
 
-	while (1)
+	do
 	{
 		fpuasm.f = f;
 		int32_t neg = fpuasm.i < 0 ? -1 : 0;
 		uint8_t ex = (fpuasm.i >> 23) & 255;
 		ex -= 2;
 		uint32_t man = (fpuasm.i >> 12) & 2047;
-		uint32_t v = reciptable[man] >> ex;
+		int32_t v = reciptable[man] >> ex;
 		v ^= neg;
 
 		int32_t o = asm1;
@@ -882,7 +883,7 @@ void slopevlin(intptr_t eax, int32_t ebx, intptr_t ecx, int32_t edx, int32_t esi
 
 			ebp += setupslopevlin_ecx;
 
-			*(char*)&d = (uint32_t)(setupslopevlin_ebx + b + d);
+			*(char*)&d = *(char*)(setupslopevlin_ebx + (b & setupslopevlin_al_mask) + d);
 
 			intptr_t lookup = *(intptr_t*)(ecx);
 			ecx -= sizeof(intptr_t);
@@ -923,10 +924,10 @@ void rhlineasm4(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, int32_t esi
 			char c = *(char*)ebx;
 
 			edx -= setuprhlineasm4_eax;
-			if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax))
+			if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax) && setuprhlineasm4_eax)
 				ebx -= setuprhlineasm4_esi;
 			esi -= setuprhlineasm4_ebx;
-			if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx))
+			if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx) && setuprhlineasm4_ebx)
 				ebx--;
 			ebx -= setuprhlineasm4_ecx;
 
@@ -944,40 +945,40 @@ void rhlineasm4(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, int32_t esi
 		col.d = *(char*)(setuprhlineasm4_edx + *(char*)ebx);
 
 		edx -= setuprhlineasm4_eax;
-		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax))
+		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax) && setuprhlineasm4_eax)
 			ebx -= setuprhlineasm4_esi;
 		esi -= setuprhlineasm4_ebx;
-		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx))
+		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx) && setuprhlineasm4_ebx)
 			ebx--;
 		ebx -= setuprhlineasm4_ecx;
 
 		col.c = *(char*)(setuprhlineasm4_edx + *(char*)ebx);
 
 		edx -= setuprhlineasm4_eax;
-		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax))
+		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax) && setuprhlineasm4_eax)
 			ebx -= setuprhlineasm4_esi;
 		esi -= setuprhlineasm4_ebx;
-		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx))
+		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx) && setuprhlineasm4_ebx)
 			ebx--;
 		ebx -= setuprhlineasm4_ecx;
 
 		col.b = *(char*)(setuprhlineasm4_edx + *(char*)ebx);
 
 		edx -= setuprhlineasm4_eax;
-		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax))
+		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax) && setuprhlineasm4_eax)
 			ebx -= setuprhlineasm4_esi;
 		esi -= setuprhlineasm4_ebx;
-		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx))
+		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx) && setuprhlineasm4_ebx)
 			ebx--;
 		ebx -= setuprhlineasm4_ecx;
 
 		col.a = *(char*)(setuprhlineasm4_edx + *(char*)ebx);
 
 		edx -= setuprhlineasm4_eax;
-		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax))
+		if ((uint32_t)edx >= (uint32_t)(-setuprhlineasm4_eax) && setuprhlineasm4_eax)
 			ebx -= setuprhlineasm4_esi;
 		esi -= setuprhlineasm4_ebx;
-		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx))
+		if ((uint32_t)esi >= (uint32_t)(-setuprhlineasm4_ebx) && setuprhlineasm4_ebx)
 			ebx--;
 		ebx -= setuprhlineasm4_ecx;
 
@@ -1015,10 +1016,10 @@ void rmhlineasm4(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, int32_t es
 		char c = *(char*)ebx;
 
 		edx -= setuprmhlineasm4_eax;
-		if ((uint32_t)edx >= (uint32_t)(-setuprmhlineasm4_eax))
+		if ((uint32_t)edx >= (uint32_t)(-setuprmhlineasm4_eax) && setuprmhlineasm4_eax)
 			ebx -= setuprmhlineasm4_esi;
 		esi -= setuprmhlineasm4_ebx;
-		if ((uint32_t)esi >= (uint32_t)(-setuprmhlineasm4_ebx))
+		if ((uint32_t)esi >= (uint32_t)(-setuprmhlineasm4_ebx) && setuprmhlineasm4_ebx)
 			ebx--;
 		ebx -= setuprmhlineasm4_ecx;
 
@@ -1059,7 +1060,7 @@ void qrhlineasm4(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, int32_t es
 			char c = *(char*)ebx;
 
 			esi -= setupqrhlineasm4_ebx;
-			if ((uint32_t)esi >= (uint32_t)(-setupqrhlineasm4_ebx))
+			if ((uint32_t)esi >= (uint32_t)(-setupqrhlineasm4_ebx) && setupqrhlineasm4_ebx)
 				ebx--;
 			ebx -= setupqrhlineasm4_ecx;
 
@@ -1079,7 +1080,7 @@ void qrhlineasm4(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, int32_t es
 		col.c = *(char*)(setupqrhlineasm4_edx + *(char*)ebx + setupqrhlineasm4_ecx_n);
 
 		esi -= setupqrhlineasm4_ebx2;
-		if ((uint32_t)esi >= (uint32_t)(-setupqrhlineasm4_ebx2))
+		if ((uint32_t)esi >= (uint32_t)(-setupqrhlineasm4_ebx2) && setupqrhlineasm4_ebx2)
 			ebx--;
 		ebx -= setupqrhlineasm4_ecx2;
 
@@ -1087,7 +1088,7 @@ void qrhlineasm4(int32_t eax, intptr_t ebx, int32_t ecx, int32_t edx, int32_t es
 		col.a = *(char*)(setupqrhlineasm4_edx + *(char*)ebx + setupqrhlineasm4_ecx_n);
 
 		esi -= setupqrhlineasm4_ebx2;
-		if ((uint32_t)esi >= (uint32_t)(-setupqrhlineasm4_ebx2))
+		if ((uint32_t)esi >= (uint32_t)(-setupqrhlineasm4_ebx2) && setupqrhlineasm4_ebx2)
 			ebx--;
 		ebx -= setupqrhlineasm4_ecx2;
 
@@ -1150,13 +1151,14 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 		{
 			intptr_t edi2 = edi;
 			int32_t ebx2 = ebx;
+			uint32_t ecx2 = ecx;
 			do
 			{
 				char c = *(char*)(esi + ((uint32_t)ebx2 >> 16));
 				*(char*)edi2 = *(char*)(setupdrawslab_ebx + c);
 				edi2 += setupdrawslab_eax;
 				ebx2 += edx;
-			} while (--ecx);
+			} while (--ecx2);
 
 			edi++;
 		}
@@ -1165,6 +1167,7 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 		{
 			intptr_t edi2 = edi;
 			int32_t ebx2 = ebx;
+			uint32_t ecx2 = ecx;
 			do
 			{
 				char c = *(char*)(esi + ((uint32_t)ebx2 >> 16));
@@ -1173,7 +1176,7 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 				*(short*)edi2 = col.m;
 				edi2 += setupdrawslab_eax;
 				ebx2 += edx;
-			} while (--ecx);
+			} while (--ecx2);
 
 			edi += 2;
 		}
@@ -1182,6 +1185,7 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 		{
 			intptr_t edi2 = edi;
 			int32_t ebx2 = ebx;
+			uint32_t ecx2 = ecx;
 			do
 			{
 				char c = *(char*)(esi + ((uint32_t)ebx2 >> 16));
@@ -1190,7 +1194,7 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 				*(uint32_t*)edi2 = col.m;
 				edi2 += setupdrawslab_eax;
 				ebx2 += edx;
-			} while (--ecx);
+			} while (--ecx2);
 			edi += 4;
 		}
 
@@ -1198,6 +1202,7 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 		{
 			intptr_t edi2 = edi;
 			int32_t ebx2 = ebx;
+			uint32_t ecx2 = ecx;
 			do
 			{
 				char c = *(char*)(esi + ((uint32_t)ebx2 >> 16));
@@ -1206,7 +1211,7 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 				*(short*)edi2 = col.m;
 				edi2 += setupdrawslab_eax;
 				ebx2 += edx;
-			} while (--ecx);
+			} while (--ecx2);
 
 			edi += 2;
 		}
@@ -1214,13 +1219,14 @@ void drawslab(int32_t eax, int32_t ebx, int32_t ecx, int32_t edx, intptr_t esi, 
 		{
 			intptr_t edi2 = edi;
 			int32_t ebx2 = ebx;
+			uint32_t ecx2 = ecx;
 			do
 			{
 				char c = *(char*)(esi + ((uint32_t)ebx2 >> 16));
 				*(char*)edi2 = *(char*)(setupdrawslab_ebx + c);
 				edi2 += setupdrawslab_eax;
 				ebx2 += edx;
-			} while (--ecx);
+			} while (--ecx2);
 		}
 	}
 }

@@ -350,3 +350,5 @@ int VBE_setPalette(int32_t start, int32_t num, char *dapal);
 void updatesector(int32_t x, int32_t y, short* sectnum);
 void loadtile(short tilenume);
 void drawline256(int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col);
+void *kmalloc(size_t size);
+void kfree(void *buffer);

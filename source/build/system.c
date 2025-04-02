@@ -33,8 +33,6 @@ void Sys_Init()
 {
 	SDL_InitSubSystem(SDL_INIT_EVENTS);
 
-	timer_base = SDL_GetPerformanceCounter();
-
 	memset(kb_scancodemap, -1, sizeof(kb_scancodemap));
 
 	kb_scancodemap[SDL_SCANCODE_ESCAPE] = 1;
@@ -201,6 +199,7 @@ void Sys_HandleEvents()
 
 void Sys_SetTimer(int divider, void (*handler)())
 {
+	timer_base = SDL_GetPerformanceCounter();
 	pit_divider = divider;
 	pit_callback = handler;
 }

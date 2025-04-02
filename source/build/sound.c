@@ -31,6 +31,8 @@ static int blaster_dma_ptr;
 static int blaster_dma_ptr_init;
 static int blaster_dma_running;
 static int blaster_dma_auto;
+static int blaster_irq_count;
+static int blaster_irq_count_init;
 static void (*blaster_irq_callback)();
 static double blaster_pit_counter;
 static int blaster_pit_divider;
@@ -146,8 +148,11 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 		{
 			int dma_bytes = blaster_dma_count + 1;
 			dma_bytes <<= blaster_16bit;
+			int irq_bytes = (blaster_irq_count + 1) * bytespersample;
 			if (bytes > dma_bytes)
 				bytes = dma_bytes;
+			if (bytes > irq_bytes)
+				bytes = irq_bytes;
 
 			memcpy(stream_blaster_buffer, blaster_dma_buffer + (blaster_dma_ptr << blaster_16bit), bytes);
 			blaster_dma_ptr += bytes >> blaster_16bit;
@@ -160,7 +165,7 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 				memset(stream_blaster_buffer, 0x80, bytes);
 		}
 
-		SDL_PutAudioStreamData(stream, stream_adlib_buffer, bytes);
+		SDL_PutAudioStreamData(stream, stream_blaster_buffer, bytes);
 
 		if (blaster_dma_running)
 		{
@@ -174,7 +179,11 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 				}
 				else
 					blaster_dma_running = 0;
-
+			}
+			blaster_irq_count -= bytes / bytespersample;
+			if (blaster_irq_count < 0)
+			{
+				blaster_irq_count = blaster_irq_count_init;
 				if (blaster_irq_callback)
 					blaster_irq_callback();
 			}
@@ -190,6 +199,8 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 					blaster_pit_callback();
 			}
 		}
+
+		send += bytes;
 	}
 
 	return true;
@@ -233,19 +244,20 @@ char *Blaster_SetDmaPageSize(int size)
 	if (size == blaster_dma_buffer_size)
 		return blaster_dma_buffer;
 
-	int size2 = (size + 15) & (~15);
+	int size2 = size + 15;
 	blaster_dma_buffer2 = realloc(blaster_dma_buffer2, size2);
 
 	blaster_dma_buffer_size = size;
-	blaster_dma_buffer = (char*)(((intptr_t)blaster_dma_buffer + 15) & (~(intptr_t)15));
+	blaster_dma_buffer = (char*)(((intptr_t)blaster_dma_buffer2 + 15) & (~(intptr_t)15));
 
 	return blaster_dma_buffer;
 }
 
-void Blaster_StartDma(int start, int count, int is_auto)
+void Blaster_StartDma(int start, int dma_count, int count, int is_auto)
 {
-	blaster_dma_ptr_init = start;
-	blaster_dma_count_init = count;
+	blaster_dma_ptr = blaster_dma_ptr_init = start;
+	blaster_dma_count = blaster_dma_count_init = dma_count;
+	blaster_irq_count = blaster_irq_count_init = count;
 	blaster_dma_auto = is_auto;
 	blaster_dma_running = 1;
 }
@@ -258,6 +270,11 @@ void Blaster_StopDma()
 void Blaster_SetIrqHandler(void (*handler)())
 {
 	blaster_irq_callback = handler;
+}
+
+int Blaster_GetDmaCount()
+{
+	return blaster_dma_count;
 }
 
 void Sound_Init(int rate)

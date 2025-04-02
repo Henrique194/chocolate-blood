@@ -34,7 +34,7 @@ static void CreateWindow(int w, int h)
 	if (!renderer)
 		goto failed;
 
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, w, h);
 	if (!texture)
 		goto failed;
 
@@ -50,7 +50,7 @@ static void ResizeWindow(int w, int h)
 
 	SDL_DestroyTexture(texture);
 
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, w, h);
 	if (!texture)
 	{
 		printf("ResizeWindow failed\n");

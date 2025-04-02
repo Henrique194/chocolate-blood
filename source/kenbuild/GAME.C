@@ -18,6 +18,7 @@
 #include "system.h"
 #include "multi.h"
 #include "kdmeng.h"
+#include "video.h"
 
 #define TIMERINTSPERSECOND 280
 #define MOVESPERSECOND 40
@@ -363,6 +364,11 @@ int main(short int argc,char **argv)
 	short other, packleng;
 	char *ptr;
 
+	Sys_Init();
+	Video_Set(1, 1280, 1024);
+	SDL_Delay(1000);
+	Sound_Init(44100);
+
 	initgroupfile("stuff.dat");
 
 	if ((argc >= 2) && (stricmp("-net",argv[1]) != 0) && (stricmp("/net",argv[1]) != 0))
@@ -499,6 +505,7 @@ int main(short int argc,char **argv)
 	ready2send = 1;
 	while (!keystatus[1])       //Main loop starts here
 	{
+		Sys_HandleEvents();
 			// backslash (useful only with KDM)
 		if (keystatus[0x2b]) { keystatus[0x2b] = 0; preparesndbuf(); }
 
@@ -1046,7 +1053,7 @@ void prepareboard(char *daboardfilename)
 		waterfountainwall[i] = -1;
 		waterfountaincnt[i] = 0;
 	}
-	slimesoundcnt[i] = 0;
+	//slimesoundcnt[i] = 0;
 	warpsectorcnt = 0;      //Make a list of warping sectors
 	xpanningsectorcnt = 0;  //Make a list of wall x-panning sectors
 	floorpanningcnt = 0;    //Make a list of slime sectors
@@ -3788,7 +3795,7 @@ void drawscreen(short snum, int32_t dasmoothratio)
 			}
 
 				//WARNING!  Assuming (MIRRORLABEL&31) = 0 and MAXMIRRORS = 64
-			longptr = (int32_t *)FP_OFF(gotpic[MIRRORLABEL>>3]);
+			longptr = (int32_t *)FP_OFF(&gotpic[MIRRORLABEL>>3]);
 			if (longptr[0]|longptr[1])
 				for(i=MAXMIRRORS-1;i>=0;i--)
 					if (gotpic[(i+MIRRORLABEL)>>3]&(1<<(i&7)))
@@ -4816,8 +4823,9 @@ static char addlava(char* ptr)
 
 void movelava(char *dapic)
 {
-	int32_t i, j, x, y, z, zz, dalavadropsiz, dadropsizlookup;
+	int32_t i, x, y, z, zz, dalavadropsiz, dadropsizlookup;
 	int32_t dalavax, dalavay, *ptr, *ptr2;
+	intptr_t i2, j, y2;
 
 	for(z=min(LAVAMAXDROPS-lavanumdrops-1,3);z>=0;z--)
 	{
@@ -4853,7 +4861,7 @@ void movelava(char *dapic)
 		//Back up dapic with 1 pixel extra on each boundary
 		//(to prevent anding for wrap-around)
 	ptr = (int32_t *)dapic;
-	ptr2 = (int32_t *)((LAVASIZ+4)+1+((int32_t)lavabakpic));
+	ptr2 = (int32_t *)((LAVASIZ+4)+1+((intptr_t)lavabakpic));
 	for(x=0;x<LAVASIZ;x++)
 	{
 		for(y=(LAVASIZ>>2);y>0;y--) *ptr2++ = ((*ptr++)&0x1f1f1f1f);
@@ -4877,14 +4885,14 @@ void movelava(char *dapic)
 	ptr = (int32_t *)dapic;
 	for(x=0;x<LAVASIZ;x++)
 	{
-		i = (int32_t)&lavabakpic[(x+1)*(LAVASIZ+4)+1];
-		j = i+LAVASIZ;
-		for(y=i;y<j;y+=4)
+		i2 = (intptr_t)&lavabakpic[(x+1)*(LAVASIZ+4)+1];
+		j = i2+LAVASIZ;
+		for(y2=i2;y2<j;y2+=4)
 		{
-			*ptr++ = ((addlava(y+0)&0xf8)>>3)+
-						((addlava(y+1)&0xf8)<<5)+
-						((addlava(y+2)&0xf8)<<13)+
-						((addlava(y+3)&0xf8)<<21)+
+			*ptr++ = ((addlava(y2+0)&0xf8)>>3)+
+						((addlava(y2+1)&0xf8)<<5)+
+						((addlava(y2+2)&0xf8)<<13)+
+						((addlava(y2+3)&0xf8)<<21)+
 						0xc2c2c2c2;
 		}
 	}

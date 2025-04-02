@@ -26,7 +26,8 @@ int32_t repstart[MAXWAVES], repleng[MAXWAVES];
 int32_t finetune[MAXWAVES];
 
 	//Other useful wave variables
-int32_t totsndbytes, totsndmem, wavoffs[MAXWAVES];
+int32_t totsndbytes, totsndmem;
+intptr_t wavoffs[MAXWAVES];
 
 	//Effects array
 int32_t eff[MAXEFFECTS][256];
@@ -43,7 +44,8 @@ char ntfrqeff[MAXNOTES], ntvoleff[MAXNOTES], ntpaneff[MAXNOTES];
 	//Other useful song variables:
 int32_t timecount, notecnt, musicstatus, musicrepeat;
 
-int32_t kdmasm1, kdmasm2, kdmasm3, kdmasm4;
+int32_t kdmasm1, kdmasm3;
+intptr_t kdmasm2, kdmasm4;
 
 static char digistat = 0, musistat = 0;
 
@@ -53,7 +55,8 @@ char *snd = NULL, kwvname[20] = {""};
 static int32_t stemp[MAXBYTESPERTIC];
 
 	//Sound reading information
-int32_t splc[NUMCHANNELS], sinc[NUMCHANNELS], soff[NUMCHANNELS];
+int32_t splc[NUMCHANNELS], sinc[NUMCHANNELS];
+intptr_t soff[NUMCHANNELS];
 int32_t svol1[NUMCHANNELS], svol2[NUMCHANNELS];
 int32_t volookup[NUMCHANNELS<<9];
 int32_t swavenum[NUMCHANNELS];
@@ -62,7 +65,8 @@ int32_t voleff[NUMCHANNELS], voloff[NUMCHANNELS];
 int32_t paneff[NUMCHANNELS], panoff[NUMCHANNELS];
 
 static int32_t globposx, globposy, globxvect, globyvect;
-static int32_t xplc[NUMCHANNELS], yplc[NUMCHANNELS], vol[NUMCHANNELS];
+static intptr_t xplc[NUMCHANNELS], yplc[NUMCHANNELS];
+static int32_t vol[NUMCHANNELS];
 static int32_t vdist[NUMCHANNELS], sincoffs[NUMCHANNELS];
 static char chanstat[NUMCHANNELS];
 
@@ -109,14 +113,14 @@ void getsbset();
 void preparesndbuf();
 void loadwaves(char *wavename);
 
-extern int32_t monolocomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t monohicomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t stereolocomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t stereohicomb(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t setuppctimerhandler(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
-extern int32_t pcbound2char(int32_t,int32_t,int32_t);
-extern int32_t bound2char(int32_t,int32_t,int32_t);
-extern int32_t bound2short(int32_t,int32_t,int32_t);
+extern int32_t monolocomb(int32_t,intptr_t,int32_t,int32_t,int32_t,intptr_t);
+extern int32_t monohicomb(int32_t,intptr_t,int32_t,int32_t,int32_t,intptr_t);
+extern int32_t stereolocomb(int32_t,intptr_t,int32_t,int32_t,int32_t,intptr_t);
+extern int32_t stereohicomb(int32_t,intptr_t,int32_t,int32_t,int32_t,intptr_t);
+extern void setuppctimerhandler(intptr_t,int32_t,int32_t,int32_t,int32_t,int32_t);
+extern void pcbound2char(int32_t,intptr_t,intptr_t);
+extern void bound2char(int32_t,intptr_t,intptr_t);
+extern void bound2short(int32_t,intptr_t,intptr_t);
 
 //static int32_t oneshr10 = 0x3a800000, oneshl14 = 0x46800000;
 
@@ -223,6 +227,8 @@ static uint32_t msqrtasm(uint32_t ecx)
 
 void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumspeakers, char dabytespersample, char daintspersec, char daquality)
 {
+	Sound_Init(48000);
+
 	int32_t i, j, k;
 
 	digistat = dadigistat;
@@ -295,15 +301,15 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 
 	if (sndseg == 0)    //Allocate DMA buffer in conventional memory
 	{
-		int size = ((sndbufsiz<<(bytespersample+numspeakers))+15)>>4;
-		if ((sndoffs = Blaster_SetDmaPageSize(size)) == 0)
+		int size = ((sndbufsiz<<(bytespersample+numspeakers-1))+15)>>4;
+		if ((sndoffs = Blaster_SetDmaPageSize(size << 4)) == 0)
 		{
 			printf("Could not allocation conventional memory for digitized music\n");
 			exit(0);
 		}
 
-		if ((sndoffs&65535)+(sndbufsiz<<(bytespersample+numspeakers-1)) >= 65536)   //64K DMA page check
-			sndoffs += (sndbufsiz<<(bytespersample+numspeakers-1));
+		//if ((sndoffs&65535)+(sndbufsiz<<(bytespersample+numspeakers-1)) >= 65536)   //64K DMA page check
+		//	sndoffs += (sndbufsiz<<(bytespersample+numspeakers-1));
 
 		sndoffsplc = sndoffs;
 		sndoffsxor = sndoffsplc ^ (sndoffsplc+(sndbufsiz<<(bytespersample+numspeakers-2)));
@@ -385,6 +391,10 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 
 		if ((digistat == 1) || (digistat == 2))
 		{
+			if (sbver < 0x0400)
+				dmachecksiz = (sndbufsiz<<(bytespersample+numspeakers-1))-1;
+			else
+				dmachecksiz = ((sndbufsiz<<(bytespersample+numspeakers-1))>>1)-1;
 #if 0
 			if (sbdma < 4)
 			{
@@ -432,7 +442,7 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 				if (sbver < 0x0200)
 				{
 					Blaster_Init(tc, -1, 1, 0);
-					Blaster_StartDma(0, sndbufsiz-1, 0);
+					Blaster_StartDma(0, dmachecksiz, sndbufsiz-1, 0);
 				}
 				else
 				{
@@ -441,13 +451,13 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 						Blaster_Init(tc, -1, numspeakers, 0);
 							//Set length for auto-init mode
 						i = (sndbufsiz<<(numspeakers+bytespersample-2))-1;
-						Blaster_StartDma(0, i, 1);
+						Blaster_StartDma(0, dmachecksiz, i, 1);
 					}
 					else
 					{
 						Blaster_Init(-1, samplerate, numspeakers, bytespersample - 1);
 						i = (sndbufsiz<<(numspeakers-1))-1;
-						Blaster_StartDma(0, i, 1);
+						Blaster_StartDma(0, dmachecksiz, i, 1);
 					}
 				}
 				break;
@@ -732,8 +742,8 @@ void wsayfollow(char *dafilename, int32_t dafreq, int32_t davol, int32_t *daxplc
 		}
 		else
 		{
-			xplc[chanum] = ((int32_t)daxplc);
-			yplc[chanum] = ((int32_t)dayplc);
+			xplc[chanum] = ((intptr_t)daxplc);
+			yplc[chanum] = ((intptr_t)dayplc);
 		}
 		vol[chanum] = davol;
 		vdist[chanum] = 0;
@@ -763,6 +773,7 @@ void preparesndbuf()
 	int32_t i, j, k, voloffs1, voloffs2, *stempptr;
 	int32_t daswave, dasinc, dacnt;
 	int32_t ox, oy, x, y;
+	intptr_t voloffs1_p, voloffs2_p;
 	char *sndptr, v1, v2;
 
 	kdmintinprep++;
@@ -770,7 +781,10 @@ void preparesndbuf()
 
 	if ((digistat == 1) || (digistat == 2))
 	{
+#if 0
 		i = kinp(dmacheckport); i += (kinp(dmacheckport)<<8);
+#endif
+		i = Blaster_GetDmaCount();
 		if (i <= dmachecksiz)
 		{
 			i = ((i > 32) && (i <= (dmachecksiz>>1)+32));
@@ -885,7 +899,7 @@ void preparesndbuf()
 				}
 
 				daswave = swavenum[i];
-				voloffs1 = FP_OFF(volookup)+(i<<(9+2));
+				voloffs1_p = FP_OFF(volookup)+(i<<(9+2));
 
 				kdmasm1 = repleng[daswave];
 				kdmasm2 = wavoffs[daswave]+repstart[daswave]+repleng[daswave];
@@ -893,26 +907,26 @@ void preparesndbuf()
 				kdmasm4 = soff[i];
 				if (numspeakers == 1)
 				{
-					if (kdmqual == 0) splc[i] = monolocomb(0L,voloffs1,bytespertic,dasinc,splc[i],FP_OFF(stemp));
-									 else splc[i] = monohicomb(0L,voloffs1,bytespertic,dasinc,splc[i],FP_OFF(stemp));
+					if (kdmqual == 0) splc[i] = monolocomb(0L,voloffs1_p,bytespertic,dasinc,splc[i],FP_OFF(stemp));
+									 else splc[i] = monohicomb(0L,voloffs1_p,bytespertic,dasinc,splc[i],FP_OFF(stemp));
 				}
 				else
 				{
-					if (kdmqual == 0) splc[i] = stereolocomb(0L,voloffs1,bytespertic,dasinc,splc[i],FP_OFF(stemp));
-									 else splc[i] = stereohicomb(0L,voloffs1,bytespertic,dasinc,splc[i],FP_OFF(stemp));
+					if (kdmqual == 0) splc[i] = stereolocomb(0L,voloffs1_p,bytespertic,dasinc,splc[i],FP_OFF(stemp));
+									 else splc[i] = stereohicomb(0L,voloffs1_p,bytespertic,dasinc,splc[i],FP_OFF(stemp));
 				}
 				soff[i] = kdmasm4;
 
 				if ((kdmqual == 0) || (splc[i] >= 0)) continue;
 				if (numspeakers == 1)
 				{
-					if (kdmqual == 0) monolocomb(0L,voloffs1,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<2));
-									 else monohicomb(0L,voloffs1,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<2));
+					if (kdmqual == 0) monolocomb(0L,voloffs1_p,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<2));
+									 else monohicomb(0L,voloffs1_p,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<2));
 				}
 				else
 				{
-					if (kdmqual == 0) stereolocomb(0L,voloffs1,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<3));
-									 else stereohicomb(0L,voloffs1,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<3));
+					if (kdmqual == 0) stereolocomb(0L,voloffs1_p,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<3));
+									 else stereohicomb(0L,voloffs1_p,samplerate>>11,dasinc,splc[i],FP_OFF(stemp)+(bytespertic<<3));
 				}
 			}
 
@@ -1061,14 +1075,17 @@ int loadsong(char *filename)
 
 	if (musistat != 1) return(0);
 	musicoff();
-	filename = strupr(filename);
-	if (strstr(filename,".KDM") == 0) strcat(filename,".KDM");
-	if ((fil = kopen4load(filename,0)) == -1)
+	char* f2 = strdup(filename);
+	f2 = strupr(f2);
+	if (strstr(f2,".KDM") == 0) strcat(f2,".KDM");
+	if ((fil = kopen4load(f2,0)) == -1)
 	{
-		printf("I cannot load %s.\n",filename);
+		printf("I cannot load %s.\n", f2);
 		uninitsb();
+		free(f2);
 		return(-1);
 	}
+	free(f2);
 	kread(fil,&kdmversionum,4);
 	if (kdmversionum != 0) return(-2);
 	kread(fil,&numnotes,4);
