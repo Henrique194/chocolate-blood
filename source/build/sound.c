@@ -44,6 +44,8 @@ static SDL_AudioStream* stream_blaster;
 
 int blaster_type = BLASTER_TYPE_16;
 
+SDL_Mutex *snd_mutex;
+
 static bool Adlib_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {
 	if (stream != stream_adlib)
@@ -265,6 +267,13 @@ void Blaster_Init(int tc, int rate, int channels, int is16bit)
 
 char *Blaster_SetDmaPageSize(int size)
 {
+	if (size == 0 && blaster_dma_buffer2)
+	{
+		free(blaster_dma_buffer2);
+		blaster_dma_buffer = NULL;
+		blaster_dma_buffer2 = NULL;
+		return NULL;
+	}
 	if (size == blaster_dma_buffer_size)
 		return blaster_dma_buffer;
 
@@ -357,6 +366,9 @@ void Sound_Init(int rate)
 
 	sound_rate = rate;
 	sound_init = 1;
+
+	snd_mutex = SDL_CreateMutex();
+
 	return;
 failed:
 	printf("Sound_Init failed\n");

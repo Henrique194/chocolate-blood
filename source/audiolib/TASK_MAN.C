@@ -69,7 +69,6 @@ static char TS_Installed = FALSE;
 
 volatile int TS_InInterrupt = FALSE;
 
-static SDL_Mutex *task_mutex;
 int TS_InterruptDisabled;
 
 /*---------------------------------------------------------------------
@@ -103,7 +102,7 @@ static void TS_FreeTaskList
    task *node;
    task *next;
   
-   SDL_LockMutex(task_mutex);
+   SDL_LockMutex(snd_mutex);
 
    node = TaskList->next;
    while( node != TaskList )
@@ -116,7 +115,7 @@ static void TS_FreeTaskList
    TaskList->next = TaskList;
    TaskList->prev = TaskList;
 
-   SDL_UnlockMutex(task_mutex);
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -132,7 +131,7 @@ static void TS_SetClockSpeed
    )
 
    {
-   SDL_LockMutex(task_mutex);
+   SDL_LockMutex(snd_mutex);
 
    if ( ( speed > 0 ) && ( speed < 0x10000L ) )
       {
@@ -146,7 +145,7 @@ static void TS_SetClockSpeed
    Sys_SetTimer(TaskServiceRate, TS_ServiceScheduleTimer);
    Music_SetTimer(TaskServiceRate, TS_ServiceScheduleMusic);
 
-   SDL_UnlockMutex(task_mutex);
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -228,7 +227,7 @@ static void TS_ServiceSchedule
    if (TS_InterruptDisabled)
        return;
 
-   SDL_LockMutex(task_mutex);
+   SDL_LockMutex(snd_mutex);
 
    TS_InInterrupt = TRUE;
 
@@ -252,7 +251,7 @@ static void TS_ServiceSchedule
       }
 
    TS_InInterrupt = FALSE;
-   SDL_UnlockMutex(task_mutex);
+   SDL_UnlockMutex(snd_mutex);
    }
 
 static void TS_ServiceScheduleTimer
@@ -290,8 +289,6 @@ static int TS_Startup
       TaskList->prev = TaskList;
 
       TaskServiceRate  = 0x10000L;
-
-      task_mutex = SDL_CreateMutex();
 
       Sys_SetTimer(TaskServiceRate, TS_ServiceScheduleTimer);
       Music_SetTimer(TaskServiceRate, TS_ServiceScheduleMusic);
@@ -369,7 +366,7 @@ task *TS_ScheduleTask
             }
          }
 
-      SDL_LockMutex(task_mutex);
+      SDL_LockMutex(snd_mutex);
 
       ptr->TaskService = Function;
       ptr->data = data;
@@ -381,7 +378,7 @@ task *TS_ScheduleTask
 
       TS_AddTask( ptr );
 
-      SDL_UnlockMutex(task_mutex);
+      SDL_UnlockMutex(snd_mutex);
       }
 
    return( ptr );
@@ -419,7 +416,7 @@ int TS_Terminate
    task *ptr;
    task *next;
 
-   SDL_LockMutex(task_mutex);
+   SDL_LockMutex(snd_mutex);
 
    ptr = TaskList->next;
    while( ptr != TaskList )
@@ -435,7 +432,7 @@ int TS_Terminate
 
          TS_SetTimerToMaxTaskRate();
 
-         SDL_UnlockMutex(task_mutex);
+         SDL_UnlockMutex(snd_mutex);
 
          return( TASK_Ok );
          }
@@ -443,7 +440,7 @@ int TS_Terminate
       ptr = next;
       }
 
-   SDL_UnlockMutex(task_mutex);
+   SDL_UnlockMutex(snd_mutex);
 
    return( TASK_Warning );
    }
@@ -463,7 +460,7 @@ void TS_Dispatch
    {
    task *ptr;
 
-   SDL_LockMutex(task_mutex);
+   SDL_LockMutex(snd_mutex);
 
    ptr = TaskList->next;
    while( ptr != TaskList )
@@ -472,7 +469,7 @@ void TS_Dispatch
       ptr = ptr->next;
       }
 
-   SDL_UnlockMutex(task_mutex);
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -489,10 +486,10 @@ void TS_SetTaskRate
    )
 
    {
-   SDL_LockMutex(task_mutex);
+   SDL_LockMutex(snd_mutex);
 
    Task->rate = TS_SetTimer( rate );
    TS_SetTimerToMaxTaskRate();
 
-   SDL_UnlockMutex(task_mutex);
+   SDL_UnlockMutex(snd_mutex);
    }

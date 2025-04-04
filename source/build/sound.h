@@ -1,4 +1,7 @@
 #pragma once
+#include <SDL3/SDL.h>
+
+extern SDL_Mutex* snd_mutex;
 
 typedef enum
 {
@@ -7,7 +10,7 @@ typedef enum
 	BLASTER_TYPE_2,
 	BLASTER_TYPE_PRO,
 	BLASTER_TYPE_16,
-};
+} BlasterType_t;
 
 extern int blaster_type;
 void Sound_Init(int rate);

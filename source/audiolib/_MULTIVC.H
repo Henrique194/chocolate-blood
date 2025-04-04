@@ -98,35 +98,35 @@ typedef struct VoiceNode
 
    playbackstatus ( *GetSound )( struct VoiceNode *voice );
 
-   void ( *mix )( unsigned long position, unsigned long rate,
-      char *start, unsigned long length );
+   void ( *mix )( uint32_t position, uint32_t rate,
+      char *start, uint32_t length );
 
    char         *NextBlock;
    char         *LoopStart;
    char         *LoopEnd;
-   unsigned      LoopCount;
-   unsigned long LoopSize;
-   unsigned long BlockLength;
+   uint32_t      LoopCount;
+   uint32_t LoopSize;
+   uint32_t BlockLength;
 
-   unsigned long PitchScale;
-   unsigned long FixedPointBufferSize;
+   uint32_t PitchScale;
+   uint32_t FixedPointBufferSize;
 
    char         *sound;
-   unsigned long length;
-   unsigned long SamplingRate;
-   unsigned long RateScale;
-   unsigned long position;
+   uint32_t length;
+   uint32_t SamplingRate;
+   uint32_t RateScale;
+   uint32_t position;
    int           Playing;
 
    int           handle;
    int           priority;
 
-   void          ( *DemandFeed )( char **ptr, unsigned long *length );
+   void          ( *DemandFeed )( char **ptr, uint32_t *length );
 
    short        *LeftVolume;
    short        *RightVolume;
 
-   unsigned long callbackval;
+   uintptr_t callbackval;
 
    } VoiceNode;
 
@@ -170,18 +170,18 @@ typedef struct
 typedef struct
    {
    char          RIFF[ 4 ];
-   unsigned long file_size;
+   uint32_t file_size;
    char          WAVE[ 4 ];
    char          fmt[ 4 ];
-   unsigned long format_size;
+   uint32_t format_size;
    } riff_header;
 
 typedef struct
    {
    unsigned short wFormatTag;
    unsigned short nChannels;
-   unsigned long  nSamplesPerSec;
-   unsigned long  nAvgBytesPerSec;
+   uint32_t  nSamplesPerSec;
+   uint32_t  nAvgBytesPerSec;
    unsigned short nBlockAlign;
    unsigned short nBitsPerSample;
    } format_header;
@@ -189,7 +189,7 @@ typedef struct
 typedef struct
    {
    unsigned char DATA[ 4 ];
-   unsigned long size;
+   uint32_t size;
    } data_header;
 
 typedef MONO8  VOLUME8[ 256 ];
@@ -215,62 +215,47 @@ static short     *MV_GetVolumeTable( int vol );
 
 static void       MV_SetVoiceMixMode( VoiceNode *voice );
 
-static void       MV_SetVoicePitch( VoiceNode *voice, unsigned long rate, int pitchoffset );
+static void       MV_SetVoicePitch( VoiceNode *voice, uint32_t rate, int pitchoffset );
 static void       MV_CalcVolume( int MaxLevel );
 static void       MV_CalcPanTable( void );
 
-#define ATR_INDEX               0x3c0
-#define STATUS_REGISTER_1       0x3da
+static inline void ClearBuffer_DW(void* ptr, uint32_t data, int length)
+{
+    uint32_t* p = ptr;
+	while (length--)
+	{
+		*p++ = data;
+	}
+}
 
-#define SetBorderColor(color) \
-   { \
-   inp  (STATUS_REGISTER_1); \
-   outp (ATR_INDEX,0x31);    \
-   outp (ATR_INDEX,color);   \
-   }
 
-void ClearBuffer_DW( void *ptr, unsigned data, int length );
+void MV_Mix8BitMono( uint32_t position, uint32_t rate,
+   char *start, uint32_t length );
 
-#pragma aux ClearBuffer_DW = \
-   "cld",                    \
-   "push   es",              \
-   "push   ds",              \
-   "pop    es",              \
-   "rep    stosd",           \
-   "pop    es",              \
-parm [ edi ] [ eax ] [ ecx ] modify exact [ ecx edi ];
+void MV_Mix8BitStereo( uint32_t position,
+   uint32_t rate, char *start, uint32_t length );
 
-void MV_Mix8BitMono( unsigned long position, unsigned long rate,
-   char *start, unsigned long length );
+void MV_Mix16BitMono( uint32_t position,
+   uint32_t rate, char *start, uint32_t length );
 
-void MV_Mix8BitStereo( unsigned long position,
-   unsigned long rate, char *start, unsigned long length );
+void MV_Mix16BitStereo( uint32_t position,
+   uint32_t rate, char *start, uint32_t length );
 
-void MV_Mix16BitMono( unsigned long position,
-   unsigned long rate, char *start, unsigned long length );
+void MV_Mix16BitMono16( uint32_t position,
+   uint32_t rate, char *start, uint32_t length );
 
-void MV_Mix16BitStereo( unsigned long position,
-   unsigned long rate, char *start, unsigned long length );
+void MV_Mix8BitMono16( uint32_t position, uint32_t rate,
+   char *start, uint32_t length );
 
-void MV_Mix16BitMono16( unsigned long position,
-   unsigned long rate, char *start, unsigned long length );
+void MV_Mix8BitStereo16( uint32_t position,
+   uint32_t rate, char *start, uint32_t length );
 
-void MV_Mix8BitMono16( unsigned long position, unsigned long rate,
-   char *start, unsigned long length );
-
-void MV_Mix8BitStereo16( unsigned long position,
-   unsigned long rate, char *start, unsigned long length );
-
-void MV_Mix16BitStereo16( unsigned long position,
-   unsigned long rate, char *start, unsigned long length );
+void MV_Mix16BitStereo16( uint32_t position,
+   uint32_t rate, char *start, uint32_t length );
 
 void MV_16BitReverb( char *src, char *dest, VOLUME16 *volume, int count );
-#pragma aux MV_16BitReverb parm [eax] [edx] [ebx] [ecx] modify exact [eax ebx ecx edx esi edi]
 void MV_8BitReverb( signed char *src, signed char *dest, VOLUME16 *volume, int count );
-#pragma aux MV_8BitReverb parm [eax] [edx] [ebx] [ecx] modify exact [eax ebx ecx edx esi edi]
 void MV_16BitReverbFast( char *src, char *dest, int count, int shift );
-#pragma aux MV_16BitReverbFast parm [eax] [edx] [ebx] [ecx] modify exact [eax ebx ecx edx esi edi]
 void MV_8BitReverbFast( signed char *src, signed char *dest, int count, int shift );
-#pragma aux MV_8BitReverbFast parm [eax] [edx] [ebx] [ecx] modify exact [eax ebx ecx edx esi edi]
 
 #endif

@@ -31,24 +31,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <stdlib.h>
 #include <string.h>
-#include <dos.h>
-#include <time.h>
-#include <conio.h>
-#include "dpmi.h"
+#include "compat.h"
 #include "usrhooks.h"
-#include "interrup.h"
-#include "dma.h"
 #include "linklist.h"
 #include "sndcards.h"
 #include "blaster.h"
-#include "sndscape.h"
-#include "sndsrc.h"
-#include "pas16.h"
-#include "guswave.h"
 #include "pitch.h"
 #include "multivoc.h"
 #include "_multivc.h"
 #include "debugio.h"
+#include "sound.h"
 
 #define RoundFixed( fixedval, bits )            \
         (                                       \
@@ -95,7 +87,7 @@ static int MV_BuffShift;
 
 static int MV_TotalMemory;
 
-static int   MV_BufferDescriptor;
+static char *MV_BufferDmaPtr;
 static int   MV_BufferEmpty[ NumberOfBuffers ];
 char *MV_MixBuffer[ NumberOfBuffers + 1 ];
 
@@ -107,7 +99,7 @@ static volatile VoiceNode VoicePool;
 static int MV_MixPage      = 0;
 static int MV_VoiceHandle  = MV_MinVoiceHandle;
 
-static void ( *MV_CallBackFunc )( unsigned long ) = NULL;
+static void ( *MV_CallBackFunc )( uintptr_t ) = NULL;
 static void ( *MV_RecordFunc )( char *ptr, int length ) = NULL;
 static void ( *MV_MixFunction )( VoiceNode *voice, int buffer );
 
@@ -120,7 +112,7 @@ short *MV_RightVolume;
 int    MV_SampleSize = 1;
 int    MV_RightChannelOffset;
 
-unsigned long MV_MixPosition;
+uint32_t MV_MixPosition;
 
 int MV_ErrorCode = MV_Ok;
 
@@ -178,6 +170,7 @@ char *MV_ErrorString
          ErrorString = BLASTER_ErrorString( BLASTER_Error );
          break;
 
+#if 0
       case MV_PasError :
          ErrorString = PAS_ErrorString( PAS_Error );
          break;
@@ -191,6 +184,7 @@ char *MV_ErrorString
          ErrorString = SS_ErrorString( SS_Error );
          break;
       #endif
+#endif
 
       case MV_DPMI_Error :
          ErrorString = "DPMI Error in Multivoc.";
@@ -238,16 +232,6 @@ char *MV_ErrorString
    }
 
 
-/**********************************************************************
-
-   Memory locked functions:
-
-**********************************************************************/
-
-
-#define MV_LockStart MV_Mix
-
-
 /*---------------------------------------------------------------------
    Function: MV_Mix
 
@@ -263,10 +247,10 @@ static void MV_Mix
    {
    char          *start;
    int            length;
-   long           voclength;
-   unsigned long  position;
-   unsigned long  rate;
-   unsigned long  FixedPointBufferSize;
+   int32_t           voclength;
+   uint32_t  position;
+   uint32_t  rate;
+   uint32_t  FixedPointBufferSize;
 
    if ( ( voice->length == 0 ) && ( voice->GetSound( voice ) != KeepPlaying ) )
       {
@@ -353,12 +337,10 @@ void MV_PlayVoice
    )
 
    {
-   unsigned flags;
-
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
    LL_SortedInsertion( &VoiceList, voice, prev, next, VoiceNode, priority );
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -374,15 +356,13 @@ void MV_StopVoice
    )
 
    {
-   unsigned  flags;
-
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    // move the voice from the play list to the free list
    LL_Remove( voice, next, prev );
    LL_Add( &VoicePool, voice, next, prev );
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -402,13 +382,14 @@ void MV_ServiceVoc
    {
    VoiceNode *voice;
    VoiceNode *next;
-   char      *buffer;
 
    if ( MV_DMAChannel >= 0 )
       {
       // Get the currently playing buffer
-      buffer = ( char * )DMA_GetCurrentPos( MV_DMAChannel );
-      MV_MixPage   = ( unsigned )( buffer - MV_MixBuffer[ 0 ] );
+      int pos = Blaster_GetDmaCount();
+      if (MV_Bits == 16)
+          pos <<= 1;
+      MV_MixPage   = pos;
       MV_MixPage >>= MV_BuffShift;
       }
 
@@ -540,35 +521,6 @@ void MV_ServiceVoc
    }
 
 
-int leftpage  = -1;
-int rightpage = -1;
-
-void MV_ServiceGus( char **ptr, unsigned long *length )
-   {
-   if ( leftpage == MV_MixPage )
-      {
-      MV_ServiceVoc();
-      }
-
-   leftpage = MV_MixPage;
-
-   *ptr = MV_MixBuffer[ MV_MixPage ];
-   *length = MV_BufferSize;
-   }
-
-void MV_ServiceRightGus( char **ptr, unsigned long *length )
-   {
-   if ( rightpage == MV_MixPage )
-      {
-      MV_ServiceVoc();
-      }
-
-   rightpage = MV_MixPage;
-
-   *ptr = MV_MixBuffer[ MV_MixPage ] + MV_RightChannelOffset;
-   *length = MV_BufferSize;
-   }
-
 /*---------------------------------------------------------------------
    Function: MV_GetNextVOCBlock
 
@@ -584,8 +536,8 @@ playbackstatus MV_GetNextVOCBlock
    unsigned char *ptr;
    int            blocktype;
    int            lastblocktype;
-   unsigned long  blocklength;
-   unsigned long  samplespeed;
+   uint32_t  blocklength;
+   uint32_t  samplespeed;
    unsigned int   tc;
    int            packtype;
    int            voicemode;
@@ -640,7 +592,7 @@ playbackstatus MV_GetNextVOCBlock
          }
 
       blocktype = ( int )*ptr;
-      blocklength = ( *( unsigned long * )( ptr + 1 ) ) & 0x00ffffff;
+      blocklength = ( *( uint32_t * )( ptr + 1 ) ) & 0x00ffffff;
       ptr += 4;
 
       switch( blocktype )
@@ -760,7 +712,7 @@ playbackstatus MV_GetNextVOCBlock
 
          case 9 :
             // New sound data block
-            samplespeed = *( unsigned long * )ptr;
+            samplespeed = *( uint32_t * )ptr;
             BitsPerSample = ( unsigned )*( ptr + 4 );
             Channels = ( unsigned )*( ptr + 5 );
             Format = ( unsigned )*( unsigned short * )( ptr + 6 );
@@ -811,17 +763,17 @@ playbackstatus MV_GetNextVOCBlock
 
       if ( voice->LoopEnd != NULL )
          {
-         if ( blocklength > ( unsigned long )voice->LoopEnd )
+         if ( blocklength > ( uint32_t )voice->LoopEnd )
             {
-            blocklength = ( unsigned long )voice->LoopEnd;
+            blocklength = ( uint32_t )voice->LoopEnd;
             }
          else
             {
             voice->LoopEnd = ( char * )blocklength;
             }
 
-         voice->LoopStart = voice->sound + ( unsigned long )voice->LoopStart;
-         voice->LoopEnd   = voice->sound + ( unsigned long )voice->LoopEnd;
+         voice->LoopStart = voice->sound + ( uint32_t )voice->LoopStart;
+         voice->LoopEnd   = voice->sound + ( uint32_t )voice->LoopEnd;
          voice->LoopSize  = voice->LoopEnd - voice->LoopStart;
          }
 
@@ -1008,9 +960,8 @@ VoiceNode *MV_GetVoice
 
    {
    VoiceNode *voice;
-   unsigned  flags;
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    for( voice = VoiceList.next; voice != &VoiceList; voice = voice->next )
       {
@@ -1020,7 +971,7 @@ VoiceNode *MV_GetVoice
          }
       }
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    if ( voice == &VoiceList )
       {
@@ -1104,8 +1055,7 @@ int MV_Kill
 
    {
    VoiceNode *voice;
-   unsigned  flags;
-   unsigned  long callbackval;
+   uintptr_t callbackval;
 
    if ( !MV_Installed )
       {
@@ -1113,12 +1063,12 @@ int MV_Kill
       return( MV_Error );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    voice = MV_GetVoice( handle );
    if ( voice == NULL )
       {
-      RestoreInterrupts( flags );
+      SDL_UnlockMutex(snd_mutex);
       MV_SetErrorCode( MV_VoiceNotFound );
       return( MV_Error );
       }
@@ -1127,7 +1077,7 @@ int MV_Kill
 
    MV_StopVoice( voice );
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    if ( MV_CallBackFunc )
       {
@@ -1152,7 +1102,6 @@ int MV_VoicesPlaying
    {
    VoiceNode   *voice;
    int         NumVoices = 0;
-   unsigned    flags;
 
    if ( !MV_Installed )
       {
@@ -1160,14 +1109,14 @@ int MV_VoicesPlaying
       return( 0 );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    for( voice = VoiceList.next; voice != &VoiceList; voice = voice->next )
       {
       NumVoices++;
       }
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    return( NumVoices );
    }
@@ -1187,7 +1136,6 @@ VoiceNode *MV_AllocVoice
    {
    VoiceNode   *voice;
    VoiceNode   *node;
-   unsigned    flags;
 
 //return( NULL );
    if ( MV_Recording )
@@ -1195,7 +1143,7 @@ VoiceNode *MV_AllocVoice
       return( NULL );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    // Check if we have any free voices
    if ( LL_Empty( &VoicePool, next, prev ) )
@@ -1220,13 +1168,13 @@ VoiceNode *MV_AllocVoice
    if ( LL_Empty( &VoicePool, next, prev ) )
       {
       // No free voices
-      RestoreInterrupts( flags );
+      SDL_UnlockMutex(snd_mutex);
       return( NULL );
       }
 
    voice = VoicePool.next;
    LL_Remove( voice, next, prev );
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    // Find a free voice handle
    do
@@ -1259,7 +1207,6 @@ int MV_VoiceAvailable
    {
    VoiceNode   *voice;
    VoiceNode   *node;
-   unsigned    flags;
 
    // Check if we have any free voices
    if ( !LL_Empty( &VoicePool, next, prev ) )
@@ -1267,7 +1214,7 @@ int MV_VoiceAvailable
       return( TRUE );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    // check if we have a higher priority than a voice that is playing.
    voice = VoiceList.next;
@@ -1279,7 +1226,7 @@ int MV_VoiceAvailable
          }
       }
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    if ( ( voice != &VoiceList ) && ( priority >= voice->priority ) )
       {
@@ -1299,7 +1246,7 @@ int MV_VoiceAvailable
 void MV_SetVoicePitch
    (
    VoiceNode *voice,
-   unsigned long rate,
+   uint32_t rate,
    int pitchoffset
    )
 
@@ -1418,10 +1365,9 @@ static void MV_SetVoiceMixMode
    )
 
    {
-   unsigned flags;
    int test;
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    test = T_DEFAULT;
    if ( MV_Bits == 8 )
@@ -1527,7 +1473,7 @@ static void MV_SetVoiceMixMode
          voice->mix = MV_Mix8BitMono;
       }
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -1583,7 +1529,6 @@ int MV_EndLooping
 
    {
    VoiceNode *voice;
-   unsigned flags;
 
    if ( !MV_Installed )
       {
@@ -1591,12 +1536,12 @@ int MV_EndLooping
       return( MV_Error );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    voice = MV_GetVoice( handle );
    if ( voice == NULL )
       {
-      RestoreInterrupts( flags );
+      SDL_UnlockMutex(snd_mutex);
       MV_SetErrorCode( MV_VoiceNotFound );
       return( MV_Warning );
       }
@@ -1605,7 +1550,7 @@ int MV_EndLooping
    voice->LoopStart = NULL;
    voice->LoopEnd   = NULL;
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    return( MV_Ok );
    }
@@ -1813,15 +1758,18 @@ int MV_SetMixMode
 
    switch( MV_SoundCard )
       {
+#if 0
       case UltraSound :
          MV_MixMode = mode;
          break;
+#endif
 
       case SoundBlaster :
       case Awe32 :
          MV_MixMode = BLASTER_SetMixMode( mode );
          break;
 
+#if 0
       case ProAudioSpectrum :
       case SoundMan16 :
          MV_MixMode = PAS_SetMixMode( mode );
@@ -1837,6 +1785,7 @@ int MV_SetMixMode
          MV_MixMode = SS_SetMixMode( mode );
          break;
       #endif
+#endif
       }
 
    MV_Channels = 1;
@@ -1932,6 +1881,7 @@ int MV_StartPlayback
          MV_DMAChannel = BLASTER_DMAChannel;
          break;
 
+#if 0
       case UltraSound :
 
          status = GUSWAVE_StartDemandFeedPlayback( MV_ServiceGus, 1,
@@ -2000,6 +1950,7 @@ int MV_StartPlayback
          MV_DMAChannel = -1;
          break;
       #endif
+#endif
       }
 
    return( MV_Ok );
@@ -2020,7 +1971,6 @@ void MV_StopPlayback
    {
    VoiceNode   *voice;
    VoiceNode   *next;
-   unsigned    flags;
 
    // Stop sound playback
    switch( MV_SoundCard )
@@ -2030,6 +1980,7 @@ void MV_StopPlayback
          BLASTER_StopPlayback();
          break;
 
+#if 0
       case UltraSound :
          GUSWAVE_KillAllVoices();
          break;
@@ -2049,10 +2000,11 @@ void MV_StopPlayback
          SS_StopPlayback();
          break;
       #endif
+#endif
       }
 
    // Make sure all callbacks are done.
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    for( voice = VoiceList.next; voice != &VoiceList; voice = next )
       {
@@ -2066,7 +2018,7 @@ void MV_StopPlayback
          }
       }
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -2131,6 +2083,7 @@ int MV_StartRecording
             }
          break;
 
+#if 0
       case ProAudioSpectrum :
       case SoundMan16 :
          status = PAS_BeginBufferedRecord( MV_MixBuffer[ 0 ],
@@ -2143,6 +2096,7 @@ int MV_StartRecording
             return( MV_Error );
             }
          break;
+#endif
       }
 
    MV_Recording = TRUE;
@@ -2170,10 +2124,12 @@ void MV_StopRecord
          BLASTER_StopPlayback();
          break;
 
+#if 0
       case ProAudioSpectrum :
       case SoundMan16 :
          PAS_StopPlayback();
          break;
+#endif
       }
 
    MV_Recording = FALSE;
@@ -2189,14 +2145,14 @@ void MV_StopRecord
 
 int MV_StartDemandFeedPlayback
    (
-   void ( *function )( char **ptr, unsigned long *length ),
+   void ( *function )( char **ptr, uint32_t *length ),
    int rate,
    int pitchoffset,
    int vol,
    int left,
    int right,
    int priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2252,14 +2208,14 @@ int MV_StartDemandFeedPlayback
 int MV_PlayRaw
    (
    char *ptr,
-   unsigned long length,
+   uint32_t length,
    unsigned rate,
    int   pitchoffset,
    int   vol,
    int   left,
    int   right,
    int   priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2282,7 +2238,7 @@ int MV_PlayRaw
 int MV_PlayLoopedRaw
    (
    char *ptr,
-   long  length,
+   uint32_t  length,
    char *loopstart,
    char *loopend,
    unsigned rate,
@@ -2291,7 +2247,7 @@ int MV_PlayLoopedRaw
    int   left,
    int   right,
    int   priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2350,7 +2306,7 @@ int MV_PlayWAV
    int   left,
    int   right,
    int   priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2377,7 +2333,7 @@ int MV_PlayWAV3D
    int  angle,
    int  distance,
    int  priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2425,14 +2381,14 @@ int MV_PlayWAV3D
 int MV_PlayLoopedWAV
    (
    char *ptr,
-   long  loopstart,
-   long  loopend,
+   int32_t  loopstart,
+   int32_t  loopend,
    int   pitchoffset,
    int   vol,
    int   left,
    int   right,
    int   priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2560,7 +2516,7 @@ int MV_PlayVOC3D
    int  angle,
    int  distance,
    int  priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2613,7 +2569,7 @@ int MV_PlayVOC
    int   left,
    int   right,
    int   priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2636,14 +2592,14 @@ int MV_PlayVOC
 int MV_PlayLoopedVOC
    (
    char *ptr,
-   long  loopstart,
-   long  loopend,
+   int32_t  loopstart,
+   int32_t  loopend,
    int   pitchoffset,
    int   vol,
    int   left,
    int   right,
    int   priority,
-   unsigned long callbackval
+   uintptr_t callbackval
    )
 
    {
@@ -2884,7 +2840,7 @@ int MV_GetVolume
 
 void MV_SetCallBack
    (
-   void ( *function )( unsigned long )
+   void ( *function )( uintptr_t )
    )
 
    {
@@ -2936,9 +2892,6 @@ int MV_TestPlayback
    )
 
    {
-   unsigned flags;
-   long time;
-   int  start;
    int  status;
    int  pos;
 
@@ -2947,22 +2900,7 @@ int MV_TestPlayback
       return( MV_Ok );
       }
 
-   flags = DisableInterrupts();
-   _enable();
-
-   status = MV_Error;
-   start  = MV_MixPage;
-   time   = clock() + CLOCKS_PER_SEC * 2;
-
-   while( clock() < time )
-      {
-      if ( MV_MixPage != start )
-         {
-         status = MV_Ok;
-         }
-      }
-
-   RestoreInterrupts( flags );
+   status = MV_Ok;
 
    if ( status != MV_Ok )
       {
@@ -2976,6 +2914,7 @@ int MV_TestPlayback
             pos = BLASTER_GetCurrentPos();
             break;
 
+#if 0
          case ProAudioSpectrum :
          case SoundMan16 :
             pos = PAS_GetCurrentPos();
@@ -2992,6 +2931,7 @@ int MV_TestPlayback
             pos = -1;
             break;
          #endif
+#endif
 
          default :
             MV_SetErrorCode( MV_UnsupportedCard );
@@ -3049,27 +2989,11 @@ int MV_Init
 
    MV_SetErrorCode( MV_Ok );
 
-   status = MV_LockMemory();
-   if ( status != MV_Ok )
-      {
-      return( status );
-      }
-
    MV_TotalMemory = Voices * sizeof( VoiceNode ) + sizeof( HARSH_CLIP_TABLE_8 );
    status = USRHOOKS_GetMem( ( void ** )&ptr, MV_TotalMemory );
    if ( status != USRHOOKS_Ok )
       {
-      MV_UnlockMemory();
       MV_SetErrorCode( MV_NoMem );
-      return( MV_Error );
-      }
-
-   status = DPMI_LockMemory( ptr, MV_TotalMemory );
-   if ( status != DPMI_Ok )
-      {
-      USRHOOKS_FreeMem( ptr );
-      MV_UnlockMemory();
-      MV_SetErrorCode( MV_DPMI_Error );
       return( MV_Error );
       }
 
@@ -3088,16 +3012,13 @@ int MV_Init
       }
 
    // Allocate mix buffer within 1st megabyte
-   status = DPMI_GetDOSMemory( ( void ** )&ptr, &MV_BufferDescriptor,
-      2 * TotalBufferSize );
+   MV_BufferDmaPtr = Blaster_SetDmaPageSize(TotalBufferSize);
 
-   if ( status )
+   if ( !MV_BufferDmaPtr )
       {
-      DPMI_UnlockMemory( MV_Voices, MV_TotalMemory );
       USRHOOKS_FreeMem( MV_Voices );
       MV_Voices      = NULL;
       MV_TotalMemory = 0;
-      MV_UnlockMemory();
 
       MV_SetErrorCode( MV_NoMem );
       return( MV_Error );
@@ -3108,6 +3029,7 @@ int MV_Init
    // Initialize the sound card
    switch( soundcard )
       {
+#if 0
       case UltraSound :
          status = GUSWAVE_Init( 2 );
          if ( status != GUSWAVE_Ok )
@@ -3116,7 +3038,7 @@ int MV_Init
             MV_SetErrorCode( MV_BlasterError );
             }
          break;
-
+#endif
       case SoundBlaster :
       case Awe32 :
          status = BLASTER_Init();
@@ -3132,6 +3054,7 @@ int MV_Init
             }
          break;
 
+#if 0
       case ProAudioSpectrum :
       case SoundMan16 :
          status = PAS_Init();
@@ -3159,6 +3082,7 @@ int MV_Init
             }
          break;
       #endif
+#endif
 
       default :
          MV_SetErrorCode( MV_UnsupportedCard );
@@ -3169,13 +3093,9 @@ int MV_Init
       {
       status = MV_ErrorCode;
 
-      DPMI_UnlockMemory( MV_Voices, MV_TotalMemory );
       USRHOOKS_FreeMem( MV_Voices );
       MV_Voices      = NULL;
       MV_TotalMemory = 0;
-
-      DPMI_FreeDOSMemory( MV_BufferDescriptor );
-      MV_UnlockMemory();
 
       MV_SetErrorCode( status );
       return( MV_Error );
@@ -3197,10 +3117,7 @@ int MV_Init
    MV_ReverbDelay = MV_BufferSize * 3;
 
    // Make sure we don't cross a physical page
-   if ( ( ( unsigned long )ptr & 0xffff ) + TotalBufferSize > 0x10000 )
-      {
-      ptr = ( char * )( ( ( unsigned long )ptr & 0xff0000 ) + 0x10000 );
-      }
+   ptr = MV_BufferDmaPtr;
 
    MV_MixBuffer[ MV_NumberOfBuffers ] = ptr;
    for( buffer = 0; buffer < MV_NumberOfBuffers; buffer++ )
@@ -3250,14 +3167,13 @@ int MV_Shutdown
 
    {
    int      buffer;
-   unsigned flags;
 
    if ( !MV_Installed )
       {
       return( MV_Ok );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    MV_KillAllVoices();
 
@@ -3275,15 +3191,16 @@ int MV_Shutdown
    // Shutdown the sound card
    switch( MV_SoundCard )
       {
+#if 0
       case UltraSound :
          GUSWAVE_Shutdown();
          break;
-
+#endif
       case SoundBlaster :
       case Awe32 :
          BLASTER_Shutdown();
          break;
-
+#if 0
       case ProAudioSpectrum :
       case SoundMan16 :
          PAS_Shutdown();
@@ -3299,12 +3216,12 @@ int MV_Shutdown
          SS_Shutdown();
          break;
       #endif
+#endif
       }
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
 
    // Free any voices we allocated
-   DPMI_UnlockMemory( MV_Voices, MV_TotalMemory );
    USRHOOKS_FreeMem( MV_Voices );
    MV_Voices      = NULL;
    MV_TotalMemory = 0;
@@ -3315,7 +3232,7 @@ int MV_Shutdown
    MV_MaxVoices = 1;
 
    // Release the descriptor from our mix buffer
-   DPMI_FreeDOSMemory( MV_BufferDescriptor );
+   Blaster_SetDmaPageSize(0);
    for( buffer = 0; buffer < NumberOfBuffers; buffer++ )
       {
       MV_MixBuffer[ buffer ] = NULL;
@@ -3324,129 +3241,3 @@ int MV_Shutdown
    return( MV_Ok );
    }
 
-
-/*---------------------------------------------------------------------
-   Function: MV_UnlockMemory
-
-   Unlocks all neccessary data.
----------------------------------------------------------------------*/
-
-void MV_UnlockMemory
-   (
-   void
-   )
-
-   {
-   PITCH_UnlockMemory();
-
-   DPMI_UnlockMemoryRegion( MV_LockStart, MV_LockEnd );
-   DPMI_Unlock( MV_VolumeTable );
-   DPMI_Unlock( MV_PanTable );
-   DPMI_Unlock( MV_Installed );
-   DPMI_Unlock( MV_SoundCard );
-   DPMI_Unlock( MV_TotalVolume );
-   DPMI_Unlock( MV_MaxVoices );
-   DPMI_Unlock( MV_BufferSize );
-   DPMI_Unlock( MV_BufferLength );
-   DPMI_Unlock( MV_SampleSize );
-   DPMI_Unlock( MV_NumberOfBuffers );
-   DPMI_Unlock( MV_MixMode );
-   DPMI_Unlock( MV_Channels );
-   DPMI_Unlock( MV_Bits );
-   DPMI_Unlock( MV_Silence );
-   DPMI_Unlock( MV_SwapLeftRight );
-   DPMI_Unlock( MV_RequestedMixRate );
-   DPMI_Unlock( MV_MixRate );
-   DPMI_Unlock( MV_BufferDescriptor );
-   DPMI_Unlock( MV_MixBuffer );
-   DPMI_Unlock( MV_BufferEmpty );
-   DPMI_Unlock( MV_Voices );
-   DPMI_Unlock( VoiceList );
-   DPMI_Unlock( VoicePool );
-   DPMI_Unlock( MV_MixPage );
-   DPMI_Unlock( MV_VoiceHandle );
-   DPMI_Unlock( MV_CallBackFunc );
-   DPMI_Unlock( MV_RecordFunc );
-   DPMI_Unlock( MV_Recording );
-   DPMI_Unlock( MV_MixFunction );
-   DPMI_Unlock( MV_HarshClipTable );
-   DPMI_Unlock( MV_MixDestination );
-   DPMI_Unlock( MV_LeftVolume );
-   DPMI_Unlock( MV_RightVolume );
-   DPMI_Unlock( MV_MixPosition );
-   DPMI_Unlock( MV_ErrorCode );
-   DPMI_Unlock( MV_DMAChannel );
-   DPMI_Unlock( MV_BuffShift );
-   DPMI_Unlock( MV_ReverbLevel );
-   DPMI_Unlock( MV_ReverbDelay );
-   DPMI_Unlock( MV_ReverbTable );
-   }
-
-
-/*---------------------------------------------------------------------
-   Function: MV_LockMemory
-
-   Locks all neccessary data.
----------------------------------------------------------------------*/
-
-int MV_LockMemory
-   (
-   void
-   )
-
-   {
-   int status;
-   int pitchstatus;
-
-   status  = DPMI_LockMemoryRegion( MV_LockStart, MV_LockEnd );
-   status |= DPMI_Lock( MV_VolumeTable );
-   status |= DPMI_Lock( MV_PanTable );
-   status |= DPMI_Lock( MV_Installed );
-   status |= DPMI_Lock( MV_SoundCard );
-   status |= DPMI_Lock( MV_TotalVolume );
-   status |= DPMI_Lock( MV_MaxVoices );
-   status |= DPMI_Lock( MV_BufferSize );
-   status |= DPMI_Lock( MV_BufferLength );
-   status |= DPMI_Lock( MV_SampleSize );
-   status |= DPMI_Lock( MV_NumberOfBuffers );
-   status |= DPMI_Lock( MV_MixMode );
-   status |= DPMI_Lock( MV_Channels );
-   status |= DPMI_Lock( MV_Bits );
-   status |= DPMI_Lock( MV_Silence );
-   status |= DPMI_Lock( MV_SwapLeftRight );
-   status |= DPMI_Lock( MV_RequestedMixRate );
-   status |= DPMI_Lock( MV_MixRate );
-   status |= DPMI_Lock( MV_BufferDescriptor );
-   status |= DPMI_Lock( MV_MixBuffer );
-   status |= DPMI_Lock( MV_BufferEmpty );
-   status |= DPMI_Lock( MV_Voices );
-   status |= DPMI_Lock( VoiceList );
-   status |= DPMI_Lock( VoicePool );
-   status |= DPMI_Lock( MV_MixPage );
-   status |= DPMI_Lock( MV_VoiceHandle );
-   status |= DPMI_Lock( MV_CallBackFunc );
-   status |= DPMI_Lock( MV_RecordFunc );
-   status |= DPMI_Lock( MV_Recording );
-   status |= DPMI_Lock( MV_MixFunction );
-   status |= DPMI_Lock( MV_HarshClipTable );
-   status |= DPMI_Lock( MV_MixDestination );
-   status |= DPMI_Lock( MV_LeftVolume );
-   status |= DPMI_Lock( MV_RightVolume );
-   status |= DPMI_Lock( MV_MixPosition );
-   status |= DPMI_Lock( MV_ErrorCode );
-   status |= DPMI_Lock( MV_DMAChannel );
-   status |= DPMI_Lock( MV_BuffShift );
-   status |= DPMI_Lock( MV_ReverbLevel );
-   status |= DPMI_Lock( MV_ReverbDelay );
-   status |= DPMI_Lock( MV_ReverbTable );
-
-   pitchstatus = PITCH_LockMemory();
-   if ( ( pitchstatus != PITCH_Ok ) || ( status != DPMI_Ok ) )
-      {
-      MV_UnlockMemory();
-      MV_SetErrorCode( MV_DPMI_Error );
-      return( MV_Error );
-      }
-
-   return( MV_Ok );
-   }

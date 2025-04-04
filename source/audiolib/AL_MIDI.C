@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "al_midi.h"
 #include "_al_midi.h"
 #include "ll_man.h"
+#include "sound.h"
 
 #define TRUE  ( 1 == 1 )
 #define FALSE ( !TRUE )
@@ -870,8 +871,6 @@ int AL_ReserveVoice
    )
 
    {
-   unsigned flags;
-
    if ( ( voice < 0 ) || ( voice >= NUM_VOICES ) )
       {
       return( AL_Error );
@@ -882,7 +881,7 @@ int AL_ReserveVoice
       return( AL_Warning );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    if ( Voice[ voice ].status == NOTE_ON )
       {
@@ -892,7 +891,7 @@ int AL_ReserveVoice
    VoiceReserved[ voice ] = TRUE;
    LL_Remove( VOICE, &Voice_Pool, &Voice[ voice ] );
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
    return( AL_Ok );
    }
 
@@ -909,8 +908,6 @@ int AL_ReleaseVoice
    )
 
    {
-   unsigned flags;
-
    if ( ( voice < 0 ) || ( voice >= NUM_VOICES ) )
       {
       return( AL_Error );
@@ -921,12 +918,12 @@ int AL_ReleaseVoice
       return( AL_Warning );
       }
 
-   flags = DisableInterrupts();
+   SDL_LockMutex(snd_mutex);
 
    VoiceReserved[ voice ] = FALSE;
    LL_AddToTail( VOICE, &Voice_Pool, &Voice[ voice ] );
 
-   RestoreInterrupts( flags );
+   SDL_UnlockMutex(snd_mutex);
    return( AL_Ok );
    }
 

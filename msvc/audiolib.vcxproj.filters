@@ -45,6 +45,21 @@
     <ClCompile Include="..\source\audiolib\BLASTER.C">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\audiolib\MULTIVOC.C">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\audiolib\PITCH.C">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\audiolib\mv_mix_asm.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\audiolib\mv_mix16_asm.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\audiolib\mvreverb_asm.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\audiolib\TASK_MAN.H">
@@ -87,6 +102,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="..\source\audiolib\MPU401.H">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\audiolib\PITCH.H">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
