@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "compat.h"
+#include "system.h"
 #include "types.h"
 #include "develop.h"
 #include "keyboard.h"
@@ -1092,6 +1093,7 @@ void CONTROL_GetInput(ControlInfo* info)
     int pressed;
 
     //ServiceEvents(); // VID
+    Sys_HandleEvents();
 
     CONTROL_PollDevices(info);
 
