@@ -124,6 +124,26 @@ void Music_SetTimer(int divider, void (*handler)())
 	music_pit_callback = handler;
 }
 
+int Music_GetVolume()
+{
+	if (!stream_adlib)
+		return 255;
+	int vol = (int)(SDL_GetAudioStreamGain(stream_adlib) * 255.f);
+
+	if (vol < 0)
+		vol = 0;
+	else if (vol > 255)
+		vol = 255;
+	return vol;
+}
+
+void Music_SetVolume(int vol)
+{
+	if (!stream_adlib)
+		return;
+	SDL_SetAudioStreamGain(stream_adlib, vol * (1.f / 255.f));
+}
+
 static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {
 	if (stream != stream_blaster)
@@ -152,9 +172,8 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 
 		if (blaster_dma_running)
 		{
-			int dma_bytes = blaster_dma_count + 1;
-			dma_bytes <<= blaster_16bit;
-			int irq_bytes = (blaster_irq_count + 1) * bytespersample;
+			int dma_bytes = (blaster_dma_count + 1) << blaster_16bit;
+			int irq_bytes = (blaster_irq_count + 1) << blaster_16bit;
 			if (bytes > dma_bytes)
 				bytes = dma_bytes;
 			if (bytes > irq_bytes)
@@ -178,18 +197,15 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 			blaster_dma_count -= bytes >> blaster_16bit;
 			if (blaster_dma_count < 0)
 			{
-				if (blaster_dma_auto)
-				{
-					blaster_dma_count = blaster_dma_count_init;
-					blaster_dma_ptr = blaster_dma_ptr_init;
-				}
-				else
-					blaster_dma_running = 0;
+				blaster_dma_count = blaster_dma_count_init;
+				blaster_dma_ptr = blaster_dma_ptr_init;
 			}
-			blaster_irq_count -= bytes / bytespersample;
+			blaster_irq_count -= bytes >> blaster_16bit;
 			if (blaster_irq_count < 0)
 			{
 				blaster_irq_count = blaster_irq_count_init;
+				if (!blaster_dma_auto)
+					blaster_dma_running = 0;
 				if (blaster_irq_callback)
 					blaster_irq_callback();
 			}
@@ -214,7 +230,7 @@ static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additi
 
 void Blaster_Init(int tc, int rate, int channels, int is16bit)
 {
-	if (rate < 0)
+	if (blaster_type != BLASTER_TYPE_16)
 	{
 		if (tc >= 65536)
 			rate = 22050;
@@ -226,6 +242,8 @@ void Blaster_Init(int tc, int rate, int channels, int is16bit)
 	blaster_16bit = is16bit;
 	blaster_stereo = channels >= 2;
 
+	blaster_dma_running = 0;
+
 	if (stream_blaster)
 	{
 		SDL_UnbindAudioStream(stream_blaster);
@@ -234,7 +252,7 @@ void Blaster_Init(int tc, int rate, int channels, int is16bit)
 
 	SDL_AudioSpec spec;
 	spec.format = is16bit ? SDL_AUDIO_S16 : SDL_AUDIO_U8;
-	spec.channels = 2;
+	spec.channels = channels;
 	spec.freq = rate;
 
 	stream_blaster = SDL_CreateAudioStream(&spec, &spec_main);
@@ -268,14 +286,50 @@ void Blaster_StartDma(int start, int dma_count, int count, int is_auto)
 	blaster_dma_running = 1;
 }
 
+void Blaster_ContinueDma(int count)
+{
+	blaster_irq_count = blaster_irq_count_init = count;
+	blaster_dma_running = 1;
+}
+
 void Blaster_StopDma()
 {
 	blaster_dma_running = 0;
 }
 
+void Blaster_Shutdown()
+{
+	if (!stream_blaster)
+		return;
+
+	SDL_UnbindAudioStream(stream_blaster);
+	SDL_DestroyAudioStream(stream_blaster);
+	stream_blaster = NULL;
+}
+
 void Blaster_SetIrqHandler(void (*handler)())
 {
 	blaster_irq_callback = handler;
+}
+
+int Blaster_GetVolume()
+{
+	if (!stream_blaster)
+		return 255;
+	int vol = (int)(SDL_GetAudioStreamGain(stream_blaster) * 255.f);
+
+	if (vol < 0)
+		vol = 0;
+	else if (vol > 255)
+		vol = 255;
+	return vol;
+}
+
+void Blaster_SetVolume(int vol)
+{
+	if (!stream_blaster)
+		return;
+	SDL_SetAudioStreamGain(stream_blaster, vol * (1.f / 255.f));
 }
 
 int Blaster_GetDmaCount()

@@ -42,6 +42,9 @@
     <ClCompile Include="..\source\audiolib\GMTIMBRE.C">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\audiolib\BLASTER.C">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\audiolib\TASK_MAN.H">
