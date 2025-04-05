@@ -8736,3 +8736,7 @@ void setvmode(int a)
 			break;
 	}
 }
+
+void limitrate()
+{
+}

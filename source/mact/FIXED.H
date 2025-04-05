@@ -93,7 +93,7 @@ static inline fixed FixedSqrtLP(fixed n)
     return a << 8;
 }
 
-fixed FixedSqrtHP(fixed n)
+static inline fixed FixedSqrtHP(fixed n)
 {
     int32_t a = 0;
     int32_t b = 0x40000000;
@@ -138,7 +138,7 @@ fixed FixedSqrtHP(fixed n)
     return a;
 }
 
-fixed FixedDivShift(fixed a, fixed b, fixed c)
+static inline fixed FixedDivShift(fixed a, fixed b, fixed c)
 {
     return (fixed)(((int64_t)a << c) / b);
 }
