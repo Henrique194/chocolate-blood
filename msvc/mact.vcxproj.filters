@@ -30,6 +30,9 @@
     <ClCompile Include="..\source\mact\tokenlib.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\mact\util_lib.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\mact\LINKLIST.H">
