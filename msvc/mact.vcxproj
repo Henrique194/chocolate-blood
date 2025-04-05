@@ -101,7 +101,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\source\build;$(ProjectDir)\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -116,7 +116,7 @@
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\source\build;$(ProjectDir)\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -133,6 +133,31 @@
     <ClCompile Include="..\source\mact\control.c" />
     <ClCompile Include="..\source\mact\keyboard.c" />
     <ClCompile Include="..\source\mact\scriplib.c" />
+    <ClCompile Include="..\source\mact\tokenlib.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\mact\ANIMLIB.H" />
+    <ClInclude Include="..\source\mact\CONTROL.H" />
+    <ClInclude Include="..\source\mact\DEVELOP.H" />
+    <ClInclude Include="..\source\mact\EXTERNAL.H" />
+    <ClInclude Include="..\source\mact\FILE_LIB.H" />
+    <ClInclude Include="..\source\mact\FIXED.H" />
+    <ClInclude Include="..\source\mact\JOYSTICK.H" />
+    <ClInclude Include="..\source\mact\KEYBOARD.H" />
+    <ClInclude Include="..\source\mact\LINKLIST.H" />
+    <ClInclude Include="..\source\mact\MATHUTIL.H" />
+    <ClInclude Include="..\source\mact\MOUSE.H" />
+    <ClInclude Include="..\source\mact\SCRIPLIB.H" />
+    <ClInclude Include="..\source\mact\TOKENLIB.H" />
+    <ClInclude Include="..\source\mact\TYPES.H" />
+    <ClInclude Include="..\source\mact\UTIL_LIB.H" />
+    <ClInclude Include="..\source\mact\_ANIMLIB.H" />
+    <ClInclude Include="..\source\mact\_CONTROL.H" />
+    <ClInclude Include="..\source\mact\_FILELIB.H" />
+    <ClInclude Include="..\source\mact\_KEYBOAR.H" />
+    <ClInclude Include="..\source\mact\_SCRPLIB.H" />
+    <ClInclude Include="..\source\mact\_TOKENLI.H" />
+    <ClInclude Include="..\source\mact\_UTIL_LB.H" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
