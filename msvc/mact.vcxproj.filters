@@ -39,6 +39,9 @@
     <ClCompile Include="..\source\mact\mathutil.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\mact\vidmsdos.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\mact\LINKLIST.H">

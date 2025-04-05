@@ -38,6 +38,10 @@ static void CreateWindow(int w, int h)
 	if (!texture)
 		goto failed;
 
+
+
+	SDL_SetWindowRelativeMouseMode(window, true);
+
 	return;
 failed:
 	printf("CreateWindow failed\n");

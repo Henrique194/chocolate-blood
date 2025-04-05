@@ -157,6 +157,9 @@ kb_scancode KB_StringToScanCode(char* string)
 	return 0;
 }
 
+void KEYBOARD_Startup();
+void KEYBOARD_Shutdown();
+
 void KB_Startup(void)
 {
 	if (KeyboardStarted)

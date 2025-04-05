@@ -17,9 +17,6 @@ extern int32 Joy_y2;
 extern byte  Joy_mask;
 
 void JoyStick_Vals( void );
-#if defined(__FLAT__) || defined(__NT__)
-#pragma aux JoyStick_Vals modify exact [eax ebx ecx edx esi edi]
-#endif
 
 #define JOYSTICK_GetPos( x1, y1, x2, y2 ) \
    { \

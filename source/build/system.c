@@ -10,6 +10,10 @@ static void (*kb_callback)();
 char kb_byte;
 #define KB_EXTENDED_BIT 0x80
 
+static int mouse_buttons;
+static float mouse_dx;
+static float mouse_dy;
+
 static int kb_scancodemap[SDL_SCANCODE_COUNT];
 
 static void PIT_Update()
@@ -141,6 +145,22 @@ void Sys_Init()
 	pit_callback = NULL;
 
 	kb_callback = NULL;
+
+	mouse_buttons = 0;
+	mouse_dx = 0;
+	mouse_dy = 0;
+}
+
+static int window_focus = 0;
+
+static void UpdateMouse()
+{
+	if (!window_focus)
+	{
+		mouse_buttons = 0;
+		mouse_dx = 0;
+		mouse_dy = 0;
+	}
 }
 
 void Sys_HandleEvents()
@@ -191,9 +211,32 @@ void Sys_HandleEvents()
 
 				break;
 			}
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			{
+				mouse_buttons |= 1 << ev.button.button;
+				break;
+			}
+			case SDL_EVENT_MOUSE_BUTTON_UP:
+			{
+				mouse_buttons &= ~(1 << ev.button.button);
+				break;
+			}
+			case SDL_EVENT_MOUSE_MOTION:
+			{
+				mouse_dx += ev.motion.x;
+				mouse_dy += ev.motion.y;
+				break;
+			}
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:
+				window_focus = true;
+				break;
+			case SDL_EVENT_WINDOW_FOCUS_LOST:
+				window_focus = false;
+				break;
 		}
 	}
 
+	UpdateMouse();
 	PIT_Update();
 }
 
@@ -207,4 +250,16 @@ void Sys_SetTimer(int divider, void (*handler)())
 void Sys_SetKeyboardHandler(void (*handler)())
 {
 	kb_callback = handler;
+}
+
+void Sys_GetMouseDelta(float* dx, float* dy)
+{
+	*dx = mouse_dx;
+	*dy = mouse_dy;
+	mouse_dx = mouse_dy = 0.f;
+}
+
+int Sys_GetMouseButtons()
+{
+	return mouse_buttons;
 }

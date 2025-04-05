@@ -137,6 +137,7 @@
     <ClCompile Include="..\source\mact\scriplib.c" />
     <ClCompile Include="..\source\mact\tokenlib.c" />
     <ClCompile Include="..\source\mact\util_lib.c" />
+    <ClCompile Include="..\source\mact\vidmsdos.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\mact\ANGLES.H" />
