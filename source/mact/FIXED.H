@@ -36,226 +36,112 @@ extern "C" {
 //
 //***************************************************************************
 
-fixed FixedMul(fixed a, fixed b);
-fixed FixedMulShift(fixed a, fixed b, fixed shift);
-fixed FixedDiv2(fixed a, fixed b);
-fixed FixedDiv(fixed a, fixed b);
-fixed FixedDiv24(fixed a, fixed b);
+static inline fixed FixedMul(fixed a, fixed b)
+{
+    int64_t mul = (int64_t)a * (int64_t)b;
+    return (fixed)((mul + 0x8000) >> 16);
+}
+
+static inline fixed FixedMulShift(fixed a, fixed b, fixed shift)
+{
+    int64_t mul = (int64_t)a * (int64_t)b;
+    return (fixed)(mul >> shift);
+}
+
+static inline fixed FixedDiv2(fixed a, fixed b)
+{
+    return (fixed)(((int64_t)a << 16) / b);
+}
+
+static inline fixed FixedDiv(fixed a, fixed b)
+{
+    return (fixed)(((int64_t)a << 16) / b);
+}
+
+static inline fixed FixedDiv24(fixed a, fixed b)
+{
+    return (fixed)(((int64_t)a << 24) / b);
+}
+
 fixed fixedmul24(fixed a, fixed b);
-fixed FixedScale(fixed orig, fixed factor, fixed divisor);
-fixed FixedSqrtLP(fixed n);  // Low  Precision (8.8)
-fixed FixedSqrtHP(fixed n);  // High Precision (8.16)
-fixed FixedDivShift(fixed a, fixed b, fixed c);
+static inline fixed FixedScale(fixed orig, fixed factor, fixed divisor)
+{
+    int64_t mul = (int64_t)orig * (int64_t)factor;
+    return (fixed)(mul / divisor);
+}
 
-#if defined(__FLAT__) || defined(__NT__)
+static inline fixed FixedSqrtLP(fixed n)
+{
+    int32_t a = 0;
+    int32_t b = 0x40000000;
 
-#define FixedDiv( a, b ) FixedDiv2( a, b )
+    do
+    {
+        if (n >= b && n - b >= a)
+        {
+            n -= a + b;
+            a >>= 1;
+            a |= b;
+            b >>= 2;
+        }
+        else
+        {
+            a >>= 1;
+            b >>= 1;
+        }
+    } while (b);
+    return a << 8;
+}
 
-/*
-#pragma aux FixedMul =               \
-        "imul ebx",                  \
-        "adc  edx,0h"                \
-        "shrd eax,edx,16"            \
-        parm    [eax] [ebx]          \
-        value   [eax]                \
-        modify exact [eax edx]
-*/
+fixed FixedSqrtHP(fixed n)
+{
+    int32_t a = 0;
+    int32_t b = 0x40000000;
 
-#pragma aux FixedMul =               \
-        "imul ebx",                  \
-        "add  eax, 8000h"            \
-        "adc  edx,0h"                \
-        "shrd eax,edx,16"            \
-        parm    [eax] [ebx]          \
-        value   [eax]                \
-        modify exact [eax edx]
+    do
+    {
+        if (n >= b && n - b >= a)
+        {
+            n -= a + b;
+            a >>= 1;
+            a |= b;
+            b >>= 2;
+        }
+        else
+        {
+            a >>= 1;
+            b >>= 1;
+        }
+    } while (b);
 
+    b = 0x4000;
 
-#pragma aux FixedMulShift =          \
-        "imul ebx",                  \
-        "shrd eax,edx,cl"            \
-        parm    [eax] [ebx] [ecx]    \
-        value   [eax]                \
-        modify exact [eax edx]
+    a <<= 16;
+    n <<= 16;
 
-#pragma aux FixedDiv2 =              \
-        "cdq",                       \
-        "shld edx,eax,16",           \
-        "sal eax,16",                \
-        "idiv ebx"                   \
-        parm    [eax] [ebx]          \
-        value   [eax]                \
-        modify exact [eax edx]
+    do
+    {
+        if (n >= b && n - b >= a)
+        {
+            n -= a + b;
+            a >>= 1;
+            a |= b;
+            b >>= 2;
+        }
+        else
+        {
+            a >>= 1;
+            b >>= 1;
+        }
+    } while (b);
 
-#pragma aux FixedDivShift =              \
-        "cdq",                       \
-        "shld edx,eax,cl",           \
-        "sal eax,cl",                \
-        "idiv ebx"                   \
-        parm    [eax] [ebx] [ecx]    \
-        value   [eax]                \
-        modify exact [eax edx]
+    return a;
+}
 
-
-#pragma aux FixedDiv24 =              \
-        "cdq",                       \
-        "shld edx,eax,24",           \
-        "sal eax,24",                \
-        "idiv ebx"                   \
-        parm    [eax] [ebx]          \
-        value   [eax]                \
-        modify exact [eax edx]
-
-
-#pragma aux FixedScale =             \
-        "imul ebx",                  \
-        "idiv ecx"                   \
-        parm    [eax] [ebx] [ecx]    \
-        value   [eax]                \
-        modify exact [eax edx]
-
-
-
-
-/*
-FUNCTION:
-    Fixed32 FixedSqrtHP(Fixed32 n);
-DESCRIPTION:
-    This does a high-precision square root of a Fixed32.  It has
-    8.16 bit accuracy.  For more speed use FixedSqrtLP().
-
-
-FUNCTION:
-    Fixed32 FixedSqrtLP(Fixed32 n);
-DESCRIPTION:
-    This does a low-precision square root of a Fixed32.  It has
-    8.8 bit accuracy.  For more accuracy use FixedSqrtHP().
-*/
-
-
-#pragma aux FixedSqrtLP =            \
-    "         xor eax, eax"          \
-    "         mov ebx, 40000000h"    \
-    "sqrtLP1: mov edx, ecx"          \
-    "         sub edx, ebx"          \
-    "         jl  sqrtLP2"           \
-    "         sub edx, eax"          \
-    "         jl  sqrtLP2"           \
-    "         mov ecx,edx"           \
-    "         shr eax, 1"            \
-    "         or  eax, ebx"          \
-    "         shr ebx, 2"            \
-    "         jnz sqrtLP1"           \
-    "         shl eax, 8"            \
-    "         jmp sqrtLP3"           \
-    "sqrtLP2: shr eax, 1"            \
-    "         shr ebx, 2"            \
-    "         jnz sqrtLP1"           \
-    "         shl eax, 8"            \
-    "sqrtLP3: nop"                   \
-    parm caller [ecx]                \
-    value [eax]                      \
-    modify [eax ebx ecx edx];
-
-
-#pragma aux FixedSqrtHP =            \
-    "         xor eax, eax"          \
-    "         mov ebx, 40000000h"    \
-    "sqrtHP1: mov edx, ecx"          \
-    "         sub edx, ebx"          \
-    "         jb  sqrtHP2"           \
-    "         sub edx, eax"          \
-    "         jb  sqrtHP2"           \
-    "         mov ecx,edx"           \
-    "         shr eax, 1"            \
-    "         or  eax, ebx"          \
-    "         shr ebx, 2"            \
-    "         jnz sqrtHP1"           \
-    "         jz  sqrtHP5"           \
-    "sqrtHP2: shr eax, 1"            \
-    "         shr ebx, 2"            \
-    "         jnz sqrtHP1"           \
-    "sqrtHP5: mov ebx, 00004000h"    \
-    "         shl eax, 16"           \
-    "         shl ecx, 16"           \
-    "sqrtHP3: mov edx, ecx"          \
-    "         sub edx, ebx"          \
-    "         jb  sqrtHP4"           \
-    "         sub edx, eax"          \
-    "         jb  sqrtHP4"           \
-    "         mov ecx, edx"          \
-    "         shr eax, 1"            \
-    "         or  eax, ebx"          \
-    "         shr ebx, 2"            \
-    "         jnz sqrtHP3"           \
-    "         jmp sqrtHP6"           \
-    "sqrtHP4: shr eax, 1"            \
-    "         shr ebx, 2"            \
-    "         jnz sqrtHP3"           \
-    "sqrtHP6: nop"                   \
-    parm caller [ecx]                \
-    value [eax]                      \
-    modify [eax ebx ecx edx];
-
-#endif  /* __FLAT__ || __NT__ */
-
-#ifdef __NeXT__
-
-#include <math.h>   // for sqrt
-
-fixed FixedDiv(fixed a, fixed b);
-fixed FixedDivShift(fixed a, fixed b, fixed c);
-fixed FixedDiv24(fixed a, fixed b);
-fixed fixedmul24(fixed a, fixed b);
-fixed FixedMul(fixed a, fixed b);
-fixed FixedMulShift(fixed a, fixed b, fixed c);
-
-//#define FixedMulShift( a, b, shift ) \
-//   ( ( fixed )( ( ( long long )( a ) * ( long long )( b ) + \
-//        ( ( long long )1 << ( ( shift ) - 1 ) ) ) >> ( shift ) ) )
-
-
-#define FixedDiv2( a, b ) FixedDiv( a, b )
-
-#define FixedScale( orig, factor, divisor ) \
-   ( ( fixed )( ( ( long long )( orig ) * \
-        ( long long )( factor ) ) / ( long long )( divisor ) ) )
-
-#define FixedSqrtHP( n ) \
-   ( ( fixed )( sqrt( ( double )( n )/ FIXED1 ) * FIXED1 ) )
-
-#define FixedSqrtLP( n ) \
-   ( FixedSqrtHP( n ) )
-
-#endif   /* __NeXT__ */
-
-#if    defined(__MSDOS__) && !defined(__FLAT__)
-
-#include <math.h>   // for sqrt
-
-fixed FixedDiv(fixed a, fixed b);
-fixed FixedDiv24(fixed a, fixed b);
-fixed fixedmul24(fixed a, fixed b);
-fixed FixedMul(fixed a, fixed b);
-
-#define FixedMulShift( a, b, shift ) \
-   ( ( fixed )( ( ( long )( a ) * ( long )( b ) + \
-        ( ( long )1 << ( ( shift ) - 1 ) ) ) >> ( shift ) ) )
-
-
-#define FixedDiv2( a, b ) FixedDiv( a, b )
-
-#define FixedScale( orig, factor, divisor ) \
-   ( ( fixed )( ( ( long )( orig ) * \
-        ( long )( factor ) ) / ( long )( divisor ) ) )
-
-#define FixedSqrtHP( n ) \
-   ( ( fixed )( sqrt( ( double )( n )/ FIXED1 ) * FIXED1 ) )
-
-#define FixedSqrtLP( n ) \
-   ( FixedSqrtHP( n ) )
-
-#endif   /* __286__ */
+fixed FixedDivShift(fixed a, fixed b, fixed c)
+{
+    return (fixed)(((int64_t)a << c) / b);
+}
 
 #ifdef __cplusplus
 };

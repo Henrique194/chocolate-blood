@@ -133,11 +133,13 @@
     <ClCompile Include="..\source\mact\control.c" />
     <ClCompile Include="..\source\mact\file_lib.c" />
     <ClCompile Include="..\source\mact\keyboard.c" />
+    <ClCompile Include="..\source\mact\mathutil.c" />
     <ClCompile Include="..\source\mact\scriplib.c" />
     <ClCompile Include="..\source\mact\tokenlib.c" />
     <ClCompile Include="..\source\mact\util_lib.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\source\mact\ANGLES.H" />
     <ClInclude Include="..\source\mact\ANIMLIB.H" />
     <ClInclude Include="..\source\mact\CONTROL.H" />
     <ClInclude Include="..\source\mact\DEVELOP.H" />
