@@ -49,7 +49,7 @@ enum USRHOOKS_Errors
    Function Prototypes
 ---------------------------------------------------------------------*/
 
-int USRHOOKS_GetMem( void **ptr, unsigned long size );
+int USRHOOKS_GetMem( void **ptr, uint32_t size );
 int USRHOOKS_FreeMem( void *ptr );
 
 #endif

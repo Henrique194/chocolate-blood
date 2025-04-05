@@ -199,13 +199,6 @@ int MUSIC_Init
       return( MUSIC_Error );
       }
 
-   status = LL_LockMemory();
-   if ( status != LL_Ok )
-      {
-      MUSIC_SetErrorCode( MUSIC_DPMI_Error );
-      return( MUSIC_Error );
-      }
-
    for( i = 0; i < 128; i++ )
       {
       MIDI_PatchMap[ i ] = i;
@@ -230,6 +223,7 @@ int MUSIC_Init
          status = MUSIC_InitMidi( SoundCard, &MUSIC_MidiFunctions, Address );
          break;
 
+#if 0
       case Awe32 :
          status = MUSIC_InitAWE32( &MUSIC_MidiFunctions );
          break;
@@ -237,17 +231,13 @@ int MUSIC_Init
       case UltraSound :
          status = MUSIC_InitGUS( &MUSIC_MidiFunctions );
          break;
+#endif
 
       case SoundSource :
       case PC :
       default :
          MUSIC_SetErrorCode( MUSIC_InvalidCard );
          status = MUSIC_Error;
-      }
-
-   if ( status != MUSIC_Ok )
-      {
-      LL_UnlockMemory();
       }
 
    return( status );
@@ -285,7 +275,7 @@ int MUSIC_Shutdown
 
       case SoundBlaster :
          AL_Shutdown();
-         BLASTER_RestoreMidiVolume();
+         //BLASTER_RestoreMidiVolume();
          break;
 
       case GenMidi :
@@ -297,9 +287,10 @@ int MUSIC_Shutdown
       case WaveBlaster :
          BLASTER_ShutdownWaveBlaster();
          MPU_Reset();
-         BLASTER_RestoreMidiVolume();
+         //BLASTER_RestoreMidiVolume();
          break;
 
+#if 0
       case Awe32 :
          AWE32_Shutdown();
          BLASTER_RestoreMidiVolume();
@@ -314,9 +305,8 @@ int MUSIC_Shutdown
       case UltraSound :
          GUSMIDI_Shutdown();
          break;
+#endif
       }
-
-   LL_UnlockMemory();
 
    return( status );
    }
@@ -710,7 +700,6 @@ int MUSIC_InitFM
 
    {
    int status;
-   int passtatus;
 
    status = MIDI_Ok;
 
@@ -740,7 +729,7 @@ int MUSIC_InitFM
       case SoundBlaster :
          if ( BLASTER_CardHasMixer() )
             {
-            BLASTER_SaveMidiVolume();
+            //BLASTER_SaveMidiVolume();
             Funcs->SetVolume = BLASTER_SetMidiVolume;
             Funcs->GetVolume = BLASTER_GetMidiVolume;
             }
@@ -831,7 +820,7 @@ int MUSIC_InitMidi
       {
       if ( BLASTER_CardHasMixer() )
          {
-         BLASTER_SaveMidiVolume();
+         //BLASTER_SaveMidiVolume();
          Funcs->SetVolume = BLASTER_SetMidiVolume;
          Funcs->GetVolume = BLASTER_GetMidiVolume;
          }

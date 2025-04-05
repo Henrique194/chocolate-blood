@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="..\source\mact\ANIMLIB.C" />
     <ClCompile Include="..\source\mact\control.c" />
+    <ClCompile Include="..\source\mact\keyboard.c" />
     <ClCompile Include="..\source\mact\scriplib.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

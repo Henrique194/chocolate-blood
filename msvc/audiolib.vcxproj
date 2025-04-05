@@ -132,6 +132,7 @@
     <ClCompile Include="..\source\audiolib\AL_MIDI.C" />
     <ClCompile Include="..\source\audiolib\BLASTER.C" />
     <ClCompile Include="..\source\audiolib\DEBUGIO.C" />
+    <ClCompile Include="..\source\audiolib\FX_MAN.C" />
     <ClCompile Include="..\source\audiolib\GMTIMBRE.C" />
     <ClCompile Include="..\source\audiolib\LL_MAN.C" />
     <ClCompile Include="..\source\audiolib\MIDI.C" />
@@ -149,6 +150,7 @@
     <ClInclude Include="..\source\audiolib\AL_MIDI.H" />
     <ClInclude Include="..\source\audiolib\BLASTER.H" />
     <ClInclude Include="..\source\audiolib\DEBUGIO.H" />
+    <ClInclude Include="..\source\audiolib\FX_MAN.H" />
     <ClInclude Include="..\source\audiolib\LINKLIST.H" />
     <ClInclude Include="..\source\audiolib\LL_MAN.H" />
     <ClInclude Include="..\source\audiolib\MIDI.H" />

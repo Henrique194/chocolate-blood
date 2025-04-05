@@ -1189,7 +1189,6 @@ void MIDI_StopSong
          _MIDI_Funcs->ReleasePatches();
          }
 
-      DPMI_UnlockMemory( _MIDI_TrackPtr, _MIDI_TrackMemSize );
       USRHOOKS_FreeMem( _MIDI_TrackPtr );
 
       _MIDI_TrackPtr     = NULL;
@@ -1574,13 +1573,13 @@ void MIDI_SetSongTick
 
 void MIDI_SetSongTime
    (
-   unsigned long milliseconds
+   uint32_t milliseconds
    )
 
    {
-   unsigned long mil;
-   unsigned long sec;
-   unsigned long newtime;
+   uint32_t mil;
+   uint32_t sec;
+   uint32_t newtime;
 
    if ( !_MIDI_SongLoaded )
       {
@@ -1635,7 +1634,7 @@ void MIDI_SetSongPosition
    )
 
    {
-   unsigned long pos;
+   uint32_t pos;
 
    if ( !_MIDI_SongLoaded )
       {
@@ -1686,8 +1685,8 @@ void MIDI_GetSongPosition
    )
 
    {
-   unsigned long mil;
-   unsigned long sec;
+   uint32_t mil;
+   uint32_t sec;
 
    mil = ( _MIDI_Time & ( ( 1 << TIME_PRECISION ) - 1 ) ) * 1000;
    sec = _MIDI_Time >> TIME_PRECISION;
@@ -1711,8 +1710,8 @@ void MIDI_GetSongLength
    )
 
    {
-   unsigned long mil;
-   unsigned long sec;
+   uint32_t mil;
+   uint32_t sec;
 
    mil = ( _MIDI_TotalTime & ( ( 1 << TIME_PRECISION ) - 1 ) ) * 1000;
    sec = _MIDI_TotalTime >> TIME_PRECISION;

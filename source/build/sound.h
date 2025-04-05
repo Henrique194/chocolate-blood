@@ -26,4 +26,5 @@ int Blaster_GetVolume();
 void Blaster_SetVolume(int vol);
 int Music_GetVolume();
 void Music_SetVolume(int vol);
+void Music_SetTimer(int divider, void (*handler)());
 void Adlib_Write(int offset, int data);
