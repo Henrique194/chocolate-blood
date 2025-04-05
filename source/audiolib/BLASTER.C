@@ -486,7 +486,7 @@ int BLASTER_BeginBufferedPlayback
    BLASTER_TransferLength = TransferLength;
 
    int dma_len, len;
-   if ( (BLASTER_MixMode & SIXTEEN_BIT) != 0 && BLASTER_Version < DSP_Version4xx)
+   if ( (BLASTER_MixMode & SIXTEEN_BIT) != 0 && BLASTER_Version >= DSP_Version4xx)
       {
       dma_len = (BufferSize / 2) - 1;
       len = (TransferLength / 2) - 1;

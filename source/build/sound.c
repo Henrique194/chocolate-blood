@@ -46,6 +46,8 @@ int blaster_type = BLASTER_TYPE_16;
 
 SDL_Mutex *snd_mutex;
 
+#define MUSIC_GAIN 2.f
+
 static bool Adlib_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {
 	if (stream != stream_adlib)
@@ -130,7 +132,7 @@ int Music_GetVolume()
 {
 	if (!stream_adlib)
 		return 255;
-	int vol = (int)(SDL_GetAudioStreamGain(stream_adlib) * 255.f);
+	int vol = (int)(SDL_GetAudioStreamGain(stream_adlib) * 255.f * (1.f/ MUSIC_GAIN));
 
 	if (vol < 0)
 		vol = 0;
@@ -143,7 +145,7 @@ void Music_SetVolume(int vol)
 {
 	if (!stream_adlib)
 		return;
-	SDL_SetAudioStreamGain(stream_adlib, vol * (1.f / 255.f));
+	SDL_SetAudioStreamGain(stream_adlib, vol * (MUSIC_GAIN / 255.f));
 }
 
 static bool Blaster_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
@@ -344,6 +346,11 @@ void Blaster_SetVolume(int vol)
 int Blaster_GetDmaCount()
 {
 	return blaster_dma_count;
+}
+
+int Blaster_GetDmaPos()
+{
+	return blaster_dma_ptr;
 }
 
 void Sound_Init(int rate)

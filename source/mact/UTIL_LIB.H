@@ -10,12 +10,8 @@
 extern "C" {
 #endif
 
-#if (defined(__MSDOS__) && !defined(__FLAT__))
-extern  int16    _argc;
-#else
-extern  int32    _argc;
-#endif
-extern  char **  _argv;
+extern  int32    sys_argc;
+extern  char **  sys_argv;
 
 #ifdef __cplusplus
 void RegisterShutdownFunction( void shutdown(void) );

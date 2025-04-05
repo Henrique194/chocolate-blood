@@ -26,6 +26,8 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 */
 //-------------------------------------------------------------------------
 
+#include "compat.h"
+#include "system.h"
 #include "duke3d.h"
 
 extern short otherp;
@@ -1465,7 +1467,7 @@ void loadefs(char *filenam,char *mptr)
         puts("COPY INTERNAL DEFAULTS TO DIRECTORY(Y/n)?");
 
         KB_FlushKeyboardQueue();
-        while( KB_KeyWaiting() );
+        while( KB_KeyWaiting() ) { Sys_HandleEvents(); };
 
         i = KB_Getch();
         if(i == 'y' || i == 'Y' )

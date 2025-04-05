@@ -22,6 +22,7 @@ void Blaster_ContinueDma(int count);
 void Blaster_StopDma();
 void Blaster_Shutdown();
 int Blaster_GetDmaCount();
+int Blaster_GetDmaPos();
 int Blaster_GetVolume();
 void Blaster_SetVolume(int vol);
 int Music_GetVolume();

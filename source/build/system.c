@@ -18,8 +18,8 @@ static int kb_scancodemap[SDL_SCANCODE_COUNT];
 
 static void PIT_Update()
 {
-	uint64_t t = SDL_GetPerformanceCounter() - timer_base;
-	uint64_t cycles = (t * 1193182) / SDL_GetPerformanceFrequency();
+	uint64_t t = SDL_GetTicksNS() - timer_base;
+	uint64_t cycles = (t * 1193182) / 1000000000;
 
 	if (pit_divider && pit_callback)
 	{
@@ -32,9 +32,14 @@ static void PIT_Update()
 	else
 		pit_cycles = cycles;
 }
+int32_t    sys_argc;
+char** sys_argv;
 
-void Sys_Init()
+void Sys_Init(int argc, char **argv)
 {
+	sys_argc = argc;
+	sys_argv = argv;
+
 	SDL_InitSubSystem(SDL_INIT_EVENTS);
 
 	memset(kb_scancodemap, -1, sizeof(kb_scancodemap));
@@ -242,7 +247,8 @@ void Sys_HandleEvents()
 
 void Sys_SetTimer(int divider, void (*handler)())
 {
-	timer_base = SDL_GetPerformanceCounter();
+	timer_base = SDL_GetTicksNS();
+	pit_cycles = 0;
 	pit_divider = divider;
 	pit_callback = handler;
 }

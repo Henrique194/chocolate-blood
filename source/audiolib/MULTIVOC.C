@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string.h>
 #include "compat.h"
 #include "usrhooks.h"
-#include "linklist.h"
+#include "ll_man.h"
 #include "sndcards.h"
 #include "blaster.h"
 #include "pitch.h"
@@ -93,8 +93,8 @@ char *MV_MixBuffer[ NumberOfBuffers + 1 ];
 
 static VoiceNode *MV_Voices = NULL;
 
-static volatile VoiceNode VoiceList;
-static volatile VoiceNode VoicePool;
+static volatile VList VoiceList = { NULL, NULL };
+static volatile VList VoicePool = { NULL, NULL };
 
 static int MV_MixPage      = 0;
 static int MV_VoiceHandle  = MV_MinVoiceHandle;
@@ -338,7 +338,7 @@ void MV_PlayVoice
 
    {
    SDL_LockMutex(snd_mutex);
-   LL_SortedInsertion( &VoiceList, voice, prev, next, VoiceNode, priority );
+   LL_AddToTail( VoiceNode, &VoiceList, voice );
 
    SDL_UnlockMutex(snd_mutex);
    }
@@ -359,8 +359,8 @@ void MV_StopVoice
    SDL_LockMutex(snd_mutex);
 
    // move the voice from the play list to the free list
-   LL_Remove( voice, next, prev );
-   LL_Add( &VoicePool, voice, next, prev );
+   LL_Remove( VoiceNode, &VoiceList, voice );
+   LL_AddToTail( VoiceNode, &VoicePool, voice );
 
    SDL_UnlockMutex(snd_mutex);
    }
@@ -383,10 +383,12 @@ void MV_ServiceVoc
    VoiceNode *voice;
    VoiceNode *next;
 
+   SDL_LockMutex(snd_mutex);
+
    if ( MV_DMAChannel >= 0 )
       {
       // Get the currently playing buffer
-      int pos = Blaster_GetDmaCount();
+      int pos = Blaster_GetDmaPos();
       if (MV_Bits == 16)
           pos <<= 1;
       MV_MixPage   = pos;
@@ -493,7 +495,8 @@ void MV_ServiceVoc
       }
 
    // Play any waiting voices
-   for( voice = VoiceList.next; voice != &VoiceList; voice = next )
+   voice = VoiceList.start;
+   while (voice != NULL)
       {
 //      if ( ( voice < &MV_Voices[ 0 ] ) || ( voice > &MV_Voices[ 8 ] ) )
 //         {
@@ -517,7 +520,9 @@ void MV_ServiceVoc
             MV_CallBackFunc( voice->callbackval );
             }
          }
+      voice = next;
       }
+   SDL_UnlockMutex(snd_mutex);
    }
 
 
@@ -963,17 +968,21 @@ VoiceNode *MV_GetVoice
 
    SDL_LockMutex(snd_mutex);
 
-   for( voice = VoiceList.next; voice != &VoiceList; voice = voice->next )
+   voice = VoiceList.start;
+
+   while( voice != NULL )
       {
       if ( handle == voice->handle )
          {
          break;
          }
+
+      voice = voice->next;
       }
 
    SDL_UnlockMutex(snd_mutex);
 
-   if ( voice == &VoiceList )
+   if ( voice == NULL )
       {
       MV_SetErrorCode( MV_VoiceNotFound );
       }
@@ -1033,9 +1042,9 @@ int MV_KillAllVoices
       }
 
    // Remove all the voices from the list
-   while( VoiceList.next != &VoiceList )
+   while( VoiceList.start != NULL )
       {
-      MV_Kill( VoiceList.next->handle );
+      MV_Kill( VoiceList.start->handle );
       }
 
    return( MV_Ok );
@@ -1111,9 +1120,11 @@ int MV_VoicesPlaying
 
    SDL_LockMutex(snd_mutex);
 
-   for( voice = VoiceList.next; voice != &VoiceList; voice = voice->next )
+   voice = VoiceList.start;
+   while( voice != NULL )
       {
       NumVoices++;
+      voice = voice->next;
       }
 
    SDL_UnlockMutex(snd_mutex);
@@ -1146,16 +1157,18 @@ VoiceNode *MV_AllocVoice
    SDL_LockMutex(snd_mutex);
 
    // Check if we have any free voices
-   if ( LL_Empty( &VoicePool, next, prev ) )
+   if ( VoicePool.start == NULL )
       {
       // check if we have a higher priority than a voice that is playing.
-      voice = VoiceList.next;
-      for( node = voice->next; node != &VoiceList; node = node->next )
+      node = VoiceList.start;
+      voice = node;
+      while (node != NULL)
          {
          if ( node->priority < voice->priority )
             {
             voice = node;
             }
+         node = node->next;
          }
 
       if ( priority >= voice->priority )
@@ -1165,15 +1178,15 @@ VoiceNode *MV_AllocVoice
       }
 
    // Check if any voices are in the voice pool
-   if ( LL_Empty( &VoicePool, next, prev ) )
+   if ( VoicePool.start == NULL )
       {
       // No free voices
       SDL_UnlockMutex(snd_mutex);
       return( NULL );
       }
 
-   voice = VoicePool.next;
-   LL_Remove( voice, next, prev );
+   voice = VoicePool.start;
+   LL_Remove( VoiceNode, &VoicePool, voice );
    SDL_UnlockMutex(snd_mutex);
 
    // Find a free voice handle
@@ -1209,7 +1222,7 @@ int MV_VoiceAvailable
    VoiceNode   *node;
 
    // Check if we have any free voices
-   if ( !LL_Empty( &VoicePool, next, prev ) )
+   if ( VoicePool.start != NULL )
       {
       return( TRUE );
       }
@@ -1217,18 +1230,21 @@ int MV_VoiceAvailable
    SDL_LockMutex(snd_mutex);
 
    // check if we have a higher priority than a voice that is playing.
-   voice = VoiceList.next;
-   for( node = VoiceList.next; node != &VoiceList; node = node->next )
+   node = VoiceList.start;
+   voice = node;
+   while( node != NULL )
       {
       if ( node->priority < voice->priority )
          {
          voice = node;
          }
+
+      node = node->next;
       }
 
    SDL_UnlockMutex(snd_mutex);
 
-   if ( ( voice != &VoiceList ) && ( priority >= voice->priority ) )
+   if ( ( voice != NULL ) && ( priority >= voice->priority ) )
       {
       return( TRUE );
       }
@@ -1878,7 +1894,7 @@ int MV_StartPlayback
             }
 
          MV_MixRate = BLASTER_GetPlaybackRate();
-         MV_DMAChannel = BLASTER_DMAChannel;
+         MV_DMAChannel = 1;
          break;
 
 #if 0
@@ -2006,7 +2022,8 @@ void MV_StopPlayback
    // Make sure all callbacks are done.
    SDL_LockMutex(snd_mutex);
 
-   for( voice = VoiceList.next; voice != &VoiceList; voice = next )
+   voice = VoiceList.start;
+   while (voice != NULL)
       {
       next = voice->next;
 
@@ -2016,6 +2033,7 @@ void MV_StopPlayback
          {
          MV_CallBackFunc( voice->callbackval );
          }
+      voice = next;
       }
 
    SDL_UnlockMutex(snd_mutex);
@@ -3003,12 +3021,14 @@ int MV_Init
    // Set number of voices before calculating volume table
    MV_MaxVoices = Voices;
 
-   LL_Reset( &VoiceList, next, prev );
-   LL_Reset( &VoicePool, next, prev );
+   VoiceList.start = NULL;
+   VoiceList.end   = NULL;
+   VoicePool.start = NULL;
+   VoicePool.end   = NULL;
 
    for( index = 0; index < Voices; index++ )
       {
-      LL_Add( &VoicePool, &MV_Voices[ index ], next, prev );
+      LL_AddToTail( VoiceNode, &VoicePool, &MV_Voices[ index ] );
       }
 
    // Allocate mix buffer within 1st megabyte
@@ -3226,8 +3246,10 @@ int MV_Shutdown
    MV_Voices      = NULL;
    MV_TotalMemory = 0;
 
-   LL_Reset( &VoiceList, next, prev );
-   LL_Reset( &VoicePool, next, prev );
+   VoiceList.start = NULL;
+   VoiceList.end   = NULL;
+   VoicePool.start = NULL;
+   VoicePool.end   = NULL;
 
    MV_MaxVoices = 1;
 

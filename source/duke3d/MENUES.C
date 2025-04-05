@@ -30,6 +30,8 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
+#include "compat.h"
+#include "system.h"
 #include "duke3d.h"
 #include "mouse.h"
 #include "animlib.h"
@@ -69,6 +71,7 @@ void dummymess(int i,char *c)
 
 void TENtext(void)
 {
+#if 0
     int32_t dacount,dalastcount;
 
     puts("\nDuke Nukem 3D has been licensed exclusively to TEN (Total");
@@ -97,6 +100,7 @@ void TENtext(void)
         _bios_timeofday(0,&dalastcount);
         if( (dacount+240) < dalastcount ) break;
     }
+#endif
 }
 
 void cmenu(short cm)
@@ -3026,8 +3030,7 @@ void palto(char r,char g,char b,int32_t e)
             ps[myconnectindex].palette[i+2]+((((int32_t)b-(int32_t)ps[myconnectindex].palette[i+2])*(int32_t)(e&127))>>6);
     }
 
-    if( (e&128) == 0 )
-        if ((vidoption != 1) || (vgacompatible == 1)) limitrate();
+    if( (e&128) == 0 ) limitrate();
 
     setbrightness(ud.brightness>>2,temparray);
 }
@@ -3511,12 +3514,14 @@ void playanm(char *fn,char t)
 
 	VBE_setPalette(0L,256L,tempbuf);
 
+    Sys_HandleEvents();
     ototalclock = totalclock + 10;
 
 	for(i=1;i<numframes;i++)
 	{
        while(totalclock < ototalclock)
        {
+          Sys_HandleEvents();
           if( KB_KeyWaiting() )
               goto ENDOFANIMLOOP;
           getpackets();

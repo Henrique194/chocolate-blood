@@ -26,6 +26,8 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 */
 //-------------------------------------------------------------------------
 
+#include "compat.h"
+#include "system.h"
 #include "duke3d.h"
 
 extern char everyothertime;
@@ -1194,6 +1196,7 @@ void resettimevars(void)
 {
     vel = svel = angvel = horiz = 0;
 
+    Sys_HandleEvents();
     totalclock = 0L;
     cloudtotalclock = 0L;
     ototalclock = 0L;

@@ -364,9 +364,8 @@ int main(short int argc,char **argv)
 	short other, packleng;
 	char *ptr;
 
-	Sys_Init();
+	Sys_Init(argc, argv);
 	Video_Set(1, 1280, 1024);
-	SDL_Delay(1000);
 	Sound_Init(44100);
 
 	initgroupfile("stuff.dat");
@@ -4572,6 +4571,7 @@ void playback()
 				prepareboard(boardfilename);
 				for(i=connecthead;i>=0;i=connectpoint2[i])
 					initplayersprite((short)i);
+				Sys_HandleEvents();
 				totalclock = 0;
 				i = 0;
 			}

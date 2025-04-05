@@ -465,7 +465,7 @@ void CONTROL_ExternalStartup(void)
         return;
     }
     parm++;
-    ext = (ExternalControlInfo*)atol(_argv[parm]);
+    ext = (ExternalControlInfo*)atol(sys_argv[parm]);
 
     CONTROL_External = ext;
     if (CONTROL_External->id != CONTROLID)
@@ -630,7 +630,7 @@ boolean CONTROL_FlagActive(int32 which)
 {
     CONTROL_CheckRange(which);
 
-    return CONTROL_Flags[which].active;
+    return CONTROL_Flags[which].used;
 }
 
 void CONTROL_MapKey(int32 which, kb_scancode key1, kb_scancode key2)

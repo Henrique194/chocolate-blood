@@ -14,11 +14,13 @@
 #include <io.h>
 #include <sys\types.h>
 #include <sys\stat.h>
+#include <SDL3\SDL.h>
 #include "compat.h"
 #include "build.h"
 #include "pragmas.h"
 #include "video.h"
 #include "cache1d.h"
+#include "system.h"
 
 #include "ves2.h"
 
@@ -8739,4 +8741,8 @@ void setvmode(int a)
 
 void limitrate()
 {
+	Sys_HandleEvents();
+
+	Video_BlitPage(-1);
+	SDL_Delay(1000 / 70);
 }

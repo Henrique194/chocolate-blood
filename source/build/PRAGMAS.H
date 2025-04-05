@@ -444,6 +444,14 @@ static inline int32_t dmulscale32(int32_t eax, int32_t edx, int32_t esi, int32_t
 	return (int32_t)(m >> 32);
 }
 
+static inline int32_t tmulscale11(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f)
+{
+	int64_t m = (int64_t)a * (int64_t)b;
+	m += (int64_t)c * (int64_t)d;
+	m += (int64_t)e * (int64_t)f;
+	return (int32_t)(m >> 11);
+}
+
 static inline int32_t divscale(int32_t eax, int32_t ebx, int32_t ecx)
 {
 	int64_t m = (int64_t)eax << (ecx & 31);

@@ -46,9 +46,9 @@ char CheckParm(char* check)
     char t[] = "\\-/";
     char buf[128];
     char* s;
-    for (i = 1; i < _argc; i++)
+    for (i = 1; i < sys_argc; i++)
     {
-        strcpy(buf, _argv[i]);
+        strcpy(buf, sys_argv[i]);
         s = strtok(buf, t);
         if (!s)
             continue;

@@ -82,7 +82,7 @@ void KB_KeyEvent(int scancode, boolean keypressed)
 
 boolean KB_KeyWaiting(void)
 {
-	return Keyhead == Keytail;
+	return Keyhead != Keytail;
 }
 
 char KB_Getch(void)

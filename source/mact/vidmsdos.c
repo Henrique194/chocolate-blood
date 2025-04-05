@@ -83,7 +83,7 @@ void KEYBOARD_Isr()
 					l = ExtendedScanCodes[l];
 			}
 			if (b && l)
-				KB_KeyEvent(l, h ? true : false);
+				KB_KeyEvent(l, !h);
 			ExtendedKeyFlag = false;
 		}
 	}

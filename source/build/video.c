@@ -117,6 +117,8 @@ void Video_Set(int graphics, int w, int h)
 	}
 }
 
+static int last_page;
+
 void Video_BlitPage(int32_t page)
 {
 	if (!video_graphics)
@@ -136,6 +138,10 @@ void Video_BlitPage(int32_t page)
 
 		pal[i] = (r<<0) | (g<<8) | (b<<16) | (0xff<<24);
 	}
+
+	if (page == -1)
+		page = last_page;
+	last_page = page;
 	
 	char* ptr = video_buffer + page * video_page_stride;
 

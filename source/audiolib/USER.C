@@ -34,8 +34,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define TRUE  ( 1 == 1 )
 #define FALSE ( !TRUE )
 
-extern int   _argc;
-extern char **_argv;
+extern int   sys_argc;
+extern char **sys_argv;
 
 /*---------------------------------------------------------------------
    Function: USER_CheckParameter
@@ -55,9 +55,9 @@ int USER_CheckParameter
 
    found = FALSE;
    i = 1;
-   while( i < _argc )
+   while( i < sys_argc )
       {
-      ptr = _argv[ i ];
+      ptr = sys_argv[ i ];
 
       // Only check parameters preceded by - or /
       if ( ( *ptr == '-' ) || ( *ptr == '/' ) )
@@ -96,9 +96,9 @@ char *USER_GetText
 
    text = NULL;
    i = 1;
-   while( i < _argc )
+   while( i < sys_argc )
       {
-      ptr = _argv[ i ];
+      ptr = sys_argv[ i ];
 
       // Only check parameters preceded by - or /
       if ( ( *ptr == '-' ) || ( *ptr == '/' ) )
@@ -107,7 +107,7 @@ char *USER_GetText
          if ( stricmp( parameter, ptr ) == 0 )
             {
             i++;
-            text = _argv[ i ];
+            text = sys_argv[ i ];
             break;
             }
          }

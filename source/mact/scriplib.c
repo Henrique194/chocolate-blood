@@ -122,9 +122,9 @@ int32 SCRIPT_Parse(char* data, int32 length, char* name)
     int tokenhandle;
     int scripthandle;
 
-    tokenhandle =TOKEN_Parse(data, length, name);
+    tokenhandle = TOKEN_Parse(data, length, name);
 
-    scripthandle = SCRIPT_Init(data);
+    scripthandle = SCRIPT_Init(name);
     TOKEN_Reset(tokenhandle);
 
 
@@ -264,7 +264,7 @@ void SCRIPT_AddSection(int32 scripthandle, char* sectionname)
 
         s->name = SafeMalloc(len);
         memcpy(s->name, sectionname, len);
-        SCRIPT_AddLine(SCRIPT(scripthandle, scriptlines), linetype_section, s);
+        s->lastline = SCRIPT_AddLine(SCRIPT(scripthandle, scriptlines), linetype_section, s);
 
         LL_CreateNewLinkedList(s->entries, ScriptEntryType, nextentry, preventry);
     }

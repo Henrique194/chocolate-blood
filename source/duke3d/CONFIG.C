@@ -146,7 +146,7 @@ void CONFIG_GetSetupFilename( void )
    if (i!=0)
       {
       numfiles = 0;
-      strcpy(setupfilename,_argv[i+1]);
+      strcpy(setupfilename,sys_argv[i+1]);
       }
    if (numfiles>1)
       {
@@ -541,7 +541,7 @@ void readsavenames(void)
 {
     int32_t dummy;
     short i;
-    char *fn = {"game_.sav"};
+    char fn[] = "game_.sav";
     FILE *fil;
 
     for (i=0;i<10;i++)
@@ -588,12 +588,12 @@ void CONFIG_ReadSetup( void )
    SCRIPT_GetString( scripthandle, "Comm Setup","PlayerName",&myname[0]);
 
    dummy = CheckParm("NAME");
-   if( dummy ) strcpy(myname,_argv[dummy+1]);
+   if( dummy ) strcpy(myname,sys_argv[dummy+1]);
    dummy = CheckParm("MAP");
 #ifndef VOLUMEONE
    if( dummy )
    {
-       strcpy(boardfilename,_argv[dummy+1]);
+       strcpy(boardfilename,sys_argv[dummy+1]);
        if( strchr(boardfilename,'.') == 0)
            strcat(boardfilename,".map");
        printf("Using level: '%s'.\n",boardfilename);

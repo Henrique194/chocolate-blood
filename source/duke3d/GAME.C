@@ -42,6 +42,8 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #include "sndcards.h"
 
 #include "duke3d.h"
+#include "system.h"
+#include "sound.h"
 
 
 #ifdef VOLUMEONE
@@ -286,9 +288,9 @@ int minitext(int x,int y,char *t,char p,char sb)
 
     while(*t)
     {
-        *t = toupper(*t);
-        if(*t == 32) {x+=5;t++;continue;}
-        else ac = *t - '!' + MINIFONT;
+        char tt = toupper(*t);
+        if(tt == 32) {x+=5;t++;continue;}
+        else ac = tt - '!' + MINIFONT;
 
         rotatesprite(x<<16,y<<16,65536L,0,ac,0,p,sb,0,0,xdim-1,ydim-1);
         x += 4; // tilesizx[ac]+1;
@@ -304,9 +306,9 @@ int minitextshade(int x,int y,char *t,char s,char p,char sb)
 
     while(*t)
     {
-        *t = toupper(*t);
+        char tt = toupper(*t);
         if(*t == 32) {x+=5;t++;continue;}
-        else ac = *t - '!' + MINIFONT;
+        else ac = tt - '!' + MINIFONT;
 
         rotatesprite(x<<16,y<<16,65536L,0,ac,s,p,sb,0,0,xdim-1,ydim-1);
         x += 4; // tilesizx[ac]+1;
@@ -1932,8 +1934,9 @@ void showtwoscreens(void)
     clearview(0L);
     rotatesprite(0,0,65536L,0,TENSCREEN,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
+    Sys_HandleEvents();
     totalclock = 0;
-    while( !KB_KeyWaiting() && totalclock < 2400) getpackets();
+    while (!KB_KeyWaiting() && totalclock < 2400) { Sys_HandleEvents(); getpackets(); }
 #endif
 }
 
@@ -1986,7 +1989,7 @@ void gameexit(char *t)
 
     GOTOHERE:
 
-    Shutdown();
+    ShutDown();
 
     if(*t != 0)
     {
@@ -2142,7 +2145,7 @@ void typemode(void)
 
                 if( KB_KeyWaiting() )
                 {
-                     i = KB_GetCh();
+                     i = KB_Getch();
 
                      if(i == 'A' || i == 'a' || i == 13)
                           sendmessagecommand = ud.multimode;
@@ -4904,7 +4907,8 @@ short spawn( short j, short pn )
 void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
 {
     short i, j, k, p, sect;
-    int32_t l, t1,t3,t4;
+    int32_t l, t1,t3;
+    intptr_t t4;
     spritetype *s,*t;
 
     for(j=0;j < spritesortcnt; j++)
@@ -5721,12 +5725,12 @@ void cheats(void)
                             ps[myconnectindex].gotweapon[weapon]  = 1;
                         }
 
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         ps[myconnectindex].cheat_phase = 0;
                         FTA(119,&ps[myconnectindex]);
                         return;
                     case 22:
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         ps[myconnectindex].cheat_phase = 0;
                         ps[myconnectindex].steroids_amount =         400;
                         ps[myconnectindex].heat_amount     =        1200;
@@ -5741,18 +5745,18 @@ void cheats(void)
                         return;
                     case 23:
                         ps[myconnectindex].got_access =              7;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         ps[myconnectindex].cheat_phase = 0;
                         FTA(121,&ps[myconnectindex]);
                         return;
                     case 24:
                         debug_on = 1-debug_on;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         ps[myconnectindex].cheat_phase = 0;
                         break;
                     case 20:
                         ud.clipping = 1-ud.clipping;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         ps[myconnectindex].cheat_phase = 0;
                         FTA(112+ud.clipping,&ps[myconnectindex]);
                         return;
@@ -5760,7 +5764,7 @@ void cheats(void)
                     case 15:
                         ps[myconnectindex].gm = MODE_EOL;
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
 
                     case 19:
@@ -5805,7 +5809,7 @@ void cheats(void)
                         sprite[ps[myconnectindex].i].extra = max_player_health;
                         hittype[ps[myconnectindex].i].extra = 0;
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
 
                         return;
 
@@ -5842,7 +5846,7 @@ void cheats(void)
 
 //                        FTA(21,&ps[myconnectindex]);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         ps[myconnectindex].inven_icon = 1;
                         return;
 
@@ -5870,7 +5874,7 @@ void cheats(void)
                             if( volnume > 0 )
                             {
                                 ps[myconnectindex].cheat_phase = 0;
-                                KB_FlushKeyBoardQueue();
+                                KB_FlushKeyboardQueue();
                                 return;
                             }
 #endif
@@ -5878,7 +5882,7 @@ void cheats(void)
                             if(volnume > 4)
                             {
                                 ps[myconnectindex].cheat_phase = 0;
-                                KB_FlushKeyBoardQueue();
+                                KB_FlushKeyboardQueue();
                                 return;
                             }
                             else
@@ -5886,7 +5890,7 @@ void cheats(void)
                             if(volnume > 3)
                             {
                                 ps[myconnectindex].cheat_phase = 0;
-                                KB_FlushKeyBoardQueue();
+                                KB_FlushKeyboardQueue();
                                 return;
                             }
                             else
@@ -5897,7 +5901,7 @@ void cheats(void)
                                 if(levnume > 5)
                                 {
                                     ps[myconnectindex].cheat_phase = 0;
-                                    KB_FlushKeyBoardQueue();
+                                    KB_FlushKeyboardQueue();
                                     return;
                                 }
                             }
@@ -5906,7 +5910,7 @@ void cheats(void)
                                 if(levnume >= 11)
                                 {
                                     ps[myconnectindex].cheat_phase = 0;
-                                    KB_FlushKeyBoardQueue();
+                                    KB_FlushKeyboardQueue();
                                     return;
                                 }
                             }
@@ -5938,13 +5942,13 @@ void cheats(void)
                         else ps[myconnectindex].gm |= MODE_RESTART;
 
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
 
                     case 3:
                         ps[myconnectindex].cheat_phase = 0;
                         ud.coords = 1-ud.coords;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
 
                     case 4:
@@ -5958,13 +5962,13 @@ void cheats(void)
                         }
                         FTA(22,&ps[myconnectindex]);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 5:
 
                         FTA(21,&ps[myconnectindex]);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
 #ifndef VOLUMEONE
                     case 6:
@@ -5983,7 +5987,7 @@ void cheats(void)
 
                         FTA(100,&ps[myconnectindex]);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
 #endif
 
@@ -6006,7 +6010,7 @@ void cheats(void)
                         ps[myconnectindex].got_access =              7;
                         FTA(5,&ps[myconnectindex]);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 17: // SHOW ALL OF THE MAP TOGGLE;
                         ud.showallmap = 1-ud.showallmap;
@@ -6027,43 +6031,43 @@ void cheats(void)
                             FTA(1,&ps[myconnectindex]);
                         }
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
 
                     case 16:
                         FTA(99,&ps[myconnectindex]);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 9:
                         ud.tickrate = !ud.tickrate;
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 11:
                         FTA(105,&ps[myconnectindex]);
                         KB_ClearKeyDown(sc_H);
                         ps[myconnectindex].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 12:
                         ps[myconnectindex].steroids_amount = 399;
                         ps[myconnectindex].heat_amount = 1200;
                         ps[myconnectindex].cheat_phase = 0;
                         FTA(37,&ps[myconnectindex]);
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 13:
                         if(actor_tog == 3) actor_tog = 0;
                         actor_tog++;
                         ps[screenpeek].cheat_phase = 0;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                     case 14:
                     case 25:
                         ud.eog = 1;
                         ps[myconnectindex].gm |= MODE_EOL;
-                        KB_FlushKeyBoardQueue();
+                        KB_FlushKeyboardQueue();
                         return;
                 }
              }
@@ -6944,15 +6948,19 @@ void Logo(void)
     nextpage();
 #endif
 
-    PlayMusic(&env_music_fn[0][0]);
+    playmusic(&env_music_fn[0][0]);
     for(i=0;i<64;i+=7) palto(0,0,0,i);
     ps[myconnectindex].palette = drealms;
     palto(0,0,0,63);
     rotatesprite(0,0,65536L,0,DREALMS,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
+    Sys_HandleEvents();
     totalclock = 0;
     while( totalclock < (120*7) && !KB_KeyWaiting() )
+    {
+        Sys_HandleEvents();
         getpackets();
+    }
 
     for(i=0;i<64;i+=7) palto(0,0,0,i);
     clearview(0L);
@@ -6964,10 +6972,12 @@ void Logo(void)
     KB_FlushKeyboardQueue();
     nextpage();
     for(i=63;i>0;i-=7) palto(0,0,0,i);
+    Sys_HandleEvents();
     totalclock = 0;
 
     while(totalclock < (860+120) && !KB_KeyWaiting())
     {
+        Sys_HandleEvents();
         rotatesprite(0,0,65536L,0,BETASCREEN,0,0,2+8+16+64,0,0,xdim-1,ydim-1);
 
         if( totalclock > 120 && totalclock < (120+60) )
@@ -7342,6 +7352,11 @@ void main(int argc,char **argv)
     int32_t i, j, k, l;
     int32 tempautorun;
 
+
+    Sys_Init(argc, argv);
+    Video_Set(1, 1280, 1024);
+    Sound_Init(44100);
+
     ud.lockout = 1;
 
     copyprotect();
@@ -7387,7 +7402,8 @@ void main(int argc,char **argv)
 
     checkcommandline(argc,argv);
 
-    totalmemory = Z_AvailHeap();
+    //totalmemory = Z_AvailHeap();
+    totalmemory = 32 * 1024 * 1024;
 
     if(memorycheckoveride == 0)
     {
@@ -7440,7 +7456,7 @@ void main(int argc,char **argv)
         puts("for maximum performance.  Press any key to continue.");
         puts("=========================================================================\n");
 
-        while( !KB_KeyWaiting() ) getpackets();
+        while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
     }
 
     if(numplayers > 1)
@@ -7544,6 +7560,8 @@ void main(int argc,char **argv)
 
     while ( !(ps[myconnectindex].gm&MODE_END) ) //The whole loop!!!!!!!!!!!!!!!!!!
     {
+        Sys_HandleEvents();
+
         if( ud.recstat == 2 || ud.multimode > 1 || ( ud.show_help == 0 && (ps[myconnectindex].gm&MODE_MENU) != MODE_MENU ) )
             if( ps[myconnectindex].gm&MODE_GAME )
                 if( moveloop() ) continue;
@@ -7628,7 +7646,7 @@ void main(int argc,char **argv)
 
 char opendemoread(char which_demo) // 0 = mine
 {
-    char *d = "demo_.dmo";
+    char d[] = "demo_.dmo";
     char ver;
     short i;
 
@@ -7776,7 +7794,7 @@ int32_t playback(void)
 
     flushperms();
 
-    if(numplayers < 2) foundemo = opendemoread(which_demo);
+    // TODO:if(numplayers < 2) foundemo = opendemoread(which_demo);
 
     if(foundemo == 0)
     {
@@ -7815,10 +7833,14 @@ int32_t playback(void)
 
     k = 0;
 
+    Sys_HandleEvents();
+
     while (ud.reccnt > 0 || foundemo == 0)
     {
+        Sys_HandleEvents();
         if(foundemo) while ( totalclock >= (lockclock+TICSPERFRAME) )
         {
+            Sys_HandleEvents();
             if ((i == 0) || (i >= RECSYNCBUFSIZ))
             {
                 i = 0;
@@ -8603,32 +8625,40 @@ void doorders(void)
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
     ps[myconnectindex].palette = palette;
+    Sys_HandleEvents();
     totalclock = 0;
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    totalclock = 0;while( !KB_KeyWaiting() ) getpackets();
+    Sys_HandleEvents();
+    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
+    Sys_HandleEvents();
     totalclock = 0;
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING+1,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    totalclock = 0;while( !KB_KeyWaiting() ) getpackets();
+    Sys_HandleEvents();
+    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
+    Sys_HandleEvents();
     totalclock = 0;
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING+2,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    totalclock = 0;while( !KB_KeyWaiting() ) getpackets();
+    Sys_HandleEvents();
+    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
+    Sys_HandleEvents();
     totalclock = 0;
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING+3,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    totalclock = 0;while( !KB_KeyWaiting() ) getpackets();
+    Sys_HandleEvents();
+    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
 }
 
 void dobonus(char bonusonly)
@@ -8682,9 +8712,11 @@ void dobonus(char bonusonly)
                 for(t=63;t>=0;t--) palto(0,0,0,t);
 
                 KB_FlushKeyboardQueue();
+                Sys_HandleEvents();
                 totalclock = 0; tinc = 0;
                 while( 1 )
                 {
+                    Sys_HandleEvents();
                     clearview(0L);
                     rotatesprite(0,50<<16,65536L,0,VICTORY1,0,0,2+8+16+64+128,0,0,xdim-1,ydim-1);
 
@@ -8729,7 +8761,7 @@ void dobonus(char bonusonly)
 
             rotatesprite(0,0,65536L,0,3292,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
             nextpage(); for(t=63;t>0;t--) palto(0,0,0,t);
-            while( !KB_KeyWaiting() ) getpackets();
+            while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
             for(t=0;t<64;t++) palto(0,0,0,t);
             MUSIC_StopSong();
             FX_StopAllSounds();
@@ -8743,7 +8775,7 @@ void dobonus(char bonusonly)
             if(ud.lockout == 0)
             {
                 playanm("cineov2.anm",1);
-                KB_FlushKeyBoardQueue();
+                KB_FlushKeyboardQueue();
                 clearview(0L);
                 nextpage();
             }
@@ -8756,7 +8788,7 @@ void dobonus(char bonusonly)
             ps[myconnectindex].palette = palette;
             rotatesprite(0,0,65536L,0,3293,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
             nextpage(); for(t=63;t>0;t--) palto(0,0,0,t);
-            while( !KB_KeyWaiting() ) getpackets();
+            while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
             for(t=0;t<64;t++) palto(0,0,0,t);
 
             break;
@@ -8786,7 +8818,7 @@ void dobonus(char bonusonly)
             FX_StopAllSounds();
             clearsoundlocks();
             sound(ENDSEQVOL3SND4);
-            KB_FlushKeyBoardQueue();
+            KB_FlushKeyboardQueue();
 
             ps[myconnectindex].palette = palette;
             palto(0,0,0,63);
@@ -8800,7 +8832,7 @@ void dobonus(char bonusonly)
 
             for(t=63;t>0;t-=3) palto(0,0,0,t);
             KB_FlushKeyboardQueue();
-            while(!KB_KeyWaiting()) getpackets();
+            while(!KB_KeyWaiting()) { Sys_HandleEvents(); getpackets(); }
             for(t=0;t<64;t+=3) palto(0,0,0,t);
 
             clearview(0L);
@@ -8808,8 +8840,8 @@ void dobonus(char bonusonly)
 
             playanm("DUKETEAM.ANM",4);
 
-            KB_FlushKeyBoardQueue();
-            while(!KB_KeyWaiting()) getpackets();
+            KB_FlushKeyboardQueue();
+            while(!KB_KeyWaiting()) { Sys_HandleEvents(); getpackets(); }
 
             clearview(0L);
             nextpage();
@@ -8817,7 +8849,7 @@ void dobonus(char bonusonly)
 
             FX_StopAllSounds();
             clearsoundlocks();
-            KB_FlushKeyBoardQueue();
+            KB_FlushKeyboardQueue();
 
             break;
 
@@ -8830,9 +8862,9 @@ void dobonus(char bonusonly)
             {
                 for(t=63;t>=0;t--) palto(0,0,0,t);
                 playanm("cineov3.anm",2);
-                KB_FlushKeyBoardQueue();
+                KB_FlushKeyboardQueue();
                 ototalclock = totalclock+200;
-                while(totalclock < ototalclock) getpackets();
+                while(totalclock < ototalclock) { Sys_HandleEvents(); getpackets(); }
                 clearview(0L);
                 nextpage();
 
@@ -8845,31 +8877,32 @@ void dobonus(char bonusonly)
             if( ud.lockout == 0 && !KB_KeyWaiting() )
             {
                 sound(ENDSEQVOL3SND5);
-                while(Sound[ENDSEQVOL3SND5].lock>=200) getpackets();
+                while(Sound[ENDSEQVOL3SND5].lock>=200) { Sys_HandleEvents(); getpackets(); }
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND6);
-                while(Sound[ENDSEQVOL3SND6].lock>=200) getpackets();
+                while(Sound[ENDSEQVOL3SND6].lock>=200) { Sys_HandleEvents(); getpackets(); }
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND7);
-                while(Sound[ENDSEQVOL3SND7].lock>=200) getpackets();
+                while(Sound[ENDSEQVOL3SND7].lock>=200) { Sys_HandleEvents(); getpackets(); }
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND8);
-                while(Sound[ENDSEQVOL3SND8].lock>=200) getpackets();
+                while(Sound[ENDSEQVOL3SND8].lock>=200) { Sys_HandleEvents(); getpackets(); }
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND9);
-                while(Sound[ENDSEQVOL3SND9].lock>=200) getpackets();
+                while(Sound[ENDSEQVOL3SND9].lock>=200) { Sys_HandleEvents(); getpackets(); }
             }
 
-            KB_FlushKeyBoardQueue();
+            KB_FlushKeyboardQueue();
+            Sys_HandleEvents();
             totalclock = 0;
-            while(!KB_KeyWaiting() && totalclock < 120) getpackets();
+            while(!KB_KeyWaiting() && totalclock < 120) { Sys_HandleEvents(); getpackets(); }
 
             ENDANM:
 
             FX_StopAllSounds();
             clearsoundlocks();
 
-            KB_FlushKeyBoardQueue();
+            KB_FlushKeyboardQueue();
 
             clearview(0L);
 
@@ -8880,6 +8913,7 @@ void dobonus(char bonusonly)
 
     ps[myconnectindex].palette = palette;
     KB_FlushKeyboardQueue();
+    Sys_HandleEvents();
     totalclock = 0; tinc = 0;
     bonuscnt = 0;
 
@@ -8969,7 +9003,7 @@ void dobonus(char bonusonly)
             palto(0,0,0,63-t);
 
         KB_FlushKeyboardQueue();
-        while(KB_KeyWaiting()==0) getpackets();
+        while(KB_KeyWaiting()==0) { Sys_HandleEvents(); getpackets(); }
 
         if( KB_KeyPressed( sc_F12 ) )
         {
@@ -9008,10 +9042,12 @@ void dobonus(char bonusonly)
     KB_FlushKeyboardQueue();
     for(t=0;t<64;t++) palto(0,0,0,63-t);
     bonuscnt = 0;
+    Sys_HandleEvents();
     totalclock = 0; tinc = 0;
 
     while( 1 )
     {
+        Sys_HandleEvents();
         if(ps[myconnectindex].gm&MODE_EOL)
         {
             rotatesprite(0,0,65536L,0,BONUSSCREEN+gfx_offset,0,0,2+8+16+64+128,0,0,xdim-1,ydim-1);
