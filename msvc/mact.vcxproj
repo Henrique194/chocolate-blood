@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="..\source\mact\ANIMLIB.C" />
     <ClCompile Include="..\source\mact\control.c" />
+    <ClCompile Include="..\source\mact\file_lib.c" />
     <ClCompile Include="..\source\mact\keyboard.c" />
     <ClCompile Include="..\source\mact\scriplib.c" />
     <ClCompile Include="..\source\mact\tokenlib.c" />

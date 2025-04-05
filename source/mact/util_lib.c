@@ -126,7 +126,7 @@ static int32 (*Comp)(char *a, char *b);
 static int32 (*Switch)(char *a, char *b);
 static char* Base;
 
-void newsift_down(int a, int b);
+static void newsift_down(int a, int b);
 
 void HeapSort(char* base, int32 nel, int32 width, int32(*compare)(), void (*switcher)())
 {
@@ -152,7 +152,7 @@ void HeapSort(char* base, int32 nel, int32 width, int32(*compare)(), void (*swit
     }
 }
 
-void newsift_down(int a, int b)
+static void newsift_down(int a, int b)
 {
     int v1;
     while (1)
