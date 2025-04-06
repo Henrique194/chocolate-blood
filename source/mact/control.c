@@ -960,13 +960,13 @@ void CONTROL_AxisFunctionState(boolean* state)
         {
             b = CONTROL_AxesMap[i].minmap;
             if (b != AXISUNDEFINED)
-                state[i] = 1;
+                state[b] = 1;
         }
         else
         {
             b = CONTROL_AxesMap[i].maxmap;
             if (b != AXISUNDEFINED)
-                state[i] = 1;
+                state[b] = 1;
         }
     }
 }
@@ -977,10 +977,10 @@ void CONTROL_ButtonFunctionState(boolean* state)
     {
         b = CONTROL_DeviceButtonMapping[i].doubleclicked;
         if (b != BUTTONUNDEFINED)
-            state[i] |= CONTROL_ButtonClickedState[b];
+            state[b] |= CONTROL_ButtonClickedState[i];
         b = CONTROL_DeviceButtonMapping[i].singleclicked;
         if (b != BUTTONUNDEFINED)
-            state[i] |= CONTROL_DeviceButtonState[b];
+            state[b] |= CONTROL_DeviceButtonState[i];
     }
 }
 
@@ -1089,7 +1089,7 @@ void CONTROL_ClearButton(int32 whichbutton)
 void CONTROL_GetInput(ControlInfo* info)
 {
     int i;
-    boolean state[MAXBUTTONS];
+    boolean state[CONTROL_NUM_FLAGS];
     int pressed;
 
     //ServiceEvents(); // VID
@@ -1107,7 +1107,7 @@ void CONTROL_GetInput(ControlInfo* info)
     CONTROL_ButtonState1 = 0;
     CONTROL_ButtonState2 = 0;
 
-    for (i = 0; i < MAXBUTTONS; i++)
+    for (i = 0; i < CONTROL_NUM_FLAGS; i++)
     {
         pressed = CONTROL_KeyboardFunctionPressed(i);
         pressed |= state[i];

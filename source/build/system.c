@@ -199,6 +199,18 @@ void Sys_HandleEvents()
 						kb_byte = 0xaa; kb_callback();
 					}
 				}
+				else if (ev.key.scancode == SDL_SCANCODE_PAUSE)
+				{
+					if (ev.type == SDL_EVENT_KEY_DOWN)
+					{
+						kb_byte = 0xe1; kb_callback();
+						kb_byte = 0x1d; kb_callback();
+						kb_byte = 0x45; kb_callback();
+						kb_byte = 0xe1; kb_callback();
+						kb_byte = 0x9d; kb_callback();
+						kb_byte = 0xc5; kb_callback();
+					}
+				}
 				else
 				{
 					int mapped = kb_scancodemap[ev.key.scancode];
@@ -217,19 +229,28 @@ void Sys_HandleEvents()
 				break;
 			}
 			case SDL_EVENT_MOUSE_BUTTON_DOWN:
-			{
-				mouse_buttons |= 1 << ev.button.button;
-				break;
-			}
 			case SDL_EVENT_MOUSE_BUTTON_UP:
 			{
-				mouse_buttons &= ~(1 << ev.button.button);
+				int bit = -1;
+				if (ev.button.button == SDL_BUTTON_LEFT)
+					bit = 0;
+				else if (ev.button.button == SDL_BUTTON_RIGHT)
+					bit = 1;
+				else if (ev.button.button == SDL_BUTTON_MIDDLE)
+					bit = 2;
+				if (bit != -1)
+				{
+					if (ev.button.down)
+						mouse_buttons |= 1 << bit;
+					else
+						mouse_buttons &= ~(1 << bit);
+				}
 				break;
 			}
 			case SDL_EVENT_MOUSE_MOTION:
 			{
-				mouse_dx += ev.motion.x;
-				mouse_dy += ev.motion.y;
+				mouse_dx += ev.motion.xrel;
+				mouse_dy += ev.motion.yrel;
 				break;
 			}
 			case SDL_EVENT_WINDOW_FOCUS_GAINED:

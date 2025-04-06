@@ -327,16 +327,16 @@ void vlineasm4(int32_t ecx, intptr_t edi)
 	uint32_t va = ((uint32_t)vince[3] << setupvlineasm_al_n) | (((uint32_t)vince[3] >> (32 - setupvlineasm_al_n)));
 	uint32_t vb = ((uint32_t)vince[1] << setupvlineasm_al_n) | (((uint32_t)vince[1] >> (32 - setupvlineasm_al_n)));
 	uint64_t add1 = va & 0xffff0000;
-	add1 |= (uint64_t)(vince[2] + (va & 0x1ff)) << 32;
+	add1 |= (uint64_t)((vince[2] & 0xfffffe00) + (va & 0x1ff)) << 32;
 	uint16_t add2_l = vb >> 16;
-	uint32_t add2_h = vince[0] + (va & 0x1ff);
+	uint32_t add2_h = (vince[0] & 0xfffffe00) + (vb & 0x1ff);
 
 	va = ((uint32_t)vplce[3] << setupvlineasm_al_n) | (((uint32_t)vplce[3] >> (32 - setupvlineasm_al_n)));
 	vb = ((uint32_t)vplce[1] << setupvlineasm_al_n) | (((uint32_t)vplce[1] >> (32 - setupvlineasm_al_n)));
 	texcoord64_t crd;
 	crd.l = (va & 0xffff0000) | (vb >> 16);
-	crd.h = vplce[2] + (va & 0x1ff);
-	uint32_t crd_h2 = vplce[0] + (vb & 0x1ff);
+	crd.h = (vplce[2] & 0xfffffe00) + (va & 0x1ff);
+	uint32_t crd_h2 = (vplce[0] & 0xfffffe00) + (vb & 0x1ff);
 
 	do
 	{

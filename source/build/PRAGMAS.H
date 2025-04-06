@@ -787,14 +787,14 @@ static inline void copybufreverse(char *src, char *dst, uint32_t ecx)
 
 	if (ecx & 1)
 	{
-		*(short*)dst = (src[0] << 8) | src[-1];
+		*(short*)dst = (src[-1] << 8) | src[0];
 		dst += 2; src -= 2;
 	}
 	ecx >>= 1;
 
 	while (ecx)
 	{
-		*(int32_t*)dst = (src[0] << 24) | (src[-1] << 16) | (src[-2] << 8) | src[-3];
+		*(int32_t*)dst = (src[-3] << 24) | (src[-2] << 16) | (src[-1] << 8) | src[0];
 		dst += 4; src -= 4;
 
 		ecx--;

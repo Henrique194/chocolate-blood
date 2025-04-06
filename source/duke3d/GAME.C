@@ -1997,7 +1997,7 @@ void gameexit(char *t)
         binscreen();
         if(playonten == 0)
         {
-            if(*t == ' ' && *(t+1) == 0) *t = 0;
+            if(*t == ' ' && *(t+1) == 0) t = "";
             printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
             printf("%s%s","\n",t);
         }

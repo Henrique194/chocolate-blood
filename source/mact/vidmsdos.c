@@ -39,11 +39,13 @@ int32_t MOUSE_GetButtons()
 	return Sys_GetMouseButtons();
 }
 
+static float mouse_scale = 1.f;
+
 void MOUSE_GetDelta(int32* x, int32* y)
 {
 	float dx, dy;
 	Sys_GetMouseDelta(&dx, &dy);
-	*x = dx; *y = dy;
+	*x = dx * mouse_scale; *y = dy * mouse_scale;
 }
 
 void KEYBOARD_Isr()

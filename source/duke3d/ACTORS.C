@@ -1499,7 +1499,8 @@ void movefallers(void)
 void movestandables(void)
 {
     short i, j, k, m, nexti, nextj, nextk, p, q, sect;
-    int32_t l, x, *t, x1, y1;
+    int32_t l, x, x1, y1;
+    intptr_t *t;
     spritetype *s;
 
     i = headspritestat[6];
@@ -3121,7 +3122,8 @@ void movetransports(void)
 
 void moveactors(void)
 {
-    int32_t x, m, l, *t;
+    int32_t x, m, l;
+    intptr_t *t;
     short a, i, j, nexti, nextj, sect, p;
     spritetype *s;
     unsigned short k;
@@ -4379,7 +4381,8 @@ void moveactors(void)
 void moveexplosions(void)  // STATNUM 5
 {
     short i, j, k, nexti, sect, p;
-    int32_t l, x, *t;
+    int32_t l, x;
+    intptr_t *t;
     spritetype *s;
 
     i = headspritestat[5];
@@ -4911,7 +4914,8 @@ void moveexplosions(void)  // STATNUM 5
 
 void moveeffectors(void)   //STATNUM 3
 {
-    int32_t q, l, m, x, st, j, *t;
+    int32_t q, l, m, x, st, j;
+    intptr_t *t;
     intptr_t l2;
     short i, k, nexti, nextk, p, sh, nextj;
     spritetype *s;
