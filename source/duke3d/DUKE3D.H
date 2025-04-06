@@ -109,7 +109,11 @@ static inline int sgn(int a)
 
 #define    ALT_IS_PRESSED ( KB_KeyPressed( sc_RightAlt ) || KB_KeyPressed( sc_LeftAlt ) )
 #define    SHIFTS_IS_PRESSED ( KB_KeyPressed( sc_RightShift ) || KB_KeyPressed( sc_LeftShift ) )
-#define    RANDOMSCRAP EGS(s->sectnum,s->x+(TRAND&255)-128,s->y+(TRAND&255)-128,s->z-(8<<8)-(TRAND&8191),SCRAP6+(TRAND&15),-8,48,48,TRAND&2047,(TRAND&63)+64,-512-(TRAND&2047),i,5)
+#define    RANDOMSCRAP \
+{ \
+int r1 = TRAND; int r2 = TRAND; int r3 = TRAND; int r4 = TRAND; int r5 = TRAND; int r6 = TRAND; int r7 = TRAND; \
+EGS(s->sectnum,s->x+(r7&255)-128,s->y+(r6&255)-128,s->z-(8<<8)-(r5&8191),SCRAP6+(r4&15),-8,48,48,r3&2047,(r2&63)+64,-512-(r1&2047),i,5); \
+}
 
 #define    BLACK 0
 #define    DARKBLUE 1
@@ -249,12 +253,14 @@ enum USRHOOKS_Errors
    USRHOOKS_Ok      = 0
    };
 
+#pragma pack(push, 1)
 typedef struct
 {
     signed char avel, horz;
     short fvel, svel;
     uint32_t bits;
 } input;
+#pragma pack(pop)
 
 extern input inputfifo[MOVEFIFOSIZ][MAXPLAYERS], sync[MAXPLAYERS];
 extern input recsync[RECSYNCBUFSIZ];

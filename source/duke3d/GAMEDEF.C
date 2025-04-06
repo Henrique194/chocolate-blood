@@ -2542,11 +2542,12 @@ char parse(void)
                         s = 0;
                     else s = (TRAND%3);
 
+                    int r1 = TRAND; int r2 = TRAND; int r3 = TRAND; int r4 = TRAND; int r5 = TRAND; int r6 = TRAND; int r7 = TRAND; int r8 = TRAND;
                     l = EGS(g_sp->sectnum,
-                            g_sp->x+(TRAND&255)-128,g_sp->y+(TRAND&255)-128,g_sp->z-(8<<8)-(TRAND&8191),
-                            dnum+s,g_sp->shade,32+(TRAND&15),32+(TRAND&15),
-                            TRAND&2047,(TRAND&127)+32,
-                            -(TRAND&2047),g_i,5);
+                            g_sp->x+(r8&255)-128,g_sp->y+(r7&255)-128,g_sp->z-(8<<8)-(r6&8191),
+                            dnum+s,g_sp->shade,32+(r5&15),32+(r4&15),
+                            r3&2047,(r2&127)+32,
+                            -(r1&2047),g_i,5);
                     if(g_sp->picnum == BLIMP && dnum == SCRAP1)
                         sprite[l].yvel = weaponsandammosprites[j%14];
                     else sprite[l].yvel = -1;

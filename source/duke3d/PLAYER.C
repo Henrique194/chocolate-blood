@@ -129,7 +129,10 @@ void tracers(int32_t x1,int32_t y1,int32_t z1,int32_t x2,int32_t y2,int32_t z2,i
           if(sect >= 0)
           {
               if(sector[sect].lotag == 2)
-                  EGS(sect,x1,y1,z1,WATERBUBBLE,-32,4+(TRAND&3),4+(TRAND&3),TRAND&2047,0,0,ps[0].i,5);
+              {
+                  int r1 = TRAND; int r2 = TRAND; int r3 = TRAND;
+                  EGS(sect,x1,y1,z1,WATERBUBBLE,-32,4+(r3&3),4+(r2&3),r1&2047,0,0,ps[0].i,5);
+              }
               else
                   EGS(sect,x1,y1,z1,SMALLSMOKE,-32,14,14,0,0,0,ps[0].i,5);
           }
@@ -2472,7 +2475,10 @@ void processinput(short snum)
                 closedemowrite();
 
             if(s->pal != 1)
-                p->dead_flag = (512-((TRAND&1)<<10)+(TRAND&255)-512)&2047;
+            {
+                int r1 = TRAND; int r2 = TRAND;
+                p->dead_flag = (512-((r2&1)<<10)+(r1&255)-512)&2047;
+            }
 
             p->jetpack_on = 0;
             p->holoduke_on = -1;

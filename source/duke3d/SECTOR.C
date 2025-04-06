@@ -2012,7 +2012,8 @@ void checkhitsprite(short i,short sn)
                 case HEAVYHBOMB:
                     for(k=0;k<64;k++)
                     {
-                        j = EGS(SECT,SX,SY,SZ-(TRAND%(48<<8)),SCRAP3+(TRAND&3),-8,48,48,TRAND&2047,(TRAND&63)+64,-(TRAND&4095)-(sprite[i].zvel>>2),i,5);
+                        int r1 = TRAND; int r2 = TRAND; int r3 = TRAND; int r4 = TRAND; int r5 = TRAND;
+                        j = EGS(SECT,SX,SY,SZ-(r5%(48<<8)),SCRAP3+(r4&3),-8,48,48,r3&2047,(r2&63)+64,-(r1&4095)-(sprite[i].zvel>>2),i,5);
                         sprite[j].pal = 8;
                     }
 
@@ -2027,7 +2028,10 @@ void checkhitsprite(short i,short sn)
         case HANGLIGHT:
         case GENERICPOLE2:
             for(k=0;k<6;k++)
-                EGS(SECT,SX,SY,SZ-(8<<8),SCRAP1+(TRAND&15),-8,48,48,TRAND&2047,(TRAND&63)+64,-(TRAND&4095)-(sprite[i].zvel>>2),i,5);
+            {
+                int r1 = TRAND; int r2 = TRAND; int r3 = TRAND; int r4 = TRAND;
+                EGS(SECT,SX,SY,SZ-(8<<8),SCRAP1+(r4&15),-8,48,48,r3&2047,(r2&63)+64,-(r1&4095)-(sprite[i].zvel>>2),i,5);
+            }
             spritesound(GLASS_HEAVYBREAK,i);
             deletesprite(i);
             break;
@@ -2058,8 +2062,11 @@ void checkhitsprite(short i,short sn)
             if(sprite[sn].extra != *actorscrptr[SHOTSPARK1] )
             {
                 for(j=0;j<15;j++)
-                    EGS(SECT,SX,SY,sector[SECT].floorz-(12<<8)-(j<<9),SCRAP1+(TRAND&15),-8,64,64,
-                        TRAND&2047,(TRAND&127)+64,-(TRAND&511)-256,i,5);
+                {
+                    int r1 = TRAND; int r2 = TRAND; int r3 = TRAND; int r4 = TRAND;
+                    EGS(SECT,SX,SY,sector[SECT].floorz-(12<<8)-(j<<9),SCRAP1+(r4&15),-8,64,64,
+                        r3&2047,(r2&127)+64,-(r1&511)-256,i,5);
+                }
                 spawn(i,EXPLOSION2);
                 deletesprite(i);
             }

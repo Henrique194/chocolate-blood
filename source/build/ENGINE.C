@@ -3835,12 +3835,20 @@ void drawsprite (int32_t snum)
 			if (x == rx) return;
 		}
 
+		// FIX: voxoff OOB
+		if ((uint32_t)tilenum >= MAXVOXELS)
+			return;
+
 		for(i=0;i<MAXVOXMIPS;i++)
 			if (!voxoff[tilenum][i])
 			{
 				kloadvoxel(tilenum);
 				break;
 			}
+
+		// FIX: NULL pointer
+		if (!voxoff[tilenum][0])
+			return;
 
 		longptr = (int32_t *)voxoff[tilenum][0];
 		if (!(cstat&128)) tspr->z -= mulscale6(longptr[5],(int32_t)tspr->yrepeat);
@@ -7887,7 +7895,8 @@ void completemirror()
 		for(dy=windowy2-windowy1;dy>=0;dy--)
 		{
 			copybufbyte(&ptr[x1+1],&tempbuf[0],y2);
-			tempbuf[x2] = tempbuf[x2-1];
+			// FIX: x2-1 OOB
+			tempbuf[x2] = (x2 > 0) ? tempbuf[x2-1] : 0;
 			copybufreverse(&tempbuf[x2],&ptr[y1],y2);
 			ptr += ylookup[1];
 			faketimerhandler();

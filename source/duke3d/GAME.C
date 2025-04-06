@@ -7682,7 +7682,7 @@ char opendemoread(char which_demo) // 0 = mine
      kread(recfilep,(int32 *)&ud.m_respawn_items,sizeof(int32));
      kread(recfilep,(int32 *)&ud.m_respawn_inventory,sizeof(int32));
      kread(recfilep,(int32 *)&ud.playerai,sizeof(int32));
-     kread(recfilep,(char *)&ud.user_name[0][0],sizeof(ud.user_name),1);
+     kread(recfilep,(char *)&ud.user_name[0][0],sizeof(ud.user_name));
      kread(recfilep,(int32 *)&ud.auto_run,sizeof(int32));
      kread(recfilep,(char *)boardfilename,sizeof(boardfilename));
      if( boardfilename[0] != 0 )
@@ -7692,7 +7692,7 @@ char opendemoread(char which_demo) // 0 = mine
      }
 
      for(i=0;i<ud.multimode;i++)
-        kread(recfilep,(int32 *)&ps[i].aim_mode,sizeof(char),1);
+        kread(recfilep,(int32 *)&ps[i].aim_mode,sizeof(char));
      ud.god = ud.cashman = ud.eog = ud.showallmap = 0;
      ud.clipping = ud.scrollmode = ud.overhead_on = 0;
      ud.showweapons =  ud.pause_on = ud.auto_run = 0;
@@ -7794,7 +7794,7 @@ int32_t playback(void)
 
     flushperms();
 
-    // TODO:if(numplayers < 2) foundemo = opendemoread(which_demo);
+    if(numplayers < 2) foundemo = opendemoread(which_demo);
 
     if(foundemo == 0)
     {
@@ -9255,7 +9255,10 @@ void vglass(int32_t x,int32_t y,short a,short wn,short n)
     zincs = ( sector[sect].floorz-sector[sect].ceilingz ) / n;
 
     for(z = sector[sect].ceilingz;z < sector[sect].floorz; z += zincs )
-        EGS(sect,x,y,z-(TRAND&8191),GLASSPIECES+(z&(TRAND%3)),-32,36,36,a+128-(TRAND&255),16+(TRAND&31),0,-1,5);
+    {
+        int r1 = TRAND; int r2 = TRAND; int r3 = TRAND; int r4 = TRAND;
+        EGS(sect,x,y,z-(r4&8191),GLASSPIECES+(z&(r3%3)),-32,36,36,a+128-(r2&255),16+(r1&31),0,-1,5);
+    }
 }
 
 void lotsofglass(short i,short wallnum,short n)
@@ -9270,7 +9273,8 @@ void lotsofglass(short i,short wallnum,short n)
         for(j=n-1; j >= 0 ;j--)
         {
             a = SA-256+(TRAND&511)+1024;
-            EGS(SECT,SX,SY,SZ,GLASSPIECES+(j%3),-32,36,36,a,32+(TRAND&63),1024-(TRAND&1023),i,5);
+            int r1 = TRAND; int r2 = TRAND;
+            EGS(SECT,SX,SY,SZ,GLASSPIECES+(j%3),-32,36,36,a,32+(r2&63),1024-(r1&1023),i,5);
         }
         return;
      }
@@ -9301,7 +9305,8 @@ void lotsofglass(short i,short wallnum,short n)
               if( z < -(32<<8) || z > (32<<8) )
                   z = SZ-(32<<8)+(TRAND&((64<<8)-1));
               a = SA-1024;
-              EGS(SECT,x1,y1,z,GLASSPIECES+(j%3),-32,36,36,a,32+(TRAND&63),-(TRAND&1023),i,5);
+              int r1 = TRAND; int r2 = TRAND;
+              EGS(SECT,x1,y1,z,GLASSPIECES+(j%3),-32,36,36,a,32+(r2&63),-(r1&1023),i,5);
           }
 	 }
 }
@@ -9314,7 +9319,8 @@ void spriteglass(short i,short n)
     {
         a = TRAND&2047;
         z = SZ-((TRAND&16)<<8);
-        k = EGS(SECT,SX,SY,z,GLASSPIECES+(j%3),TRAND&15,36,36,a,32+(TRAND&63),-512-(TRAND&2047),i,5);
+        int r1 = TRAND; int r2 = TRAND; int r3 = TRAND;
+        k = EGS(SECT,SX,SY,z,GLASSPIECES+(j%3),r3&15,36,36,a,32+(r2&63),-512-(r1&2047),i,5);
         sprite[k].pal = sprite[i].pal;
     }
 }
@@ -9358,7 +9364,8 @@ void lotsofcolourglass(short i,short wallnum,short n)
         for(j=n-1; j >= 0 ;j--)
         {
             a = TRAND&2047;
-            k = EGS(SECT,SX,SY,SZ-(TRAND&(63<<8)),GLASSPIECES+(j%3),-32,36,36,a,32+(TRAND&63),1024-(TRAND&2047),i,5);
+            int r1 = TRAND; int r2 = TRAND; int r3 = TRAND;
+            k = EGS(SECT,SX,SY,SZ-(r3&(63<<8)),GLASSPIECES+(j%3),-32,36,36,a,32+(r2&63),1024-(r1&2047),i,5);
             sprite[k].pal = TRAND&15;
         }
         return;
@@ -9381,7 +9388,8 @@ void lotsofcolourglass(short i,short wallnum,short n)
           if( z < -(32<<8) || z > (32<<8) )
               z = SZ-(32<<8)+(TRAND&((64<<8)-1));
           a = SA-1024;
-          k = EGS(SECT,x1,y1,z,GLASSPIECES+(j%3),-32,36,36,a,32+(TRAND&63),-(TRAND&2047),i,5);
+          int r1 = TRAND; int r2 = TRAND;
+          k = EGS(SECT,x1,y1,z,GLASSPIECES+(j%3),-32,36,36,a,32+(r2&63),-(r1&2047),i,5);
           sprite[k].pal = TRAND&7;
 	 }
 }
