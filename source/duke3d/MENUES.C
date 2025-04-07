@@ -36,6 +36,7 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #include "mouse.h"
 #include "animlib.h"
 #include "_animlib.h"
+#include "serialize.h"
 
 extern anim_t* anim;
 
@@ -157,7 +158,7 @@ loadpheader(char spot,int32 *vn,int32 *ln,int32 *psk,int32 *nump)
 {
 
      int32_t i;
-	 char *fn = "game0.sav";
+	 char fn[] = "game0.sav";
 	 int32_t fil;
      int32_t bv;
 
@@ -191,15 +192,131 @@ loadpheader(char spot,int32 *vn,int32 *ln,int32 *psk,int32 *nump)
 	 return(0);
 }
 
+void ser_hittype(ser_func_t func, struct weaponhit* ht, int count)
+{
+    int i, j;
+    for (i = 0; i < count; i++)
+    {
+        struct weaponhit *h = &ht[i];
+        SEM(h->cgg);
+        SEM(h->picnum);
+        SEM(h->ang);
+        SEM(h->extra);
+        SEM(h->owner);
+        SEM(h->movflag);
+        SEM(h->tempang);
+        SEM(h->actorstayput);
+        SEM(h->dispicnum);
+        SEM(h->timetosleep);
+        SEM(h->floorz);
+        SEM(h->ceilingz);
+        SEM(h->lastvx);
+        SEM(h->lastvy);
+        SEM(h->bposx);
+        SEM(h->bposy);
+        SEM(h->bposz);
+        for (j = 0; j < 6; j++)
+        {
+            int32_t* p = (int32_t*)&h->temp_data[j];
+            SEM(*p);
+        }
+    }
+}
+
+void ser_ps(ser_func_t func, struct player_struct* pp, int count)
+{
+    int i, j;
+    for (i = 0; i < count; i++)
+    {
+        struct player_struct*p = &pp[i];
+        SEM(p->zoom); SEM(p->exitx); SEM(p->exity);
+        for (j = 0; j < 64; j++) SEM(p->loogiex[j]);
+        for (j = 0; j < 64; j++) SEM(p->loogiey[j]);
+        SEM(p->numloogs); SEM(p->loogcnt);
+        SEM(p->posx); SEM(p->posy); SEM(p->posz); SEM(p->horiz); SEM(p->ohoriz); SEM(p->ohorizoff); SEM(p->invdisptime);
+        SEM(p->bobposx); SEM(p->bobposy); SEM(p->oposx); SEM(p->oposy); SEM(p->oposz); SEM(p->pyoff); SEM(p->opyoff);
+        SEM(p->posxv); SEM(p->posyv); SEM(p->poszv); SEM(p->last_pissed_time); SEM(p->truefz); SEM(p->truecz);
+        SEM(p->player_par); SEM(p->visibility);
+        SEM(p->bobcounter); SEM(p->weapon_sway);
+        SEM(p->pals_time); SEM(p->randomflamex); SEM(p->crack_time);
+
+        SEM(p->aim_mode);
+
+        SEM(p->ang); SEM(p->oang); SEM(p->angvel); SEM(p->cursectnum); SEM(p->look_ang); SEM(p->last_extra); SEM(p->subweapon);
+        for (j = 0; j < MAX_WEAPONS; j++) SEM(p->ammo_amount[j]);
+        SEM(p->wackedbyactor); SEM(p->frag); SEM(p->fraggedself);
+
+        SEM(p->curr_weapon); SEM(p->last_weapon); SEM(p->tipincs); SEM(p->horizoff); SEM(p->wantweaponfire);
+        SEM(p->holoduke_amount); SEM(p->newowner); SEM(p->hurt_delay); SEM(p->hbomb_hold_delay);
+        SEM(p->jumping_counter); SEM(p->airleft); SEM(p->knee_incs); SEM(p->access_incs);
+        SEM(p->fta); SEM(p->ftq); SEM(p->access_wallnum); SEM(p->access_spritenum);
+        SEM(p->kickback_pic); SEM(p->got_access); SEM(p->weapon_ang); SEM(p->firstaid_amount);
+        SEM(p->somethingonplayer); SEM(p->on_crane); SEM(p->i); SEM(p->one_parallax_sectnum);
+        SEM(p->over_shoulder_on); SEM(p->random_club_frame); SEM(p->fist_incs);
+        SEM(p->one_eighty_count); SEM(p->cheat_phase);
+        SEM(p->dummyplayersprite); SEM(p->extra_extra8); SEM(p->quick_kick);
+        SEM(p->heat_amount); SEM(p->actorsqu); SEM(p->timebeforeexit); SEM(p->customexitsound);
+
+        for (j = 0; j < 16; j++) SEM(p->weaprecs[j]);
+        SEM(p->weapreccnt); SEM(p->interface_toggle_flag);
+
+        SEM(p->rotscrnang); SEM(p->dead_flag); SEM(p->show_empty_weapon);
+        SEM(p->scuba_amount); SEM(p->jetpack_amount); SEM(p->steroids_amount); SEM(p->shield_amount);
+        SEM(p->holoduke_on); SEM(p->pycount); SEM(p->weapon_pos); SEM(p->frag_ps);
+        SEM(p->transporter_hold); SEM(p->last_full_weapon); SEM(p->footprintshade); SEM(p->boot_amount);
+
+        SEM(p->scream_voice);
+
+        SEM(p->gm); SEM(p->on_warping_sector); SEM(p->footprintcount);
+        SEM(p->hbomb_on); SEM(p->jumping_toggle); SEM(p->rapid_fire_hold); SEM(p->on_ground);
+        SEMR(p->name); SEM(p->inven_icon), SEM(p->buttonpalette);
+
+        SEM(p->jetpack_on); SEM(p->spritebridge); SEM(p->lastrandomspot);
+        SEM(p->scuba_on); SEM(p->footprintpal); SEM(p->heat_on);
+
+        SEM(p->holster_weapon); SEM(p->falling_counter);
+        SEMR(p->gotweapon); SEM(p->refresh_inventory);
+        int32_t* pp = (int32_t*)&p->palette;
+        SEM(*pp);
+
+        SEM(p->toggle_key_flag); SEM(p->knuckle_incs);
+        SEM(p->walking_snd_toggle); SEM(p->palookup); SEM(p->hard_landing);
+        SEM(p->max_secret_rooms); SEM(p->secret_rooms); SEM(p->pals);
+        SEM(p->max_actors_killed); SEM(p->actors_killed); SEM(p->return_to_center);
+    }
+}
+
+void ser_po(ser_func_t func, struct player_orig* pp, int count)
+{
+    int i, j;
+    for (i = 0; i < count; i++)
+    {
+        struct player_orig*p = &pp[i];
+        SEM(p->ox); SEM(p->oy); SEM(p->oz);
+        SEM(p->oa); SEM(p->os);
+    }
+}
+
+void ser_animwall(ser_func_t func, struct animwalltype* aw, int count)
+{
+    int i, j;
+    for (i = 0; i < count; i++)
+    {
+        struct animwalltype* a = &aw[i];
+        SEM(a->wallnum); SEM(a->tag);
+    }
+}
 
 loadplayer(signed char spot)
 {
      short k;
-     char *fn = "game0.sav";
-     char *mpfn = "gameA_00.sav";
+     char fn[] = "game0.sav";
+     char mpfn[] = "gameA_00.sav";
      char *fnptr, scriptptrs[MAXSCRIPTSIZE];
-     int32_t fil, bv, i, j, x;
+     int32_t fil, bv, i, x;
+     intptr_t j;
      int32 nump;
+     char* sb;
 
      if(spot < 0)
      {
@@ -289,10 +406,10 @@ loadplayer(signed char spot)
      kdfread((char *)waloff[MAXTILES-3],160,100,fil);
 
 	 kdfread(&numwalls,2,1,fil);
-     kdfread(&wall[0],sizeof(walltype),MAXWALLS,fil);
-	 kdfread(&numsectors,2,1,fil);
-     kdfread(&sector[0],sizeof(sectortype),MAXSECTORS,fil);
-	 kdfread(&sprite[0],sizeof(spritetype),MAXSPRITES,fil);
+     SEI(sizeof(walltype)*MAXWALLS); kdfread(sb,sizeof(walltype),MAXWALLS,fil); Ser_Wall(Ser_Get, &wall[0], MAXWALLS);
+     kdfread(&numsectors, 2, 1, fil);
+     SEI(sizeof(sectortype)*MAXSECTORS); kdfread(sb,sizeof(sectortype),MAXSECTORS,fil); Ser_Sector(Ser_Get, &sector[0], MAXSECTORS);
+     SEI(sizeof(spritetype)*MAXSPRITES); kdfread(sb,sizeof(spritetype),MAXSPRITES,fil); Ser_Sprite(Ser_Get, &sprite[0], MAXSPRITES);
 	 kdfread(&headspritesect[0],2,MAXSECTORS+1,fil);
 	 kdfread(&prevspritesect[0],2,MAXSPRITES,fil);
 	 kdfread(&nextspritesect[0],2,MAXSPRITES,fil);
@@ -301,10 +418,11 @@ loadplayer(signed char spot)
 	 kdfread(&nextspritestat[0],2,MAXSPRITES,fil);
 	 kdfread(&numcyclers,sizeof(numcyclers),1,fil);
 	 kdfread(&cyclers[0][0],12,MAXCYCLERS,fil);
-     kdfread(ps,sizeof(ps),1,fil);
-     kdfread(po,sizeof(po),1,fil);
+#define PLAYER_STRUCT_SIZE 911
+     SEI(PLAYER_STRUCT_SIZE*MAXPLAYERS); kdfread(sb,PLAYER_STRUCT_SIZE*MAXPLAYERS,1,fil); ser_ps(Ser_Get, ps, MAXPLAYERS);
+     SEI(sizeof(po)); kdfread(sb,sizeof(po),1,fil); ser_ps(Ser_Get, po, MAXPLAYERS);
 	 kdfread(&numanimwalls,sizeof(numanimwalls),1,fil);
-	 kdfread(&animwall,sizeof(animwall),1,fil);
+     SEI(sizeof(animwall)); kdfread(sb,sizeof(animwall),1,fil); ser_animwall(Ser_Get, animwall, MAXANIMWALLS);
 	 kdfread(&msx[0],sizeof(int32_t),sizeof(msx)/sizeof(int32_t),fil);
 	 kdfread(&msy[0],sizeof(int32_t),sizeof(msy)/sizeof(int32_t),fil);
      kdfread((short *)&spriteqloc,sizeof(short),1,fil);
@@ -323,31 +441,42 @@ loadplayer(signed char spot)
      kdfread(&cloudy[0],sizeof(short)<<7,1,fil);
 
      kdfread(&scriptptrs[0],1,MAXSCRIPTSIZE,fil);
-     kdfread(&script[0],4,MAXSCRIPTSIZE,fil);
+     SEI(4 * MAXSCRIPTSIZE); kdfread(sb,4,MAXSCRIPTSIZE,fil);
      for(i=0;i<MAXSCRIPTSIZE;i++)
+     {
+         script[i] = Ser_GetInt32();
         if( scriptptrs[i] )
      {
-         j = (intptr_t)script[i]+(intptr_t)&script[0];
+         j = (int32_t)script[i] * (sizeof(intptr_t) / 4) + (intptr_t)&script[0];
          script[i] = j;
      }
+     }
 
-     kdfread(&actorscrptr[0],4,MAXTILES,fil);
+     SEI(4 * MAXTILES); kdfread(sb,4,MAXTILES,fil);
      for(i=0;i<MAXTILES;i++)
-         if(actorscrptr[i])
      {
-        j = (intptr_t)actorscrptr[i]+(intptr_t)&script[0];
+         int32_t ptr = Ser_GetInt32();
+         if(ptr)
+     {
+        j = ptr *(sizeof(intptr_t) / 4)+(intptr_t)&script[0];
         actorscrptr[i] = (intptr_t *)j;
+     }
+         else
+             actorscrptr[i] = 0;
      }
 
      kdfread(&scriptptrs[0],1,MAXSPRITES,fil);
-     kdfread(&hittype[0],sizeof(struct weaponhit),MAXSPRITES,fil);
+#define HIT_STRUCT_SIZE 71
+     SEI(HIT_STRUCT_SIZE* MAXSPRITES); kdfread(sb,HIT_STRUCT_SIZE,MAXSPRITES,fil); ser_hittype(Ser_Get, &hittype[0], MAXSPRITES);
 
      for(i=0;i<MAXSPRITES;i++)
      {
+        for(k=0;k<6;k++)
+            hittype[i].temp_data[k] = *(int32_t*)&hittype[i].temp_data[k];
         j = (intptr_t)(&script[0]);
-        if( scriptptrs[i]&1 ) T2 += j;
-        if( scriptptrs[i]&2 ) T5 += j;
-        if( scriptptrs[i]&4 ) T6 += j;
+        if( scriptptrs[i]&1 ) T2 = j + T2 * (sizeof(intptr_t) / 4);
+        if( scriptptrs[i]&2 ) T5 = j + T5 * (sizeof(intptr_t) / 4);
+        if( scriptptrs[i]&4 ) T6 = j + T6 * (sizeof(intptr_t) / 4);
      }
 
 	 kdfread(&lockclock,sizeof(lockclock),1,fil);
@@ -356,8 +485,10 @@ loadplayer(signed char spot)
 
 	 kdfread(&animatecnt,sizeof(animatecnt),1,fil);
 	 kdfread(&animatesect[0],2,MAXANIMATES,fil);
-	 kdfread(&animateptr[0],4,MAXANIMATES,fil);
-     for(i = animatecnt-1;i>=0;i--) animateptr[i] = (int32_t*)((intptr_t)animateptr[i]+(intptr_t)(&sector[0]));
+	 SEI(4 * MAXANIMATES); kdfread(sb,4,MAXANIMATES,fil);
+     int32_t animptr[MAXANIMATES];
+     Ser_Get(animptr, 4 * MAXANIMATES, 0);
+     for(i = animatecnt-1;i>=0;i--) animateptr[i] = (int32_t*)(animptr[i]+(intptr_t)(&sector[0]));
 	 kdfread(&animategoal[0],4,MAXANIMATES,fil);
 	 kdfread(&animatevel[0],4,MAXANIMATES,fil);
 

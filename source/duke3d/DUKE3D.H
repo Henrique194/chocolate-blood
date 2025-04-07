@@ -318,12 +318,13 @@ typedef struct user_defs
 
 };
 
+#pragma pack(push, 1)
 typedef struct player_orig
 {
     int32_t ox,oy,oz;
     short oa,os;
 };
-
+#pragma pack(pop)
 
 extern char numplayersprites;
 extern char picsiz[MAXTILES];
@@ -333,6 +334,7 @@ void add_ammo( short, short, short, short );
 
 extern int32_t fricxv,fricyv;
 
+#pragma pack(push, 1)
 typedef struct player_struct
 {
     int32_t zoom,exitx,exity,loogiex[64],loogiey[64],numloogs,loogcnt;
@@ -383,6 +385,7 @@ typedef struct player_struct
     char max_secret_rooms,secret_rooms,/*fire_flag,*/pals[3];
     char max_actors_killed,actors_killed,return_to_center;
 };
+#pragma pack(pop)
 
 extern unsigned char tempbuf[2048], packbuf[576];
 
