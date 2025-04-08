@@ -78,8 +78,8 @@ char *FX_ErrorString
 
       case FX_ASSVersion :
          ErrorString = "Apogee Sound System Version " ASS_VERSION_STRING "  "
-            "Programmed by Jim Dose\n"
-            "(c) Copyright 1995 James R. Dose.  All Rights Reserved.\n";
+            "Programmed by Jim Dos\x82\n"
+            "Copyright 1995 Apogee Software, Ltd.\n";
          break;
 
       case FX_BlasterError :

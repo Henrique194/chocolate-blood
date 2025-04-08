@@ -54,12 +54,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MV_MaxPanPosition  31
 #define MV_NumPanPositions ( MV_MaxPanPosition + 1 )
 #define MV_MaxTotalVolume  255
-//#define MV_MaxVolume       63
+#define MV_MaxVolume       63
 #define MV_NumVoices       8
 
 #define MIX_VOLUME( volume ) \
-   ( ( max( 0, min( ( volume ), 255 ) ) * ( MV_MaxVolume + 1 ) ) >> 8 )
-//   ( ( max( 0, min( ( volume ), 255 ) ) ) >> 2 )
+   ( ( max( 0, min( ( volume ), 255 ) ) ) >> 2 )
 
 //#define SILENCE_16BIT     0x80008000
 #define SILENCE_16BIT     0

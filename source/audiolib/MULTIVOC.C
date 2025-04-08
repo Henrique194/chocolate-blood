@@ -103,8 +103,6 @@ static void ( *MV_CallBackFunc )( uintptr_t ) = NULL;
 static void ( *MV_RecordFunc )( char *ptr, int length ) = NULL;
 static void ( *MV_MixFunction )( VoiceNode *voice, int buffer );
 
-static int MV_MaxVolume = 63;
-
 char  *MV_HarshClipTable;
 char  *MV_MixDestination;
 short *MV_LeftVolume;
@@ -2691,50 +2689,6 @@ static void MV_LockEnd
    {
    }
 
-
-/*---------------------------------------------------------------------
-   Function: MV_CreateVolumeTable
-
-   Create the table used to convert sound data to a specific volume
-   level.
----------------------------------------------------------------------*/
-
-void MV_CreateVolumeTable
-   (
-   int index,
-   int volume,
-   int MaxVolume
-   )
-
-   {
-   int val;
-   int level;
-   int i;
-
-   level = ( volume * MaxVolume ) / MV_MaxTotalVolume;
-   if ( MV_Bits == 16 )
-      {
-      for( i = 0; i < 65536; i += 256 )
-         {
-         val   = i - 0x8000;
-         val  *= level;
-         val  /= MV_MaxVolume;
-         MV_VolumeTable[ index ][ i / 256 ] = val;
-         }
-      }
-   else
-      {
-      for( i = 0; i < 256; i++ )
-         {
-         val   = i - 0x80;
-         val  *= level;
-         val  /= MV_MaxVolume;
-         MV_VolumeTable[ volume ][ i ] = val;
-         }
-      }
-   }
-
-
 /*---------------------------------------------------------------------
    Function: MV_CalcVolume
 
@@ -2749,6 +2703,9 @@ void MV_CalcVolume
 
    {
    int volume;
+   int val;
+   int level;
+   int i;
 
    for( volume = 0; volume < 128; volume++ )
       {
@@ -2764,7 +2721,27 @@ void MV_CalcVolume
    // appropriate volume calculated.
    for( volume = 0; volume <= MV_MaxVolume; volume++ )
       {
-      MV_CreateVolumeTable( volume, volume, MaxVolume );
+      level = ( volume * MaxVolume ) / MV_MaxTotalVolume;
+      if ( MV_Bits == 16 )
+         {
+         for( i = 0; i < 65536; i += 256 )
+            {
+            val   = i - 0x8000;
+            val  *= level;
+            val  /= MV_MaxVolume;
+            MV_VolumeTable[ volume ][ i / 256 ] = val;
+            }
+         }
+      else
+         {
+         for( i = 0; i < 256; i++ )
+            {
+            val   = i - 0x80;
+            val  *= level;
+            val  /= MV_MaxVolume;
+            MV_VolumeTable[ volume ][ i ] = val;
+            }
+         }
       }
    }
 

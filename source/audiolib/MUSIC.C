@@ -96,8 +96,8 @@ char *MUSIC_ErrorString
 
       case MUSIC_ASSVersion :
          ErrorString = "Apogee Sound System Version " ASS_VERSION_STRING "  "
-            "Programmed by Jim Dose\n"
-            "(c) Copyright 1996 James R. Dose.  All Rights Reserved.\n";
+            "Programmed by Jim Dos\x82\n"
+            "Copyright 1995 Apogee Software, Ltd.\n";
          break;
 
       case MUSIC_SoundCardError :
