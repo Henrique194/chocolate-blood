@@ -1093,7 +1093,6 @@ void CONTROL_GetInput(ControlInfo* info)
     int pressed;
 
     //ServiceEvents(); // VID
-    Sys_HandleEvents();
 
     CONTROL_PollDevices(info);
 

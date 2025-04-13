@@ -1196,11 +1196,10 @@ void resettimevars(void)
 {
     vel = svel = angvel = horiz = 0;
 
-    Sys_HandleEvents();
-    totalclock = 0L;
-    cloudtotalclock = 0L;
-    ototalclock = 0L;
-    lockclock = 0L;
+    totalclock_set(0);
+    cloudtotalclock = 0;
+    ototalclock = 0;
+    lockclock = 0;
     ready2send = 1;
 }
 

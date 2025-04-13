@@ -1254,7 +1254,7 @@ void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
 	globaly2 = mulscale16(globaly2,globalzd);
 	globvis = klabs(mulscale10(globvis,globalzd));
 
-	if (!(globalorientation&0x180))
+	if (!(globalorientation&0x180) || engine_revision < 19961012)
 	{
 		y1 = umost[x1]; y2 = y1;
 		for(x=x1;x<=x2;x++)
@@ -1420,7 +1420,7 @@ void florscan (int32_t x1, int32_t x2, int32_t sectnum)
 	globaly2 = mulscale16(globaly2,globalzd);
 	globvis = klabs(mulscale10(globvis,globalzd));
 
-	if (!(globalorientation&0x180))
+	if (!(globalorientation&0x180) || engine_revision < 19961012)
 	{
 		y1 = max(dplc[x1],umost[x1]); y2 = y1;
 		for(x=x1;x<=x2;x++)
@@ -2190,7 +2190,7 @@ void initengine()
 	linehighlight = -1;
 	highlightcnt = 0;
 
-	totalclock = 0;
+	totalclock_set(0);
 	visibility = 512;
 	parallaxvisibility = 512;
 
@@ -3858,7 +3858,8 @@ void drawsprite (int32_t snum)
 		globvis = globalvisibility;
 		if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((unsigned char)(sec->visibility+16)));
 
-		if ((searchit >= 1) && (yp > (4<<8)) && (searchy >= lwall[searchx]) && (searchy < swall[searchx]))
+		if (engine_revision >= 19961112 &&
+			(searchit >= 1) && (yp > (4<<8)) && (searchy >= lwall[searchx]) && (searchy < swall[searchx]))
 		{
 			siz = divscale19(xdimenscale,yp);
 
@@ -5258,7 +5259,8 @@ int32_t clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 				templong2 = dmulscale6(clipit[j].x2-clipit[j].x1,oxvect,clipit[j].y2-clipit[j].y1,oyvect);
 				if ((templong1^templong2) < 0)
 				{
-					updatesector(*x,*y,sectnum);
+					if (engine_revision >= 19961112)
+						updatesector(*x,*y,sectnum);
 					return(retval);
 				}
 			}
@@ -8751,7 +8753,30 @@ void setvmode(int a)
 void limitrate()
 {
 	Sys_HandleEvents();
-
 	Video_BlitPage(-1);
 	SDL_Delay(1000 / 70);
+}
+
+int engine_revision = 19961112;
+SDL_AtomicInt totalclock_val;
+
+int32_t totalclock_get()
+{
+	Sys_HandleEvents();
+	return SDL_GetAtomicInt(&totalclock_val);
+}
+
+void totalclock_set(int32_t value)
+{
+	SDL_SetAtomicInt(&totalclock_val, value);
+}
+
+void totalclock_add(int32_t value)
+{
+	SDL_AddAtomicInt(&totalclock_val, value);
+}
+
+void totalclock_sub(int32_t value)
+{
+	SDL_AddAtomicInt(&totalclock_val, -value);
 }

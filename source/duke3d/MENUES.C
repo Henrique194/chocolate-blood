@@ -1400,7 +1400,7 @@ void menus(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 1;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
                 ps[myconnectindex].gm &= ~MODE_MENU;
             }
@@ -1481,7 +1481,7 @@ void menus(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 1;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
             }
 
@@ -1640,7 +1640,7 @@ void menus(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 1;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
 
                 if(ud.multimode > 1)
@@ -1686,7 +1686,7 @@ void menus(void)
                     if(ud.multimode < 2 && ud.recstat != 2)
                     {
                         ready2send = 1;
-                        totalclock = ototalclock;
+                        totalclock_set(ototalclock);
                     }
                 }
             }
@@ -1709,7 +1709,7 @@ void menus(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 1;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
                 ps[myconnectindex].gm &= ~MODE_MENU;
                 sound(EXITMENUSOUND);
@@ -1920,7 +1920,7 @@ void menus(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 1;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
             }
 
@@ -2017,7 +2017,7 @@ void menus(void)
                     if(ud.multimode < 2 && ud.recstat != 2)
                     {
                         ready2send = 1;
-                        totalclock = ototalclock;
+                        totalclock_set(ototalclock);
                     }
                     break;
             }
@@ -2322,7 +2322,7 @@ void menus(void)
                         if(ud.multimode < 2  && ud.recstat != 2)
                         {
                             ready2send = 1;
-                            totalclock = ototalclock;
+                            totalclock_set(ototalclock);
                         }
                     }
 
@@ -2473,7 +2473,7 @@ void menus(void)
                     if(ud.multimode < 2  && ud.recstat != 2)
                     {
                         ready2send = 1;
-                        totalclock = ototalclock;
+                        totalclock_set(ototalclock);
                     }
                     goto DISPLAYNAMES;
                 }
@@ -2496,7 +2496,7 @@ void menus(void)
                         if(ud.multimode < 2  && ud.recstat != 2)
                         {
                             ready2send = 1;
-                            totalclock = ototalclock;
+                            totalclock_set(ototalclock);
                         }
                         KB_ClearKeyDown(sc_Escape);
                         sound(EXITMENUSOUND);
@@ -2566,7 +2566,7 @@ void menus(void)
                     if(ud.multimode < 2 && ud.recstat != 2)
                     {
                         ready2send = 1;
-                        totalclock = ototalclock;
+                        totalclock_set(ototalclock);
                     }
 
                     break;
@@ -2777,7 +2777,7 @@ void menus(void)
                     if(ud.multimode < 2  && ud.recstat != 2)
                     {
                         ready2send = 1;
-                        totalclock = ototalclock;
+                        totalclock_set(ototalclock);
                     }
                 }
             }
@@ -2805,7 +2805,7 @@ void menus(void)
                 if(ud.multimode < 2  && ud.recstat != 2)
                 {
                     ready2send = 1;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
             }
 
@@ -3645,14 +3645,12 @@ void playanm(char *fn,char t)
 
 	VBE_setPalette(0L,256L,tempbuf);
 
-    Sys_HandleEvents();
     ototalclock = totalclock + 10;
 
 	for(i=1;i<numframes;i++)
 	{
        while(totalclock < ototalclock)
        {
-          Sys_HandleEvents();
           if( KB_KeyWaiting() )
               goto ENDOFANIMLOOP;
           getpackets();

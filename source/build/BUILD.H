@@ -132,7 +132,13 @@ EXTERN short validmode[256];
 EXTERN int32_t validmodexdim[256], validmodeydim[256];
 
 EXTERN short numsectors, numwalls;
-EXTERN volatile int32_t totalclock;
+//EXTERN volatile int32_t totalclock;
+int32_t totalclock_get();
+void totalclock_set(int32_t value);
+void totalclock_add(int32_t value);
+void totalclock_sub(int32_t value);
+#define totalclock totalclock_get()
+
 EXTERN int32_t numframes, randomseed;
 EXTERN short sintable[2048];
 EXTERN char palette[768];
@@ -279,6 +285,8 @@ OTHER VARIABLES:
 		NUMSECTORS - the total number of existing sectors.  Modified every time
 			you call the loadboard function.
 ***************************************************************************/
+
+extern int engine_revision;
 
 
 void initengine();

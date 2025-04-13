@@ -497,14 +497,13 @@ int main(short int argc,char **argv)
 	for(i=connecthead;i>=0;i=connectpoint2[i]) initplayersprite((short)i);
 
 	//waitforeverybody();
-	totalclock = ototalclock = 0; gotlastpacketclock = 0; nummoves = 0;
+	totalclock_set(0); ototalclock = 0; gotlastpacketclock = 0; nummoves = 0;
 
 	drawscreen(screenpeek,65536L);
 
 	ready2send = 1;
 	while (!keystatus[1])       //Main loop starts here
 	{
-		Sys_HandleEvents();
 			// backslash (useful only with KDM)
 		if (keystatus[0x2b]) { keystatus[0x2b] = 0; preparesndbuf(); }
 
@@ -4571,8 +4570,7 @@ void playback()
 				prepareboard(boardfilename);
 				for(i=connecthead;i>=0;i=connectpoint2[i])
 					initplayersprite((short)i);
-				Sys_HandleEvents();
-				totalclock = 0;
+				totalclock_set(0);;
 				i = 0;
 			}
 
@@ -4994,7 +4992,8 @@ void checkmasterslaveswitch()
 			}
 
 			syncvalhead = othersyncvalhead = syncvaltail = 0L;
-			totalclock = ototalclock = gotlastpacketclock = lockclock;
+			ototalclock = gotlastpacketclock = lockclock;
+			totalclock_set(ototalclock);
 
 			j = 1;
 			for(i=connecthead;i>=0;i=connectpoint2[i])
@@ -5027,7 +5026,7 @@ void uninittimer()
 
 void timerhandler()
 {
-	totalclock++;
+	totalclock_add(1);
 }
 
 void initkeys()
@@ -5243,7 +5242,9 @@ int loadgame()
 	kdfread(animateacc,4,MAXANIMATES,fil);
 	kdfread(&animatecnt,4,1,fil);
 
-	kdfread(&totalclock,4,1,fil);
+	int val;
+	kdfread(&val,4,1,fil);
+	totalclock_set(val);
 	kdfread(&numframes,4,1,fil);
 	kdfread(&randomseed,4,1,fil);
 	kdfread(&numpalookups,2,1,fil);
@@ -5267,7 +5268,7 @@ int loadgame()
 
 	for(i=connecthead;i>=0;i=connectpoint2[i]) initplayersprite((short)i);
 
-	totalclock = lockclock;
+	totalclock_set(lockclock);
 	ototalclock = lockclock;
 
 	strcpy(getmessage,"Game loaded.");
@@ -5422,7 +5423,8 @@ int savegame()
 	dfwrite(animateacc,4,MAXANIMATES,fil);
 	dfwrite(&animatecnt,4,1,fil);
 
-	dfwrite(&totalclock,4,1,fil);
+	int val = totalclock;
+	dfwrite(&val,4,1,fil);
 	dfwrite(&numframes,4,1,fil);
 	dfwrite(&randomseed,4,1,fil);
 	dfwrite(&numpalookups,2,1,fil);

@@ -1467,7 +1467,7 @@ void loadefs(char *filenam,char *mptr)
         puts("COPY INTERNAL DEFAULTS TO DIRECTORY(Y/n)?");
 
         KB_FlushKeyboardQueue();
-        while( KB_KeyWaiting() ) { Sys_HandleEvents(); };
+        while( KB_KeyWaiting() );
 
         i = KB_Getch();
         if(i == 'y' || i == 'Y' )

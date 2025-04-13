@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "compat.h"
+#include "build.h"
 #include "pragmas.h"
 
 #define MAXPLAYERS 16
@@ -31,7 +32,6 @@ int32_t crctable[256];
 static char lastpacket[576], inlastpacket = 0;
 static short lastpacketfrom, lastpacketleng;
 
-extern int32_t totalclock;  //MUST EXTERN 1 ANNOYING VARIABLE FROM GAME
 static int32_t timeoutcount = 60, resendagaincount = 4, lastsendtime[MAXPLAYERS];
 
 static short bakpacketptr[MAXPLAYERS][256], bakpacketlen[MAXPLAYERS][256];

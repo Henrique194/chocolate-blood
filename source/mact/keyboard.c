@@ -89,8 +89,7 @@ char KB_Getch(void)
 {
 	char c;
 
-	while (!KB_KeyWaiting())
-		Sys_HandleEvents();
+	while (!KB_KeyWaiting()) {}
 
 	c = KeyboardQueue[Keyhead];
 	Keyhead = (Keyhead + 1) & (KEYQMAX - 1);

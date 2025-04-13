@@ -114,7 +114,7 @@ extern int32_t lastvisinc;
 
 void timerhandler()
 {
-    totalclock++;
+    totalclock_add(1);
 }
 
 void inittimer()
@@ -721,7 +721,7 @@ void faketimerhandler()
                 else if (klabs(i) > 2) i = ksgn(i);
                 else i = 0;
 
-                totalclock -= TICSPERFRAME*i;
+                totalclock_sub(TICSPERFRAME * i);
                 myminlag[connecthead] -= i; otherminlag += i;
             }
 
@@ -788,7 +788,7 @@ void faketimerhandler()
             else if (klabs(i) > 2) i = ksgn(i);
             else i = 0;
 
-            totalclock -= TICSPERFRAME*i;
+            totalclock_sub(TICSPERFRAME*i);
             myminlag[connecthead] -= i; otherminlag += i;
 
             for(i=connecthead;i>=0;i=connectpoint2[i])
@@ -1934,9 +1934,8 @@ void showtwoscreens(void)
     clearview(0L);
     rotatesprite(0,0,65536L,0,TENSCREEN,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;
-    while (!KB_KeyWaiting() && totalclock < 2400) { Sys_HandleEvents(); getpackets(); }
+    totalclock_set(0);
+    while( !KB_KeyWaiting() && totalclock < 2400) getpackets();
 #endif
 }
 
@@ -1969,7 +1968,7 @@ void gameexit(char *t)
     }
 
     if(ud.recstat == 1) closedemowrite();
-    else if(ud.recstat == 2) { fclose(frecfilep); }
+    else if(ud.recstat == 2) { if (frecfilep) fclose(frecfilep); }
 
     if(qe || cp)
         goto GOTOHERE;
@@ -2262,7 +2261,7 @@ void displayrest(int32_t smoothratio)
             if(ud.multimode < 2 && ud.recstat != 2)
             {
                 ready2send = 1;
-                totalclock = ototalclock;
+                totalclock_set(ototalclock);
             }
             vscrn();
         }
@@ -2373,7 +2372,7 @@ void displayrest(int32_t smoothratio)
             if(ud.multimode < 2 && ud.recstat != 2)
             {
                 ready2send = 1;
-                totalclock = ototalclock;
+                totalclock_set(ototalclock);
                 cameraclock = totalclock;
                 cameradist = 65536L;
             }
@@ -6301,7 +6300,7 @@ void nonsharedkeys(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 0;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
             }
         }
@@ -6335,7 +6334,7 @@ void nonsharedkeys(void)
                 if(ud.multimode < 2)
                 {
                     ready2send = 0;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                     screenpeek = myconnectindex;
                 }
             }
@@ -6356,7 +6355,7 @@ void nonsharedkeys(void)
                 if(ud.multimode < 2 && ud.recstat != 2)
                 {
                     ready2send = 0;
-                    totalclock = ototalclock;
+                    totalclock_set(ototalclock);
                 }
                 screenpeek = myconnectindex;
             }
@@ -6372,7 +6371,7 @@ void nonsharedkeys(void)
             if(ud.multimode < 2 && ud.recstat != 2)
             {
                 ready2send = 0;
-                totalclock = ototalclock;
+                totalclock_set(ototalclock);
             }
             cmenu(700);
 
@@ -6412,7 +6411,7 @@ void nonsharedkeys(void)
             if(ud.multimode < 2 && ud.recstat != 2)
             {
                 ready2send = 0;
-                totalclock = ototalclock;
+                totalclock_set(ototalclock);
             }
         }
 
@@ -6468,7 +6467,7 @@ void nonsharedkeys(void)
             if(ud.multimode < 2 && ud.recstat != 2)
             {
                 ready2send = 0;
-                totalclock = ototalclock;
+                totalclock_set(ototalclock);
             }
         }
 
@@ -6482,7 +6481,7 @@ void nonsharedkeys(void)
             if(ud.multimode < 2 && ud.recstat != 2)
             {
                 ready2send = 0;
-                totalclock = ototalclock;
+                totalclock_set(ototalclock);
             }
         }
 
@@ -6954,13 +6953,9 @@ void Logo(void)
     palto(0,0,0,63);
     rotatesprite(0,0,65536L,0,DREALMS,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;
+    totalclock_set(0);
     while( totalclock < (120*7) && !KB_KeyWaiting() )
-    {
-        Sys_HandleEvents();
         getpackets();
-    }
 
     for(i=0;i<64;i+=7) palto(0,0,0,i);
     clearview(0L);
@@ -6972,12 +6967,10 @@ void Logo(void)
     KB_FlushKeyboardQueue();
     nextpage();
     for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;
+    totalclock_set(0);
 
     while(totalclock < (860+120) && !KB_KeyWaiting())
     {
-        Sys_HandleEvents();
         rotatesprite(0,0,65536L,0,BETASCREEN,0,0,2+8+16+64,0,0,xdim-1,ydim-1);
 
         if( totalclock > 120 && totalclock < (120+60) )
@@ -7456,7 +7449,7 @@ void main(int argc,char **argv)
         puts("for maximum performance.  Press any key to continue.");
         puts("=========================================================================\n");
 
-        while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+        while( !KB_KeyWaiting() ) getpackets();
     }
 
     if(numplayers > 1)
@@ -7560,8 +7553,6 @@ void main(int argc,char **argv)
 
     while ( !(ps[myconnectindex].gm&MODE_END) ) //The whole loop!!!!!!!!!!!!!!!!!!
     {
-        Sys_HandleEvents();
-
         if( ud.recstat == 2 || ud.multimode > 1 || ( ud.show_help == 0 && (ps[myconnectindex].gm&MODE_MENU) != MODE_MENU ) )
             if( ps[myconnectindex].gm&MODE_GAME )
                 if( moveloop() ) continue;
@@ -7833,14 +7824,10 @@ int32_t playback(void)
 
     k = 0;
 
-    Sys_HandleEvents();
-
     while (ud.reccnt > 0 || foundemo == 0)
     {
-        Sys_HandleEvents();
         if(foundemo) while ( totalclock >= (lockclock+TICSPERFRAME) )
         {
-            Sys_HandleEvents();
             if ((i == 0) || (i >= RECSYNCBUFSIZ))
             {
                 i = 0;
@@ -8625,40 +8612,32 @@ void doorders(void)
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
     ps[myconnectindex].palette = palette;
-    Sys_HandleEvents();
-    totalclock = 0;
+    totalclock_set(0);
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+    totalclock_set(0); while( !KB_KeyWaiting() ) getpackets();
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;
+    totalclock_set(0);
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING+1,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+    totalclock_set(0);while( !KB_KeyWaiting() ) getpackets();
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;
+    totalclock_set(0);
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING+2,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+    totalclock_set(0);while( !KB_KeyWaiting() ) getpackets();
 
     for(i=0;i<63;i+=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;
+    totalclock_set(0);
     KB_FlushKeyboardQueue();
     rotatesprite(0,0,65536L,0,ORDERING+3,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
     nextpage(); for(i=63;i>0;i-=7) palto(0,0,0,i);
-    Sys_HandleEvents();
-    totalclock = 0;while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+    totalclock_set(0);while( !KB_KeyWaiting() ) getpackets();
 }
 
 void dobonus(char bonusonly)
@@ -8712,11 +8691,9 @@ void dobonus(char bonusonly)
                 for(t=63;t>=0;t--) palto(0,0,0,t);
 
                 KB_FlushKeyboardQueue();
-                Sys_HandleEvents();
-                totalclock = 0; tinc = 0;
+                totalclock_set(0); tinc = 0;
                 while( 1 )
                 {
-                    Sys_HandleEvents();
                     clearview(0L);
                     rotatesprite(0,50<<16,65536L,0,VICTORY1,0,0,2+8+16+64+128,0,0,xdim-1,ydim-1);
 
@@ -8761,7 +8738,7 @@ void dobonus(char bonusonly)
 
             rotatesprite(0,0,65536L,0,3292,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
             nextpage(); for(t=63;t>0;t--) palto(0,0,0,t);
-            while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+            while( !KB_KeyWaiting() ) getpackets();
             for(t=0;t<64;t++) palto(0,0,0,t);
             MUSIC_StopSong();
             FX_StopAllSounds();
@@ -8788,7 +8765,7 @@ void dobonus(char bonusonly)
             ps[myconnectindex].palette = palette;
             rotatesprite(0,0,65536L,0,3293,0,0,2+8+16+64, 0,0,xdim-1,ydim-1);
             nextpage(); for(t=63;t>0;t--) palto(0,0,0,t);
-            while( !KB_KeyWaiting() ) { Sys_HandleEvents(); getpackets(); }
+            while( !KB_KeyWaiting() ) getpackets();
             for(t=0;t<64;t++) palto(0,0,0,t);
 
             break;
@@ -8832,7 +8809,7 @@ void dobonus(char bonusonly)
 
             for(t=63;t>0;t-=3) palto(0,0,0,t);
             KB_FlushKeyboardQueue();
-            while(!KB_KeyWaiting()) { Sys_HandleEvents(); getpackets(); }
+            while(!KB_KeyWaiting()) getpackets();
             for(t=0;t<64;t+=3) palto(0,0,0,t);
 
             clearview(0L);
@@ -8841,7 +8818,7 @@ void dobonus(char bonusonly)
             playanm("DUKETEAM.ANM",4);
 
             KB_FlushKeyboardQueue();
-            while(!KB_KeyWaiting()) { Sys_HandleEvents(); getpackets(); }
+            while(!KB_KeyWaiting()) getpackets();
 
             clearview(0L);
             nextpage();
@@ -8864,7 +8841,7 @@ void dobonus(char bonusonly)
                 playanm("cineov3.anm",2);
                 KB_FlushKeyboardQueue();
                 ototalclock = totalclock+200;
-                while(totalclock < ototalclock) { Sys_HandleEvents(); getpackets(); }
+                while(totalclock < ototalclock) getpackets();
                 clearview(0L);
                 nextpage();
 
@@ -8877,25 +8854,24 @@ void dobonus(char bonusonly)
             if( ud.lockout == 0 && !KB_KeyWaiting() )
             {
                 sound(ENDSEQVOL3SND5);
-                while(Sound[ENDSEQVOL3SND5].lock>=200) { Sys_HandleEvents(); getpackets(); }
+                while(Sound[ENDSEQVOL3SND5].lock>=200) getpackets();
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND6);
-                while(Sound[ENDSEQVOL3SND6].lock>=200) { Sys_HandleEvents(); getpackets(); }
+                while(Sound[ENDSEQVOL3SND6].lock>=200) getpackets();
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND7);
-                while(Sound[ENDSEQVOL3SND7].lock>=200) { Sys_HandleEvents(); getpackets(); }
+                while(Sound[ENDSEQVOL3SND7].lock>=200) getpackets();
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND8);
-                while(Sound[ENDSEQVOL3SND8].lock>=200) { Sys_HandleEvents(); getpackets(); }
+                while(Sound[ENDSEQVOL3SND8].lock>=200) getpackets();
                 if(KB_KeyWaiting()) goto ENDANM;
                 sound(ENDSEQVOL3SND9);
-                while(Sound[ENDSEQVOL3SND9].lock>=200) { Sys_HandleEvents(); getpackets(); }
+                while(Sound[ENDSEQVOL3SND9].lock>=200) getpackets();
             }
 
             KB_FlushKeyboardQueue();
-            Sys_HandleEvents();
-            totalclock = 0;
-            while(!KB_KeyWaiting() && totalclock < 120) { Sys_HandleEvents(); getpackets(); }
+            totalclock_set(0);
+            while(!KB_KeyWaiting() && totalclock < 120) getpackets();
 
             ENDANM:
 
@@ -8913,8 +8889,7 @@ void dobonus(char bonusonly)
 
     ps[myconnectindex].palette = palette;
     KB_FlushKeyboardQueue();
-    Sys_HandleEvents();
-    totalclock = 0; tinc = 0;
+    totalclock_set(0); tinc = 0;
     bonuscnt = 0;
 
     MUSIC_StopSong();
@@ -9003,7 +8978,7 @@ void dobonus(char bonusonly)
             palto(0,0,0,63-t);
 
         KB_FlushKeyboardQueue();
-        while(KB_KeyWaiting()==0) { Sys_HandleEvents(); getpackets(); }
+        while(KB_KeyWaiting()==0) getpackets();
 
         if( KB_KeyPressed( sc_F12 ) )
         {
@@ -9042,12 +9017,10 @@ void dobonus(char bonusonly)
     KB_FlushKeyboardQueue();
     for(t=0;t<64;t++) palto(0,0,0,63-t);
     bonuscnt = 0;
-    Sys_HandleEvents();
-    totalclock = 0; tinc = 0;
+    totalclock_set(0); tinc = 0;
 
     while( 1 )
     {
-        Sys_HandleEvents();
         if(ps[myconnectindex].gm&MODE_EOL)
         {
             rotatesprite(0,0,65536L,0,BONUSSCREEN+gfx_offset,0,0,2+8+16+64+128,0,0,xdim-1,ydim-1);
@@ -9197,7 +9170,7 @@ void dobonus(char bonusonly)
             }
 
             if(totalclock > 10240 && totalclock < 10240+10240)
-                totalclock = 1024;
+                totalclock_set(1024);
 
             if( KB_KeyWaiting() && totalclock > (60*2) )
             {
@@ -9210,10 +9183,10 @@ void dobonus(char bonusonly)
                 if( totalclock < (60*13) )
                 {
                     KB_FlushKeyboardQueue();
-                    totalclock = (60*13);
+                    totalclock_set(60*13);
                 }
                 else if( totalclock < (1000000000L))
-                   totalclock = (1000000000L);
+                   totalclock_set(1000000000L);
             }
         }
         else break;
