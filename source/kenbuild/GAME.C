@@ -365,7 +365,6 @@ int main(short int argc,char **argv)
 	char *ptr;
 
 	Sys_Init(argc, argv);
-	Video_Set(1, 1280, 1024);
 	Sound_Init(44100);
 
 	initgroupfile("stuff.dat");

@@ -8752,9 +8752,7 @@ void setvmode(int a)
 
 void limitrate()
 {
-	Sys_HandleEvents();
-	Video_BlitPage(-1);
-	SDL_Delay(1000 / 70);
+	Sys_WaitVSync();
 }
 
 int engine_revision = 19961112;
@@ -8762,7 +8760,6 @@ SDL_AtomicInt totalclock_val;
 
 int32_t totalclock_get()
 {
-	Sys_HandleEvents();
 	return SDL_GetAtomicInt(&totalclock_val);
 }
 

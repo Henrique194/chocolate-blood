@@ -33,6 +33,7 @@ vidmode_t modes[] = {
 
 static inline void qlimitrate()
 {
+	Sys_WaitVSync();
 }
 
 void getvalidvesamodes()

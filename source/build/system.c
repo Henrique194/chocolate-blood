@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include "compat.h"
 #include "system.h"
+#include "video.h"
 
 static uint64_t timer_base;
 static uint64_t pit_cycles;
@@ -34,6 +35,9 @@ static void PIT_Update()
 }
 int32_t    sys_argc;
 char** sys_argv;
+
+static int Sys_Thread(void *a);
+static SDL_Thread *sys_thread_id;
 
 void Sys_Init(int argc, char **argv)
 {
@@ -154,6 +158,11 @@ void Sys_Init(int argc, char **argv)
 	mouse_buttons = 0;
 	mouse_dx = 0;
 	mouse_dy = 0;
+
+	Video_Init();
+	Video_Set(1, 720, 400);
+
+	sys_thread_id = SDL_CreateThread(Sys_Thread, "sys_thread", NULL);
 }
 
 static int window_focus = 0;
@@ -165,6 +174,45 @@ static void UpdateMouse()
 		mouse_buttons = 0;
 		mouse_dx = 0;
 		mouse_dy = 0;
+	}
+}
+
+static int sys_exit;
+static uint64_t next_videoupdate;
+static uint64_t video_tdelta = 1000000000 / 70;
+static volatile uint64_t video_wholeframes;
+
+static int Sys_Thread(void *a)
+{
+	while (!sys_exit)
+	{
+		Sys_HandleEvents();
+
+		uint64_t now = SDL_GetTicksNS();
+		if (now >= next_videoupdate)
+		{
+			next_videoupdate += video_tdelta;
+			if (next_videoupdate < now)
+				next_videoupdate = now + video_tdelta;
+			video_wholeframes++;
+
+			Video_Blit();
+		}
+		else
+		{
+			uint64_t w = next_videoupdate - now;
+			SDL_Delay(w / 1000000);
+		}
+
+	}
+}
+
+void Sys_WaitVSync()
+{
+	uint64_t cur = video_wholeframes;
+	while (cur == video_wholeframes)
+	{
+		SDL_Delay(0);
 	}
 }
 

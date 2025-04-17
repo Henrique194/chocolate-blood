@@ -8,6 +8,7 @@ static int graphics_init = 0;
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 static SDL_Texture* texture;
+static SDL_Mutex* video_mutex;
 
 char video_palette[768];
 char* video_buffer;
@@ -62,31 +63,20 @@ static void ResizeWindow(int w, int h)
 	}	
 }
 
+void Video_Init()
+{
+	video_mutex = SDL_CreateMutex();
+}
+
 void Video_Set(int graphics, int w, int h)
 {
+	SDL_LockMutex(video_mutex);
+
 	if (!graphics)
 	{
 		// text
 		w = 640;
 		h = 400;
-	}
-
-	int window_w = w, window_h = h;
-
-	if (w < 640)
-	{
-		window_w = w << 1;
-		window_h = h << 1;
-	}
-
-	if (!graphics_init)
-	{
-		CreateWindow(window_w, window_h);
-		graphics_init = 1;
-	}
-	else
-	{
-		ResizeWindow(window_w, window_h);
 	}
 
 	video_graphics = graphics;
@@ -115,45 +105,78 @@ void Video_Set(int graphics, int w, int h)
 	else
 	{
 	}
+
+	SDL_UnlockMutex(video_mutex);
 }
 
-static int last_page;
+static int active_page;
 
 void Video_BlitPage(int32_t page)
 {
 	if (!video_graphics)
 		return;
 
+	active_page = page;
+}
+
+void Video_Blit()
+{
 	static uint32_t pal[256];
 
-	for (int i = 0; i < 256; i++)
+	SDL_LockMutex(video_mutex);
+
+	int window_w, window_h;
+
+	if (video_graphics)
 	{
-		uint8_t r = video_palette[i * 3 + 0] & 63;
-		uint8_t g = video_palette[i * 3 + 1] & 63;
-		uint8_t b = video_palette[i * 3 + 2] & 63;
-
-		r = (r << 2) | (r >> 4);
-		g = (g << 2) | (g >> 4);
-		b = (b << 2) | (b >> 4);
-
-		pal[i] = (r<<0) | (g<<8) | (b<<16) | (0xff<<24);
+		window_w = video_xdim;
+		window_h = video_ydim;
+	}
+	else
+	{
+		window_w = 720;
+		window_h = 400;
 	}
 
-	if (page == -1)
-		page = last_page;
-	last_page = page;
-	
-	char* ptr = video_buffer + page * video_page_stride;
-
-	for (int i = 0; i < video_xdim * video_ydim; i++)
+	if (!graphics_init)
 	{
-		video_buffer_rgba[i] = pal[ptr[i]];
+		CreateWindow(window_w, window_h);
+		graphics_init = 1;
+	}
+	else
+	{
+		ResizeWindow(window_w, window_h);
 	}
 
-	SDL_UpdateTexture(texture, NULL, video_buffer_rgba, video_xdim << 2);
+	if (video_graphics)
+	{
+		for (int i = 0; i < 256; i++)
+		{
+			uint8_t r = video_palette[i * 3 + 0] & 63;
+			uint8_t g = video_palette[i * 3 + 1] & 63;
+			uint8_t b = video_palette[i * 3 + 2] & 63;
+
+			r = (r << 2) | (r >> 4);
+			g = (g << 2) | (g >> 4);
+			b = (b << 2) | (b >> 4);
+
+			pal[i] = (r << 0) | (g << 8) | (b << 16) | (0xff << 24);
+		}
+
+		char* ptr = video_buffer + active_page * video_page_stride;
+
+		for (int i = 0; i < video_xdim * video_ydim; i++)
+		{
+			video_buffer_rgba[i] = pal[ptr[i]];
+		}
+
+		SDL_UpdateTexture(texture, NULL, video_buffer_rgba, video_xdim << 2);
+	}
 	SDL_RenderTexture(renderer, texture, NULL, NULL);
 
 	SDL_RenderPresent(renderer);
+
+	SDL_UnlockMutex(video_mutex);
 }
 
 

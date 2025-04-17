@@ -7347,7 +7347,6 @@ void main(int argc,char **argv)
 
 
     Sys_Init(argc, argv);
-    Video_Set(1, 1280, 1024);
     Sound_Init(44100);
 
     ud.lockout = 1;
