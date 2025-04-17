@@ -304,7 +304,7 @@ void initsb(char dadigistat, char damusistat, int32_t dasamplerate, char danumsp
 		int size = ((sndbufsiz<<(bytespersample+numspeakers-1))+15)>>4;
 		if ((sndoffs = Blaster_SetDmaPageSize(size << 4)) == 0)
 		{
-			printf("Could not allocation conventional memory for digitized music\n");
+			sys_printf("Could not allocation conventional memory for digitized music\n");
 			exit(0);
 		}
 
@@ -1058,7 +1058,7 @@ void loadwaves(char *wavename)
 	if (snd == 0)
 	{
 		if ((snd = (char *)malloc(totsndbytes+2)) == 0)
-			{ printf("Not enough memory for digital music!\n"); exit(0); }
+			{ sys_printf("Not enough memory for digital music!\n"); exit(0); }
 	}
 	for(i=0;i<MAXWAVES;i++) wavoffs[i] += FP_OFF(snd);
 	if (fil != -1)
@@ -1080,7 +1080,7 @@ int loadsong(char *filename)
 	if (strstr(f2,".KDM") == 0) strcat(f2,".KDM");
 	if ((fil = kopen4load(f2,0)) == -1)
 	{
-		printf("I cannot load %s.\n", f2);
+		sys_printf("I cannot load %s.\n", f2);
 		uninitsb();
 		free(f2);
 		return(-1);
@@ -1168,7 +1168,7 @@ installbikdmhandlers()
 		//Allocate memory in low memory to store real mode handler
 	if ((lowp = kdmconvalloc32(KDMCODEBYTES)) == 0)
 	{
-		printf("Can't allocate conventional memory.\n");
+		sys_printf("Can't allocate conventional memory.\n");
 		exit;
 	}
 	memcpy((void *)lowp,(void *)pcrealbuffer,KDMCODEBYTES);

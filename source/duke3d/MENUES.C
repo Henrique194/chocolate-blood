@@ -75,24 +75,24 @@ void TENtext(void)
 #if 0
     int32_t dacount,dalastcount;
 
-    puts("\nDuke Nukem 3D has been licensed exclusively to TEN (Total");
-    puts("Entertainment Network) for wide-area networked (WAN) multiplayer");
-    puts("games.\n");
+    sys_puts("\nDuke Nukem 3D has been licensed exclusively to TEN (Total");
+    sys_puts("Entertainment Network) for wide-area networked (WAN) multiplayer");
+    sys_puts("games.\n");
 
-    puts("The multiplayer code within Duke Nukem 3D has been highly");
-    puts("customized to run best on TEN, where you'll experience fast and");
-    puts("stable performance, plus other special benefits.\n");
+    sys_puts("The multiplayer code within Duke Nukem 3D has been highly");
+    sys_puts("customized to run best on TEN, where you'll experience fast and");
+    sys_puts("stable performance, plus other special benefits.\n");
 
-    puts("We do not authorize or recommend the use of Duke Nukem 3D with");
-    puts("gaming services other than TEN.\n");
+    sys_puts("We do not authorize or recommend the use of Duke Nukem 3D with");
+    sys_puts("gaming services other than TEN.\n");
 
-    puts("Duke Nukem 3D is protected by United States copyright law and");
-    puts("international treaty.\n");
+    sys_puts("Duke Nukem 3D is protected by United States copyright law and");
+    sys_puts("international treaty.\n");
 
-    puts("For the best online multiplayer gaming experience, please call TEN");
-    puts("at 800-8040-TEN, or visit TEN's Web Site at www.ten.net.\n");
+    sys_puts("For the best online multiplayer gaming experience, please call TEN");
+    sys_puts("at 800-8040-TEN, or visit TEN's Web Site at www.ten.net.\n");
 
-    puts("Press any key to continue.\n");
+    sys_puts("Press any key to continue.\n");
 
     _bios_timeofday(0,&dacount);
 

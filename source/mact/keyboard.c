@@ -168,7 +168,7 @@ void KB_Startup(void)
 	KB_FlushKeyboardQueue();
 	KB_ClearKeysDown();
 	KEYBOARD_Startup();
-	printf("KB_Startup: Keyboard Started\n");
+	sys_printf("KB_Startup: Keyboard Started\n");
 }
 
 void KB_Shutdown(void)

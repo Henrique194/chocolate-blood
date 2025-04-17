@@ -611,7 +611,7 @@ void getpackets(void)
                 }
 
                 if (j > packbufleng)
-                    printf("INVALID GAME PACKET!!! (%ld too many bytes)\n",j-packbufleng);
+                    sys_printf("INVALID GAME PACKET!!! (%ld too many bytes)\n",j-packbufleng);
 
                 while (j != packbufleng)
                 {
@@ -1997,8 +1997,8 @@ void gameexit(char *t)
         if(playonten == 0)
         {
             if(*t == ' ' && *(t+1) == 0) t = "";
-            printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-            printf("%s%s","\n",t);
+            sys_printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+            sys_printf("%s%s","\n",t);
         }
     }
 
@@ -2220,7 +2220,7 @@ void displayrest(int32_t smoothratio)
     walltype *wal;
     int32_t cposx,cposy,cang;
 
-    // printf("%ld\n",cacnum);
+    // sys_printf("%ld\n",cacnum);
 
     // Print Gotpic picnum array if bit on, walloc of picnum
 
@@ -6558,30 +6558,30 @@ void nonsharedkeys(void)
 
 void comlinehelp(char **argv)
 {
-    printf("Command line help.  %s [/flags...]\n",argv[0]);
-    puts(" ?, /?         This help message");
-    puts(" /l##          Level (1-11)");
-    puts(" /v#           Volume (1-4)");
-    puts(" /s#           Skill (1-4)");
-    puts(" /r            Record demo");
-    puts(" /dFILE        Start to play demo FILE");
-    puts(" /m            No monsters");
-    puts(" /ns           No sound");
-    puts(" /nm           No music");
-    puts(" /t#           Respawn, 1 = Monsters, 2 = Items, 3 = Inventory, x = All");
-    puts(" /c#           MP mode, 1 = DukeMatch(spawn), 2 = Coop, 3 = Dukematch(no spawn)");
-    puts(" /q#           Fake multiplayer (2-8 players)");
-    puts(" /a            Use player AI (fake multiplayer only)");
-    puts(" /i#           Network mode (1/0) (multiplayer only) (default == 1)");
-    puts(" /f#           Send fewer packets (1, 2, 4) (multiplayer only)");
-    puts(" /gFILE, /g... Use multiple group files (must be last on command line)");
-    puts(" /xFILE        Compile FILE (default GAME.CON)");
-    puts(" /u#########   User's favorite weapon order (default: 3425689071)");
-    puts(" /#            Load and run a game (slot 0-9)");
-    puts(" /z            Skip memory check");
-    puts(" -map FILE     Use a map FILE");
-    puts(" -name NAME    Foward NAME");
-  printf(" -net          Net mode game");
+    sys_printf("Command line help.  %s [/flags...]\n",argv[0]);
+    sys_puts(" ?, /?         This help message");
+    sys_puts(" /l##          Level (1-11)");
+    sys_puts(" /v#           Volume (1-4)");
+    sys_puts(" /s#           Skill (1-4)");
+    sys_puts(" /r            Record demo");
+    sys_puts(" /dFILE        Start to play demo FILE");
+    sys_puts(" /m            No monsters");
+    sys_puts(" /ns           No sound");
+    sys_puts(" /nm           No music");
+    sys_puts(" /t#           Respawn, 1 = Monsters, 2 = Items, 3 = Inventory, x = All");
+    sys_puts(" /c#           MP mode, 1 = DukeMatch(spawn), 2 = Coop, 3 = Dukematch(no spawn)");
+    sys_puts(" /q#           Fake multiplayer (2-8 players)");
+    sys_puts(" /a            Use player AI (fake multiplayer only)");
+    sys_puts(" /i#           Network mode (1/0) (multiplayer only) (default == 1)");
+    sys_puts(" /f#           Send fewer packets (1, 2, 4) (multiplayer only)");
+    sys_puts(" /gFILE, /g... Use multiple group files (must be last on command line)");
+    sys_puts(" /xFILE        Compile FILE (default GAME.CON)");
+    sys_puts(" /u#########   User's favorite weapon order (default: 3425689071)");
+    sys_puts(" /#            Load and run a game (slot 0-9)");
+    sys_puts(" /z            Skip memory check");
+    sys_puts(" -map FILE     Use a map FILE");
+    sys_puts(" -name NAME    Foward NAME");
+  sys_printf(" -net          Net mode game");
 }
 
 void checkcommandline(int argc,char **argv)
@@ -6628,7 +6628,7 @@ void checkcommandline(int argc,char **argv)
                 switch(*c)
                 {
                     default:
-  //                      printf("Unknown command line parameter '%s'\n",argv[i]);
+  //                      sys_printf("Unknown command line parameter '%s'\n",argv[i]);
                     case '?':
                         comlinehelp(argv);
                         exit(0);
@@ -6640,10 +6640,10 @@ void checkcommandline(int argc,char **argv)
                             strcpy(confilename,c);
                             if(SafeFileExists(c) == 0)
                             {
-                                printf("Could not find con file '%s'.\n",confilename );
+                                sys_printf("Could not find con file '%s'.\n",confilename );
                                 exit(-1);
                             }
-                            else printf("Using con file: '%s'\n",confilename);
+                            else sys_printf("Using con file: '%s'\n",confilename);
                         }
                         break;
                     case 'g':
@@ -6656,11 +6656,11 @@ void checkcommandline(int argc,char **argv)
 
                             j = initgroupfile(c);
                             if( j == -1 )
-                                printf("Could not find group file %s.\n",c);
+                                sys_printf("Could not find group file %s.\n",c);
                             else
                             {
                                 groupfile = j;
-                                printf("Using group file %s.\n",c);
+                                sys_printf("Using group file %s.\n",c);
                             }
                         }
 
@@ -6668,7 +6668,7 @@ void checkcommandline(int argc,char **argv)
                     case 'a':
                     case 'A':
                         ud.playerai = 1;
-                        puts("Other player AI.");
+                        sys_puts("Other player AI.");
                         break;
                     case 'n':
                     case 'N':
@@ -6676,12 +6676,12 @@ void checkcommandline(int argc,char **argv)
                         if(*c == 's' || *c == 'S')
                         {
                             CommandSoundToggleOff = 2;
-                            puts("Sound off.");
+                            sys_puts("Sound off.");
                         }
                         else if(*c == 'm' || *c == 'M')
                         {
                             CommandMusicToggleOff = 1;
-                            puts("Music off.");
+                            sys_puts("Music off.");
                         }
                         else
                         {
@@ -6694,7 +6694,7 @@ void checkcommandline(int argc,char **argv)
                         c++;
                         if(*c == '0') networkmode = 0;
                         if(*c == '1') networkmode = 1;
-                        printf("Network Mode %d\n",networkmode);
+                        sys_printf("Network Mode %d\n",networkmode);
                         break;
                     case 'c':
                     case 'C':
@@ -6706,13 +6706,13 @@ void checkcommandline(int argc,char **argv)
                         switch(ud.m_coop)
                         {
                             case 0:
-                                puts("Dukematch (spawn).");
+                                sys_puts("Dukematch (spawn).");
                                 break;
                             case 1:
-                                puts("Cooperative play.");
+                                sys_puts("Cooperative play.");
                                 break;
                             case 2:
-                                puts("Dukematch (no spawn).");
+                                sys_puts("Dukematch (no spawn).");
                                 break;
                         }
 
@@ -6746,7 +6746,7 @@ void checkcommandline(int argc,char **argv)
                             ud.m_respawn_items = 1;
                             ud.m_respawn_inventory = 1;
                         }
-                        puts("Respawn on.");
+                        sys_puts("Respawn on.");
                         break;
                     case 'm':
                     case 'M':
@@ -6754,7 +6754,7 @@ void checkcommandline(int argc,char **argv)
                         {
                             ud.m_monsters_off = 1;
                             ud.m_player_skill = ud.player_skill = 0;
-                            puts("Monsters off.");
+                            sys_puts("Monsters off.");
                         }
                         break;
                     case 'w':
@@ -6763,7 +6763,7 @@ void checkcommandline(int argc,char **argv)
                         break;
                     case 'q':
                     case 'Q':
-                        puts("Fake multiplayer mode.");
+                        sys_puts("Fake multiplayer mode.");
                         if( *(++c) == 0) ud.multimode = 1;
                         else ud.multimode = atol(c)%17;
                         ud.m_coop = ud.coop = 0;
@@ -6776,14 +6776,14 @@ void checkcommandline(int argc,char **argv)
                     case 'r':
                     case 'R':
                         ud.m_recstat = 1;
-                        puts("Demo record mode on.");
+                        sys_puts("Demo record mode on.");
                         break;
                     case 'd':
                     case 'D':
                         c++;
                         if( strchr(c,'.') == 0)
                             strcat(c,".dmo");
-                        printf("Play demo %s.\n",c);
+                        sys_printf("Play demo %s.\n",c);
                         strcpy(firstdemofile,c);
                         break;
                     case 'l':
@@ -6797,15 +6797,15 @@ void checkcommandline(int argc,char **argv)
 
                         #ifdef VOLUMEALL
                             #ifdef AUSTRALIA
-                                printf(HEAD2A);
+                                sys_printf(HEAD2A);
                             #else
-                                printf(HEAD2);
+                                sys_printf(HEAD2);
                             #endif
                         #else
                              #ifdef AUSTRALIA
-                                 printf(HEADA);
+                                 sys_printf(HEADA);
                              #else
-                                 printf(HEAD);
+                                 sys_printf(HEAD);
                              #endif
                         #endif
 
@@ -6842,7 +6842,7 @@ void checkcommandline(int argc,char **argv)
                         j = 0;
                         if(*c)
                         {
-                            puts("Using favorite weapon order(s).");
+                            sys_puts("Using favorite weapon order(s).");
                             while(*c)
                             {
                                 ud.wchoice[0][j] = *c-'0';
@@ -6861,7 +6861,7 @@ void checkcommandline(int argc,char **argv)
                         }
                         else
                         {
-                            puts("Using default weapon orders.");
+                            sys_puts("Using default weapon orders.");
                             ud.wchoice[0][0] = 3;
                             ud.wchoice[0][1] = 4;
                             ud.wchoice[0][2] = 5;
@@ -6882,11 +6882,10 @@ void checkcommandline(int argc,char **argv)
     }
 }
 
-
+extern char* video_text_buffer;
 
 void printstr(short x, short y, char string[81], char attribute)
 {
-#if 0
 	char character;
 	short i, pos;
 
@@ -6895,11 +6894,11 @@ void printstr(short x, short y, char string[81], char attribute)
 	while (string[i] != 0)
 	{
 		character = string[i];
-		printchrasm(0xb8000+(int32_t)pos,1L,((int32_t)attribute<<8)+(int32_t)character);
+        video_text_buffer[pos] = character;
+        video_text_buffer[pos + 1] = attribute;
 		i++;
 		pos+=2;
 	}
-#endif
 }
 
 /*
@@ -7103,13 +7102,13 @@ void compilecons(void)
    labelcode = (intptr_t *)&sector[0];
    label = (char *)&sprite[0];
 
-//   printf("%ld %ld %ld\n",sizeof(hittype),sizeof(sector),sizeof(sprite));
+//   sys_printf("%ld %ld %ld\n",sizeof(hittype),sizeof(sector),sizeof(sprite));
 //   exit(0);
 
    loadefs(confilename,mymembuf);
    if( loadfromgrouponly )
    {
-       printf("  * Writing defaults to current directory.\n");
+       sys_printf("  * Writing defaults to current directory.\n");
        loadefs(confilename,mymembuf);
    }
 }
@@ -7135,8 +7134,8 @@ void Startup(void)
 
 #ifdef VOLUMEONE
 
-   printf("\n*** You have run Duke Nukem 3D %ld times. ***\n\n",ud.executions);
-   if(ud.executions >= 50) puts("IT IS NOW TIME TO UPGRADE TO THE COMPLETE VERSION!!!\n");
+   sys_printf("\n*** You have run Duke Nukem 3D %ld times. ***\n\n",ud.executions);
+   if(ud.executions >= 50) sys_puts("IT IS NOW TIME TO UPGRADE TO THE COMPLETE VERSION!!!\n");
 
 #endif
 
@@ -7145,11 +7144,11 @@ void Startup(void)
    initengine();
    inittimer();
 
-   puts("* Hold Esc to Abort. *");
-   puts("Loading art header.");
+   sys_puts("* Hold Esc to Abort. *");
+   sys_puts("Loading art header.");
    loadpics("tiles000.art");
 
-   puts("Loading palette/lookups.");
+   sys_puts("Loading palette/lookups.");
    genspriteremaps();
 
    readsavenames();
@@ -7160,7 +7159,7 @@ void Startup(void)
    initmultiplayers(0,0,0);
 
    if(numplayers > 1)
-       puts("Multiplayer initialized.");
+       sys_puts("Multiplayer initialized.");
 
    ps[myconnectindex].palette = (char *) &palette[0];
    SetupGameButtons();
@@ -7168,9 +7167,9 @@ void Startup(void)
    if(networkmode == 255)
        networkmode = 1;
 
-   puts("Checking music inits.");
+   sys_puts("Checking music inits.");
    MusicStartup();
-   puts("Checking sound inits.");
+   sys_puts("Checking sound inits.");
    SoundStartup();
    loadtmb();
 
@@ -7381,12 +7380,12 @@ void main(int argc,char **argv)
 
     ud.multimode = 1;
     printstr(0,1,"                   Copyright (c) 1996 3D Realms Entertainment                   ",79);
-    printf("\n\n");
+    sys_printf("\n\n");
 
 #ifdef AUSTRALIA
-    puts("NOTICE: This version of Duke Nukem 3D has been modified from it's original");
-    puts("version.  It has been modified to remove adult or violent content.");
-    puts("\nPress any key to continue.");
+    sys_puts("NOTICE: This version of Duke Nukem 3D has been modified from it's original");
+    sys_puts("version.  It has been modified to remove adult or violent content.");
+    sys_puts("\nPress any key to continue.");
     getch();
 #endif
 
@@ -7401,15 +7400,15 @@ void main(int argc,char **argv)
     {
         if(totalmemory < (3162000-350000))
         {
-            puts("You don't have enough free memory to run Duke Nukem 3D.");
-            puts("The DOS \"mem\" command should report 6,800K (or 6.8 megs)");
-            puts("of \"total memory free\".\n");
-            printf("Duke Nukem 3D requires %ld more bytes to run.\n",3162000-350000-totalmemory);
+            sys_puts("You don't have enough free memory to run Duke Nukem 3D.");
+            sys_puts("The DOS \"mem\" command should report 6,800K (or 6.8 megs)");
+            sys_puts("of \"total memory free\".\n");
+            sys_printf("Duke Nukem 3D requires %ld more bytes to run.\n",3162000-350000-totalmemory);
             exit(0);
         }
     }
     else
-        printf("Using %ld bytes for heap.\n",totalmemory);
+        sys_printf("Using %ld bytes for heap.\n",totalmemory);
 
 #ifndef ONELEVELDEMO
     if(movesperpacket == 4)
@@ -7419,20 +7418,20 @@ void main(int argc,char **argv)
     RegisterShutdownFunction( ShutDown );
 
 #ifdef VOLUMEONE
-    puts("Distribution of shareware Duke Nukem 3D is restricted in certain ways.");
-    puts("Please read LICENSE.DOC for more details.\n");
+    sys_puts("Distribution of shareware Duke Nukem 3D is restricted in certain ways.");
+    sys_puts("Please read LICENSE.DOC for more details.\n");
 #endif
 #ifdef ONELEVELDEMO
-    puts("DUKE NUKEM 3D SINGLE-LEVEL PROMOTIONAL EDITION\n");
-    puts("This single-level promotional edition of Duke Nukem 3D (tm) may not be");
-    puts("distributed domestically (North America) by any publication other than");
-    puts("Computer Gaming World, a Ziff-Davis publication.  It is a promotional");
-    puts("version, licensed for a single month's run, and may not be redistributed");
-    puts("by any online service, BBS, commercial publisher, magazine or distributor.");
-    puts("International distribution rights are reserved.\n");
-    puts("Please read LICENSE.DOC for further information about this special version.");
-    puts("NOTE: DUKE NUKEM 3D CONTAINS MATURE CONTENT.\n");
-    puts("Press any key to continue.");
+    sys_puts("DUKE NUKEM 3D SINGLE-LEVEL PROMOTIONAL EDITION\n");
+    sys_puts("This single-level promotional edition of Duke Nukem 3D (tm) may not be");
+    sys_puts("distributed domestically (North America) by any publication other than");
+    sys_puts("Computer Gaming World, a Ziff-Davis publication.  It is a promotional");
+    sys_puts("version, licensed for a single month's run, and may not be redistributed");
+    sys_puts("by any online service, BBS, commercial publisher, magazine or distributor.");
+    sys_puts("International distribution rights are reserved.\n");
+    sys_puts("Please read LICENSE.DOC for further information about this special version.");
+    sys_puts("NOTE: DUKE NUKEM 3D CONTAINS MATURE CONTENT.\n");
+    sys_puts("Press any key to continue.");
     getch();
 #endif
 
@@ -7440,13 +7439,13 @@ void main(int argc,char **argv)
 
     if( eightytwofifty && numplayers > 1 && (MusicDevice != NumSoundCards) )
     {
-        puts("\n=========================================================================");
-        puts("WARNING: 8250 UART detected.");
-        puts("Music is being disabled and lower quality sound is being set.  We apologize");
-        puts("for this, but it is necessary to maintain high frame rates while trying to");
-        puts("play the game on an 8250.  We suggest upgrading to a 16550 or better UART");
-        puts("for maximum performance.  Press any key to continue.");
-        puts("=========================================================================\n");
+        sys_puts("\n=========================================================================");
+        sys_puts("WARNING: 8250 UART detected.");
+        sys_puts("Music is being disabled and lower quality sound is being set.  We apologize");
+        sys_puts("for this, but it is necessary to maintain high frame rates while trying to");
+        sys_puts("play the game on an 8250.  We suggest upgrading to a 16550 or better UART");
+        sys_puts("for maximum performance.  Press any key to continue.");
+        sys_puts("=========================================================================\n");
 
         while( !KB_KeyWaiting() ) getpackets();
     }
@@ -7477,7 +7476,7 @@ void main(int argc,char **argv)
     ud.last_level = -1;
 
    RTS_Init(ud.rtsname);
-   if(numlumps) printf("Using .RTS file:%s\n",ud.rtsname);
+   if(numlumps) sys_printf("Using .RTS file:%s\n",ud.rtsname);
 
    if (CONTROL_JoystickEnabled)
        CONTROL_CenterJoystick
@@ -7491,7 +7490,7 @@ void main(int argc,char **argv)
 
     if( setgamemode(ScreenMode,ScreenWidth,ScreenHeight) < 0 )
     {
-        printf("\nVESA driver for ( %ld * %ld ) not found/supported!\n",xdim,ydim);
+        sys_printf("\nVESA driver for ( %ld * %ld ) not found/supported!\n",xdim,ydim);
         vidoption = ScreenMode = 2;
         setgamemode(ScreenMode,ScreenWidth,ScreenHeight);
     }
@@ -9446,7 +9445,7 @@ int32_t GetTime(void)
 
 void CenterCenter(void)
    {
-   printf("Center the joystick and press a button\n");
+   sys_printf("Center the joystick and press a button\n");
    }
 
 /*
@@ -9459,7 +9458,7 @@ void CenterCenter(void)
 
 void UpperLeft(void)
    {
-   printf("Move joystick to upper-left corner and press a button\n");
+   sys_printf("Move joystick to upper-left corner and press a button\n");
    }
 
 /*
@@ -9472,7 +9471,7 @@ void UpperLeft(void)
 
 void LowerRight(void)
    {
-   printf("Move joystick to lower-right corner and press a button\n");
+   sys_printf("Move joystick to lower-right corner and press a button\n");
    }
 
 /*
@@ -9485,7 +9484,7 @@ void LowerRight(void)
 
 void CenterThrottle(void)
    {
-   printf("Center the throttle control and press a button\n");
+   sys_printf("Center the throttle control and press a button\n");
    }
 
 /*
@@ -9498,7 +9497,7 @@ void CenterThrottle(void)
 
 void CenterRudder(void)
 {
-   printf("Center the rudder control and press a button\n");
+   sys_printf("Center the rudder control and press a button\n");
 }
 
 // Rare Multiplayer, when dead, total screen screwup back again!

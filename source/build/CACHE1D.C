@@ -73,15 +73,15 @@ void allocache (intptr_t *newhandle, int32_t newbytes, char *newlockptr)
 
 	if ((unsigned)newbytes > (unsigned)cachesize)
 	{
-		printf("Cachesize: %ld\n",cachesize);
-		printf("*Newhandle: 0x%x, Newbytes: %ld, *Newlock: %d\n",(uint32_t)newhandle,newbytes,*newlockptr);
-		printf("BUFFER TOO BIG TO FIT IN CACHE!\n");
+		sys_printf("Cachesize: %ld\n",cachesize);
+		sys_printf("*Newhandle: 0x%x, Newbytes: %ld, *Newlock: %d\n",(uint32_t)newhandle,newbytes,*newlockptr);
+		sys_printf("BUFFER TOO BIG TO FIT IN CACHE!\n");
 		reportandexit();
 	}
 
 	if (*newlockptr == 0)
 	{
-		printf("ALLOCACHE CALLED WITH LOCK OF 0!\n");
+		sys_printf("ALLOCACHE CALLED WITH LOCK OF 0!\n");
 		reportandexit();
 	}
 
@@ -107,11 +107,11 @@ void allocache (intptr_t *newhandle, int32_t newbytes, char *newlockptr)
 		}
 	}
 
-	//printf("%ld %ld %ld\n",besto,newbytes,*newlockptr);
+	//sys_printf("%ld %ld %ld\n",besto,newbytes,*newlockptr);
 
 	if (bestval == 0x7fffffff)
 	{
-		printf("CACHE SPACE ALL LOCKED UP!\n");
+		sys_printf("CACHE SPACE ALL LOCKED UP!\n");
 		reportandexit();
 	}
 
@@ -194,18 +194,18 @@ void reportandexit()
 	int32_t i, j;
 
 	setvmode(0x3);
-	printf("Cachesize = %ld\n",cachesize);
-	printf("Cacnum = %ld\n",cacnum);
+	sys_printf("Cachesize = %ld\n",cachesize);
+	sys_printf("Cacnum = %ld\n",cacnum);
 	j = 0;
 	for(i=0;i<cacnum;i++)
 	{
-		printf("%ld- ",i);
-		printf("ptr: 0x%x, ",(uint32_t)*cac[i].hand);
-		printf("leng: %ld, ",cac[i].leng);
-		printf("lock: %ld\n",*cac[i].lock);
+		sys_printf("%ld- ",i);
+		sys_printf("ptr: 0x%x, ",(uint32_t)*cac[i].hand);
+		sys_printf("leng: %ld, ",cac[i].leng);
+		sys_printf("lock: %ld\n",*cac[i].lock);
 		j += cac[i].leng;
 	}
-	printf("Cache length sum = %ld\n",j);
+	sys_printf("Cache length sum = %ld\n",j);
 	exit(0);
 }
 
@@ -281,9 +281,9 @@ int32_t initgroupfile(char *filename)
 		gnumfiles[numgroupfiles] = *((int32_t *)&buf[12]);
 
 		if ((gfilelist[numgroupfiles] = (char *)kmalloc(gnumfiles[numgroupfiles]<<4)) == 0)
-			{ printf("Not enough memory for file grouping system\n"); exit(0); }
+			{ sys_printf("Not enough memory for file grouping system\n"); exit(0); }
 		if ((gfileoffs[numgroupfiles] = (int32_t *)kmalloc((gnumfiles[numgroupfiles]+1)<<2)) == 0)
-			{ printf("Not enough memory for file grouping system\n"); exit(0); }
+			{ sys_printf("Not enough memory for file grouping system\n"); exit(0); }
 
 		read(groupfil[numgroupfiles],gfilelist[numgroupfiles],gnumfiles[numgroupfiles]<<4);
 
@@ -326,7 +326,7 @@ int32_t kopen4load(char *filename, char searchfirst)
 		newhandle--;
 		if (newhandle < 0)
 		{
-			printf("TOO MANY FILES OPEN IN FILE GROUPING SYSTEM!");
+			sys_printf("TOO MANY FILES OPEN IN FILE GROUPING SYSTEM!");
 			exit(0);
 		}
 	}

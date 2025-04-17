@@ -39,6 +39,9 @@
     <ClCompile Include="..\source\build\serialize.c">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\build\video_font.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\build\video.h">

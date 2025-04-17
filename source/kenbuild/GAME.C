@@ -409,7 +409,7 @@ int main(short int argc,char **argv)
 		//Since it resets the tile cache for each call.
 	if (allocatepermanenttile(SLIME,128,128) == 0)    //If enough memory
 	{
-		printf("Not enough memory for slime!\n");
+		sys_printf("Not enough memory for slime!\n");
 		exit(0);
 	}
 	if (allocatepermanenttile(MAXTILES-1,64,64) != 0)    //If enough memory
@@ -575,8 +575,8 @@ int main(short int argc,char **argv)
 
 	if (stereomode)
 	{
-		printf("stereowidth was: %ld\n",stereowidth);
-		printf("stereopixelwidth was: %ld\n",stereopixelwidth);
+		sys_printf("stereowidth was: %ld\n",stereowidth);
+		sys_printf("stereopixelwidth was: %ld\n",stereopixelwidth);
 	}
 	return(0);
 }
@@ -986,7 +986,7 @@ void prepareboard(char *daboardfilename)
 		uninitsb();
 		uninitgroupfile();
 		setvmode(0x3);        //Set back to text mode
-		printf("Board not found\n");
+		sys_printf("Board not found\n");
 		exit(0);
 	}
 
@@ -4617,9 +4617,9 @@ void setup3dscreen()
 	i = setgamemode(option[0],vesares[option[6]&15][0],vesares[option[6]&15][1]);
 	if (i < 0)
 	{
-		printf("VESA driver for (%ld * %ld) not found/supported.\n",xdim,ydim);
-		printf("   Press ENTER to play in NORMAL mode instead\n");
-		printf("   Press ESC to quit to DOS\n");
+		sys_printf("VESA driver for (%ld * %ld) not found/supported.\n",xdim,ydim);
+		sys_printf("   Press ENTER to play in NORMAL mode instead\n");
+		sys_printf("   Press ESC to quit to DOS\n");
 		keystatus[1] = keystatus[0x1c] = keystatus[0x9c] = 0;
 		while (!keystatus[1])
 			if (keystatus[0x1c]|keystatus[0x9c])

@@ -1,4 +1,6 @@
 #include <SDL3/SDL.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "compat.h"
 #include "system.h"
 #include "video.h"
@@ -165,6 +167,7 @@ void Sys_Init(int argc, char **argv)
 	sys_thread_id = SDL_CreateThread(Sys_Thread, "sys_thread", NULL);
 }
 
+
 static int window_focus = 0;
 
 static void UpdateMouse()
@@ -200,10 +203,8 @@ static int Sys_Thread(void *a)
 		}
 		else
 		{
-			uint64_t w = next_videoupdate - now;
-			SDL_Delay(w / 1000000);
+			SDL_Delay(0);
 		}
-
 	}
 }
 
@@ -337,4 +338,24 @@ void Sys_GetMouseDelta(float* dx, float* dy)
 int Sys_GetMouseButtons()
 {
 	return mouse_buttons;
+}
+
+void sys_puts(const char* s)
+{
+	Video_Text_Puts(s);
+	Video_Text_Puts("\n");
+	puts(s);
+}
+
+void sys_printf(const char* s, ...)
+{
+	va_list vl;
+	va_start(vl, s);
+
+	static char buf[1024];
+	vsnprintf(buf, sizeof(buf), s, vl);
+	buf[1023] = 0;
+
+	Video_Text_Puts(buf);
+	printf("%s", buf);
 }

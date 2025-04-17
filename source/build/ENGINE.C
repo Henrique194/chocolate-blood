@@ -485,7 +485,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 
 	if (smostwallcnt < 0)
 		if (getkensmessagecrc(FP_OFF(kensmessage)) != 0x56c764d4)
-			{ setvmode(0x3); printf("Nice try.\n"); exit(0); }
+			{ setvmode(0x3); sys_printf("Nice try.\n"); exit(0); }
 
 	numhits = xdimen; numscans = 0; numbunches = 0;
 	maskwallcnt = 0; smostwallcnt = 0; smostcnt = 0; spritesortcnt = 0;
@@ -1945,7 +1945,7 @@ int32_t setgamemode(char davidoption, int32_t daxdim, int32_t daydim)
 
 	strcpy(kensmessage,"!!!! BUILD engine&tools programmed by Ken Silverman of E.G. RI.  (c) Copyright 1995 Ken Silverman.  Summary:  BUILD = Ken. !!!!");
 	if (getkensmessagecrc(FP_OFF(kensmessage)) != 0x56c764d4)
-		{ setvmode(0x3); printf("Nice try.\n"); exit(0); }
+		{ setvmode(0x3); sys_printf("Nice try.\n"); exit(0); }
 
 	ostereomode = stereomode; if (stereomode) uninitstereo();
 
@@ -2342,7 +2342,7 @@ void loadtile (short tilenume)
 		faketimerhandler();
 	}
 
-	if (cachedebug) printf("Tile:%ld\n",tilenume);
+	if (cachedebug) sys_printf("Tile:%ld\n",tilenume);
 
 	if (waloff[tilenume] == 0)
 	{
@@ -8741,11 +8741,11 @@ void setvmode(int a)
 	{
 		case 3:
 		default:
-			Video_Set(0, 0, 0);
+			Video_Set(a, 0, 0);
 			break;
 
 		case 0x13:
-			Video_Set(1, 320, 200);
+			Video_Set(a, 320, 200);
 			break;
 	}
 }

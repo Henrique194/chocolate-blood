@@ -19,6 +19,19 @@ int video_row_stride;
 int video_page_stride;
 int video_xdim, video_ydim;
 int video_graphics;
+char* video_text_buffer;
+static int old_video_w, old_video_h;
+int video_text_x, video_text_y;
+int video_text_lines;
+int video_text_cursor_active = 1;
+int video_text_cnt;
+
+static char textmode_palette[] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x00, 0x00, 0x2a, 0x2a, 0x2a, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x2a, 0x15, 0x00, 0x2a, 0x2a, 0x2a,
+	0x15, 0x15, 0x15, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x15, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x3f, 0x3f, 0x00, 0x3f, 0x3f, 0x3f
+};
+
+extern const uint8_t g_vga_8x16TextFont[];
 
 static void CreateWindow(int w, int h)
 {
@@ -65,6 +78,9 @@ static void ResizeWindow(int w, int h)
 
 void Video_Init()
 {
+	video_text_lines = 25;
+	video_text_buffer = malloc(80 * video_text_lines * 2);
+
 	video_mutex = SDL_CreateMutex();
 }
 
@@ -72,24 +88,16 @@ void Video_Set(int graphics, int w, int h)
 {
 	SDL_LockMutex(video_mutex);
 
-	if (!graphics)
-	{
-		// text
-		w = 640;
-		h = 400;
-	}
-
 	video_graphics = graphics;
 
-	if (video_buffer2)
+	if (graphics == 0x13)
 	{
-		free(video_buffer2);
-		video_buffer2 = NULL;
-		video_buffer = NULL;
-	}
-
-	if (graphics)
-	{
+		if (video_buffer2)
+		{
+			free(video_buffer2);
+			video_buffer2 = NULL;
+			video_buffer = NULL;
+		}
 		video_pages = 2;
 		video_xdim = w;
 		video_ydim = h;
@@ -100,11 +108,21 @@ void Video_Set(int graphics, int w, int h)
 		video_buffer2 = malloc(buffer_size);
 		video_buffer = (char*)((intptr_t)video_buffer2 & ~(intptr_t)15);
 
+		free(video_buffer_rgba);
 		video_buffer_rgba = malloc(w * h * 4);
 	}
 	else
 	{
+		memcpy(video_palette, textmode_palette, sizeof(textmode_palette));
+		memset(video_text_buffer, 0, 80 * video_text_lines * 2);
+		video_text_x = 0;
+		video_text_y = 0;
+
+		free(video_buffer_rgba);
+		video_buffer_rgba = malloc(720 * 16 * video_text_lines * 4);
 	}
+
+
 
 	SDL_UnlockMutex(video_mutex);
 }
@@ -127,7 +145,7 @@ void Video_Blit()
 
 	int window_w, window_h;
 
-	if (video_graphics)
+	if (video_graphics == 0x13)
 	{
 		window_w = video_xdim;
 		window_h = video_ydim;
@@ -143,25 +161,28 @@ void Video_Blit()
 		CreateWindow(window_w, window_h);
 		graphics_init = 1;
 	}
-	else
+	else if (old_video_w != window_w || old_video_h != window_h)
 	{
+		old_video_w = window_w;
+		old_video_h = window_h;
 		ResizeWindow(window_w, window_h);
 	}
 
-	if (video_graphics)
+	for (int i = 0; i < 256; i++)
 	{
-		for (int i = 0; i < 256; i++)
-		{
-			uint8_t r = video_palette[i * 3 + 0] & 63;
-			uint8_t g = video_palette[i * 3 + 1] & 63;
-			uint8_t b = video_palette[i * 3 + 2] & 63;
+		uint8_t r = video_palette[i * 3 + 0] & 63;
+		uint8_t g = video_palette[i * 3 + 1] & 63;
+		uint8_t b = video_palette[i * 3 + 2] & 63;
 
-			r = (r << 2) | (r >> 4);
-			g = (g << 2) | (g >> 4);
-			b = (b << 2) | (b >> 4);
+		r = (r << 2) | (r >> 4);
+		g = (g << 2) | (g >> 4);
+		b = (b << 2) | (b >> 4);
 
-			pal[i] = (r << 0) | (g << 8) | (b << 16) | (0xff << 24);
-		}
+		pal[i] = (r << 0) | (g << 8) | (b << 16) | (0xff << 24);
+	}
+
+	if (video_graphics == 0x13)
+	{
 
 		char* ptr = video_buffer + active_page * video_page_stride;
 
@@ -172,6 +193,63 @@ void Video_Blit()
 
 		SDL_UpdateTexture(texture, NULL, video_buffer_rgba, video_xdim << 2);
 	}
+	else
+	{
+		int stride = 16 * 720;
+		for (int i = 0; i < video_text_lines; i++)
+		{
+			uint32_t *dest = video_buffer_rgba + i * stride;
+			char* src = video_text_buffer + i * 160;
+			for (int j = 0; j < 80; j++)
+			{
+				char c = src[j * 2];
+				char a = src[j * 2 + 1];
+				int fc = a & 15;
+				int bc = (a >> 4) & 7;
+				int bl = (a & 128) != 0 && (video_text_cnt & 32) != 0;
+				uint8_t* fnt = &g_vga_8x16TextFont[c * 8 * 16];
+				uint32_t *dest2 = dest + 9 * j;
+
+				int is_cursor = (video_text_cnt & 8) != 0 && video_text_cursor_active
+					&& video_text_x == j && video_text_y == i;
+
+
+				for (int y = 0; y < 16; y++)
+				{
+					for (int x = 0; x < 9; x++)
+					{
+						int col;
+						if (is_cursor && (y == 13 || y == 14))
+						{
+							col = fc;
+						}
+						else if (bl)
+						{
+							col = bc;
+						}
+						else if (x == 8 && !(c >= 192 && c < 224))
+						{
+							col = bc;
+						}
+						else
+						{
+							int x2 = x;
+							if (x2 >= 8)
+								x2 = 7;
+							col = fnt[x2] ? fc : bc;
+						}
+						dest2[x] = pal[col];
+					}
+					dest2 += 720;
+					fnt += 8;
+				}
+			}
+		}
+
+		SDL_UpdateTexture(texture, NULL, video_buffer_rgba, 720 << 2);
+
+		video_text_cnt++;
+	}
 	SDL_RenderTexture(renderer, texture, NULL, NULL);
 
 	SDL_RenderPresent(renderer);
@@ -179,4 +257,34 @@ void Video_Blit()
 	SDL_UnlockMutex(video_mutex);
 }
 
+void Video_Text_Puts(const char* s)
+{
+	while (*s)
+	{
+		switch (*s)
+		{
+			default:
+				video_text_buffer[video_text_x * 2 + video_text_y * 160] = *s;
+				video_text_buffer[video_text_x * 2 + video_text_y * 160 + 1] = 0x07;
+				video_text_x++;
+				if (video_text_x < 80)
+					break;
+				__fallthrough;
+			case '\n':
+				video_text_y++;
+				video_text_x = 0;
+				if (video_text_y >= video_text_lines)
+				{
+					memmove(video_text_buffer, video_text_buffer + 80 * 2, (video_text_lines - 1) * 80 * 2);
+					memset(video_text_buffer + (video_text_lines - 1) * 80 * 2, 0, 80 * 2);
+					video_text_y = video_text_lines - 1;
+				}
+				break;
+			case '\r':
+				video_text_x = 0;
+				break;
+		}
+		s++;
+	}
+}
 

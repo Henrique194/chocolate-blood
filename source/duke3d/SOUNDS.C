@@ -60,7 +60,7 @@ void soundexit(char *s)
     KB_Shutdown();
     uninitgroupfile();
     unlink("duke3d.tmp");
-    puts(s);
+    sys_puts(s);
     exit(-1);
 }
 
@@ -137,7 +137,7 @@ void SoundShutdown( void )
    status = FX_Shutdown();
    if ( status != FX_Ok )
       {
-        puts("Error initializing sound.");
+        sys_puts("Error initializing sound.");
         gameexit("");
       }
    }

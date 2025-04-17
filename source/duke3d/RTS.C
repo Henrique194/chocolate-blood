@@ -77,7 +77,7 @@ void RTS_AddFile (char *filename)
    startlump = numlumps;
 
    // WAD file
-   printf("    Adding %s.\n",filename);
+   sys_printf("    Adding %s.\n",filename);
    SafeRead( handle, &header, sizeof( header ) );
    if (strncmp(header.identification,"IWAD",4))
       Error ("RTS file %s doesn't have IWAD id\n",filename);
@@ -125,7 +125,7 @@ void RTS_Init (char *filename)
    numlumps = 0;
    lumpinfo = SafeMalloc(5);   // will be realloced as lumps are added
 
-   printf("RTS Manager Started.\n");
+   sys_printf("RTS Manager Started.\n");
    if (SafeFileExists(filename))
       RTS_AddFile (filename);
 

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "compat.h"
+#include "system.h"
 #include "build.h"
 #include "pragmas.h"
 
@@ -219,7 +220,7 @@ void dosendpackets(int32_t other)
 	if (errorgotnum[other] > lasterrorgotnum[other])
 	{
 		lasterrorgotnum[other]++;
-		printf(" MeWant %ld",incnt[other]&255);
+		sys_printf(" MeWant %ld",incnt[other]&255);
 	}
 #endif
 
@@ -269,9 +270,9 @@ void dosendpackets(int32_t other)
 	gcom->numbytes = k;
 
 #if (SHOWSENDPACKETS)
-	printf("Send(%ld): ",gcom->other);
-	for(i=0;i<gcom->numbytes;i++) printf("%2x ",gcom->buffer[i]);
-	printf("\n");
+	sys_printf("Send(%ld): ",gcom->other);
+	for(i=0;i<gcom->numbytes;i++) sys_printf("%2x ",gcom->buffer[i]);
+	sys_printf("\n");
 #endif
 
 #if (SIMULATEERRORS != 0)
@@ -295,7 +296,7 @@ short getpacket (short *other, char *bufptr)
 			if (totalclock > lastsendtime[i]+timeoutcount)
 			{
 #if (PRINTERRORS)
-					printf(" TimeOut!");
+					sys_printf(" TimeOut!");
 #endif
 					errorgotnum[i] = errorfixnum[i]+1;
 
@@ -323,9 +324,9 @@ short getpacket (short *other, char *bufptr)
 #if (SHOWGETPACKETS)
 	if (gcom->other != -1)
 	{
-		printf(" Get(%ld): ",gcom->other);
-		for(i=0;i<gcom->numbytes;i++) printf("%2x ",gcom->buffer[i]);
-		printf("\n");
+		sys_printf(" Get(%ld): ",gcom->other);
+		for(i=0;i<gcom->numbytes;i++) sys_printf("%2x ",gcom->buffer[i]);
+		sys_printf("\n");
 	}
 #endif
 
@@ -339,7 +340,7 @@ short getpacket (short *other, char *bufptr)
 	if (dacrc != getcrc(gcom->buffer,messleng-2))        //CRC check
 	{
 #if (PRINTERRORS)
-		printf("\n%ld CRC",gcom->buffer[0]);
+		sys_printf("\n%ld CRC",gcom->buffer[0]);
 #endif
 		errorgotnum[*other] = errorfixnum[*other]+1;
 		return(0);
@@ -361,21 +362,21 @@ short getpacket (short *other, char *bufptr)
 		{
 			errorgotnum[*other] = errorfixnum[*other]+1;
 #if (PRINTERRORS)
-			printf("\n%ld CNT",gcom->buffer[0]);
+			sys_printf("\n%ld CNT",gcom->buffer[0]);
 #endif
 		}
 #if (PRINTERRORS)
 		else
 		{
 			if (!(gcom->buffer[1]&128))           //single else double packet
-				printf("\n%ld cnt",gcom->buffer[0]);
+				sys_printf("\n%ld cnt",gcom->buffer[0]);
 			else
 			{
 				if (((gcom->buffer[0]+1)&255) == (incnt[*other]&255))
 				{
 								 //GOOD! Take second half of double packet
 #if (PRINTERRORS)
-					printf("\n%ld-%ld .û ",gcom->buffer[0],(gcom->buffer[0]+1)&255);
+					sys_printf("\n%ld-%ld .û ",gcom->buffer[0],(gcom->buffer[0]+1)&255);
 #endif
 					messleng = ((int32_t)gcom->buffer[3]) + (((int32_t)gcom->buffer[4])<<8);
 					lastpacketleng = gcom->numbytes-7-messleng;
@@ -384,7 +385,7 @@ short getpacket (short *other, char *bufptr)
 					return(lastpacketleng);
 				}
 				else
-					printf("\n%ld-%ld cnt ",gcom->buffer[0],(gcom->buffer[0]+1)&255);
+					sys_printf("\n%ld-%ld cnt ",gcom->buffer[0],(gcom->buffer[0]+1)&255);
 			}
 		}
 #endif
@@ -395,7 +396,7 @@ short getpacket (short *other, char *bufptr)
 	if ((gcom->buffer[1]&128) == 0)           //Single packet
 	{
 #if (PRINTERRORS)
-		printf("\n%ld û  ",gcom->buffer[0]);
+		sys_printf("\n%ld û  ",gcom->buffer[0]);
 #endif
 
 		messleng = gcom->numbytes-5;
@@ -408,7 +409,7 @@ short getpacket (short *other, char *bufptr)
 
 														 //Double packet
 #if (PRINTERRORS)
-	printf("\n%ld-%ld ûû ",gcom->buffer[0],(gcom->buffer[0]+1)&255);
+	sys_printf("\n%ld-%ld ûû ",gcom->buffer[0],(gcom->buffer[0]+1)&255);
 #endif
 
 	messleng = ((int32_t)gcom->buffer[3]) + (((int32_t)gcom->buffer[4])<<8);

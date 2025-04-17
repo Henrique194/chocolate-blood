@@ -154,23 +154,23 @@ void CONFIG_GetSetupFilename( void )
       int32 oldtime;
       int32 count;
 
-      printf("\nMultiple Configuration Files Encountered\n");
-      printf("========================================\n");
-      printf("Please choose a configuration file from the following list by pressing its\n");
-      printf("corresponding letter:\n");
+      sys_printf("\nMultiple Configuration Files Encountered\n");
+      sys_printf("========================================\n");
+      sys_printf("Please choose a configuration file from the following list by pressing its\n");
+      sys_printf("corresponding letter:\n");
       for (i=0;i<numfiles;i++)
          {
          if (strcmpi(filenames[i],SETUPFILENAME))
             {
-            printf("%c. %s\n",'a'+(char)i,filenames[i]);
+            sys_printf("%c. %s\n",'a'+(char)i,filenames[i]);
             }
          else
             {
-            printf("%c. %s <DEFAULT>\n",'a'+(char)i,filenames[i]);
+            sys_printf("%c. %s <DEFAULT>\n",'a'+(char)i,filenames[i]);
             }
          }
-      printf("\n");
-      printf("(%s will be used if no selection is made within 10 seconds.)\n\n",SETUPFILENAME);
+      sys_printf("\n");
+      sys_printf("(%s will be used if no selection is made within 10 seconds.)\n\n",SETUPFILENAME);
       KB_FlushKeyboardQueue();
       KB_ClearKeysDown();
       count = 9;
@@ -180,7 +180,7 @@ void CONFIG_GetSetupFilename( void )
          {
          if (clock()>oldtime)
             {
-            printf("%ld seconds left. \r",count);
+            sys_printf("%ld seconds left. \r",count);
             fflush(stdout);
             oldtime = clock()+CLOCKS_PER_SEC;
             count--;
@@ -196,11 +196,11 @@ void CONFIG_GetSetupFilename( void )
                }
             }
          }
-      printf("\n\n");
+      sys_printf("\n\n");
       }
    if (numfiles==1)
       strcpy (setupfilename, filenames[0]);
-   printf("Using Setup file: '%s'\n",setupfilename);
+   sys_printf("Using Setup file: '%s'\n",setupfilename);
    SDL_Delay(3 * 1000 / 4);
    for (i=0;i<numfiles;i++)
       {
@@ -596,12 +596,12 @@ void CONFIG_ReadSetup( void )
        strcpy(boardfilename,sys_argv[dummy+1]);
        if( strchr(boardfilename,'.') == 0)
            strcat(boardfilename,".map");
-       printf("Using level: '%s'.\n",boardfilename);
+       sys_printf("Using level: '%s'.\n",boardfilename);
    }
    else
 #else
     if( dummy )
-        puts("The -map option is available in the registered version only!");
+        sys_puts("The -map option is available in the registered version only!");
 #endif
        boardfilename[0] = 0;
 

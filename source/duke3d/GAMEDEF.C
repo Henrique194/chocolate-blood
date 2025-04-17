@@ -367,16 +367,16 @@ int32_t transword(void) //Returns its code #
     textptr += l;
 
     if( tempbuf[0] == '{' && tempbuf[1] != 0)
-        printf("  * ERROR!(L%ld) Expecting a SPACE or CR between '{' and '%s'.\n",line_number,tempbuf+1);
+        sys_printf("  * ERROR!(L%ld) Expecting a SPACE or CR between '{' and '%s'.\n",line_number,tempbuf+1);
     else if( tempbuf[0] == '}' && tempbuf[1] != 0)
-        printf("  * ERROR!(L%ld) Expecting a SPACE or CR between '}' and '%s'.\n",line_number,tempbuf+1);
+        sys_printf("  * ERROR!(L%ld) Expecting a SPACE or CR between '}' and '%s'.\n",line_number,tempbuf+1);
     else if( tempbuf[0] == '/' && tempbuf[1] == '/' && tempbuf[2] != 0 )
-        printf("  * ERROR!(L%ld) Expecting a SPACE between '//' and '%s'.\n",line_number,tempbuf+2);
+        sys_printf("  * ERROR!(L%ld) Expecting a SPACE between '//' and '%s'.\n",line_number,tempbuf+2);
     else if( tempbuf[0] == '/' && tempbuf[1] == '*' && tempbuf[2] != 0 )
-        printf("  * ERROR!(L%ld) Expecting a SPACE between '/*' and '%s'.\n",line_number,tempbuf+2);
+        sys_printf("  * ERROR!(L%ld) Expecting a SPACE between '/*' and '%s'.\n",line_number,tempbuf+2);
     else if( tempbuf[0] == '*' && tempbuf[1] == '/' && tempbuf[2] != 0 )
-        printf("  * ERROR!(L%ld) Expecting a SPACE between '*/' and '%s'.\n",line_number,tempbuf+2);
-    else printf("  * ERROR!(L%ld) Expecting key word, but found '%s'.\n",line_number,tempbuf);
+        sys_printf("  * ERROR!(L%ld) Expecting a SPACE between '*/' and '%s'.\n",line_number,tempbuf+2);
+    else sys_printf("  * ERROR!(L%ld) Expecting key word, but found '%s'.\n",line_number,tempbuf);
 
     error++;
     return -1;
@@ -407,7 +407,7 @@ void transnum(void)
         if( strcmp( label+(labelcnt<<6),keyw[i]) == 0 )
     {
         error++;
-        printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
+        sys_printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
         textptr+=l;
     }
 
@@ -425,7 +425,7 @@ void transnum(void)
 
     if( isdigit(*textptr) == 0 && *textptr != '-')
     {
-        printf("  * ERROR!(L%ld) Parameter '%s' is undefined.\n",line_number,tempbuf);
+        sys_printf("  * ERROR!(L%ld) Parameter '%s' is undefined.\n",line_number,tempbuf);
         error++;
         textptr+=l;
         return;
@@ -464,7 +464,7 @@ char parsecommand(void)
                 if(*textptr == 0x0a) line_number++;
                 if( *textptr == 0 )
                 {
-                    printf("  * ERROR!(L%ld) Found '/*' with no '*/'.\n",j,label+(labelcnt<<6));
+                    sys_printf("  * ERROR!(L%ld) Found '/*' with no '*/'.\n",j,label+(labelcnt<<6));
                     error++;
                     return 0;
                 }
@@ -491,7 +491,7 @@ char parsecommand(void)
                 if( strcmp( label+(labelcnt<<6),keyw[i]) == 0 )
                 {
                     error++;
-                    printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
+                    sys_printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
                     return 0;
                 }
 
@@ -506,7 +506,7 @@ char parsecommand(void)
 
             if(j==labelcnt)
             {
-                printf("  * ERROR!(L%ld) State '%s' not found.\n",line_number,label+(labelcnt<<6));
+                sys_printf("  * ERROR!(L%ld) State '%s' not found.\n",line_number,label+(labelcnt<<6));
                 error++;
             }
             scriptptr++;
@@ -523,19 +523,19 @@ char parsecommand(void)
         case 18:
             if( parsing_state == 0 )
             {
-                printf("  * ERROR!(L%ld) Found 'ends' with no 'state'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'ends' with no 'state'.\n",line_number);
                 error++;
             }
 //            else
             {
                 if( num_squigilly_brackets > 0 )
                 {
-                    printf("  * ERROR!(L%ld) Found more '{' than '}' before 'ends'.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Found more '{' than '}' before 'ends'.\n",line_number);
                     error++;
                 }
                 if( num_squigilly_brackets < 0 )
                 {
-                    printf("  * ERROR!(L%ld) Found more '}' than '{' before 'ends'.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Found more '}' than '{' before 'ends'.\n",line_number);
                     error++;
                 }
                 parsing_state = 0;
@@ -549,7 +549,7 @@ char parsecommand(void)
                 if( strcmp( label+(labelcnt<<6),keyw[i]) == 0 )
                 {
                     error++;
-                    printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
+                    sys_printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
                     return 0;
                 }
 
@@ -558,7 +558,7 @@ char parsecommand(void)
                 if( strcmp(label+(labelcnt<<6),label+(i<<6)) == 0 )
                 {
                     warning++;
-                    printf("  * WARNING.(L%ld) Duplicate definition '%s' ignored.\n",line_number,label+(labelcnt<<6));
+                    sys_printf("  * WARNING.(L%ld) Duplicate definition '%s' ignored.\n",line_number,label+(labelcnt<<6));
                     break;
                 }
             }
@@ -610,7 +610,7 @@ char parsecommand(void)
                     if( strcmp( label+(labelcnt<<6),keyw[i]) == 0 )
                 {
                     error++;
-                    printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
+                    sys_printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
                     return 0;
                 }
 
@@ -618,7 +618,7 @@ char parsecommand(void)
                     if( strcmp(label+(labelcnt<<6),label+(i<<6)) == 0 )
                     {
                         warning++;
-                        printf("  * WARNING.(L%ld) Duplicate move '%s' ignored.\n",line_number,label+(labelcnt<<6));
+                        sys_printf("  * WARNING.(L%ld) Duplicate move '%s' ignored.\n",line_number,label+(labelcnt<<6));
                         break;
                     }
                 if(i == labelcnt)
@@ -713,13 +713,13 @@ char parsecommand(void)
             if(fp == 0)
             {
                 error++;
-                printf("  * ERROR!(L%ld) Could not find '%s'.\n",line_number,label+(labelcnt<<6));
+                sys_printf("  * ERROR!(L%ld) Could not find '%s'.\n",line_number,label+(labelcnt<<6));
                 return 0;
             }
 
             j = kfilelength(fp);
 
-            printf("Including: '%s'.\n",tempbuf);
+            sys_printf("Including: '%s'.\n",tempbuf);
 
             temp_line_number = line_number;
             line_number = 1;
@@ -755,7 +755,7 @@ char parsecommand(void)
                     if( strcmp( label+(labelcnt<<6),keyw[i]) == 0 )
                     {
                         error++;
-                        printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
+                        sys_printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
                         return 0;
                     }
 
@@ -763,7 +763,7 @@ char parsecommand(void)
                     if( strcmp(label+(labelcnt<<6),label+(i<<6)) == 0 )
                     {
                         warning++;
-                        printf("  * WARNING.(L%ld) Duplicate ai '%s' ignored.\n",line_number,label+(labelcnt<<6));
+                        sys_printf("  * WARNING.(L%ld) Duplicate ai '%s' ignored.\n",line_number,label+(labelcnt<<6));
                         break;
                     }
 
@@ -809,7 +809,7 @@ char parsecommand(void)
                     if( strcmp( label+(labelcnt<<6),keyw[i]) == 0 )
                     {
                         error++;
-                        printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
+                        sys_printf("  * ERROR!(L%ld) Symbol '%s' is a key word.\n",line_number,label+(labelcnt<<6));
                         return 0;
                     }
 
@@ -817,7 +817,7 @@ char parsecommand(void)
                     if( strcmp(label+(labelcnt<<6),label+(i<<6)) == 0 )
                     {
                         warning++;
-                        printf("  * WARNING.(L%ld) Duplicate action '%s' ignored.\n",line_number,label+(labelcnt<<6));
+                        sys_printf("  * WARNING.(L%ld) Duplicate action '%s' ignored.\n",line_number,label+(labelcnt<<6));
                         break;
                     }
 
@@ -840,13 +840,13 @@ char parsecommand(void)
         case 1:
             if( parsing_state )
             {
-                printf("  * ERROR!(L%ld) Found 'actor' within 'state'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'actor' within 'state'.\n",line_number);
                 error++;
             }
 
             if( parsing_actor )
             {
-                printf("  * ERROR!(L%ld) Found 'actor' within 'actor'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'actor' within 'actor'.\n",line_number);
                 error++;
             }
 
@@ -895,13 +895,13 @@ char parsecommand(void)
 
             if( parsing_state )
             {
-                printf("  * ERROR!(L%ld) Found 'useritem' within 'state'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'useritem' within 'state'.\n",line_number);
                 error++;
             }
 
             if( parsing_actor )
             {
-                printf("  * ERROR!(L%ld) Found 'useritem' within 'actor'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'useritem' within 'actor'.\n",line_number);
                 error++;
             }
 
@@ -1005,7 +1005,7 @@ char parsecommand(void)
             {
                 scriptptr--;
                 error++;
-                printf("  * ERROR!(L%ld) Found 'else' with no 'if'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'else' with no 'if'.\n",line_number);
             }
 
             return 0;
@@ -1094,7 +1094,7 @@ char parsecommand(void)
             num_squigilly_brackets--;
             if( num_squigilly_brackets < 0 )
             {
-                printf("  * ERROR!(L%ld) Found more '}' than '{'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found more '}' than '{'.\n",line_number);
                 error++;
             }
             return 1;
@@ -1131,7 +1131,7 @@ char parsecommand(void)
                 textptr++,i++;
                 if(i >= 32)
                 {
-                    printf("  * ERROR!(L%ld) Volume name exceeds character size limit of 32.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Volume name exceeds character size limit of 32.\n",line_number);
                     error++;
                     while( *textptr != 0x0a ) textptr++;
                     break;
@@ -1154,7 +1154,7 @@ char parsecommand(void)
                 textptr++,i++;
                 if(i >= 32)
                 {
-                    printf("  * ERROR!(L%ld) Skill name exceeds character size limit of 32.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Skill name exceeds character size limit of 32.\n",line_number);
                     error++;
                     while( *textptr != 0x0a ) textptr++;
                     break;
@@ -1180,7 +1180,7 @@ char parsecommand(void)
                 textptr++,i++;
                 if(i > 127)
                 {
-                    printf("  * ERROR!(L%ld) Level file name exceeds character size limit of 128.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Level file name exceeds character size limit of 128.\n",line_number);
                     error++;
                     while( *textptr != ' ') textptr++;
                     break;
@@ -1212,7 +1212,7 @@ char parsecommand(void)
                 textptr++,i++;
                 if(i >= 32)
                 {
-                    printf("  * ERROR!(L%ld) Level name exceeds character size limit of 32.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Level name exceeds character size limit of 32.\n",line_number);
                     error++;
                     while( *textptr != 0x0a ) textptr++;
                     break;
@@ -1227,7 +1227,7 @@ char parsecommand(void)
             k = *(scriptptr-1);
             if(k >= NUMOFFIRSTTIMEACTIVE)
             {
-                printf("  * ERROR!(L%ld) Quote amount exceeds limit of %ld characters.\n",line_number,NUMOFFIRSTTIMEACTIVE);
+                sys_printf("  * ERROR!(L%ld) Quote amount exceeds limit of %ld characters.\n",line_number,NUMOFFIRSTTIMEACTIVE);
                 error++;
             }
             scriptptr--;
@@ -1241,7 +1241,7 @@ char parsecommand(void)
                 textptr++,i++;
                 if(i >= 64)
                 {
-                    printf("  * ERROR!(L%ld) Quote exceeds character size limit of 64.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Quote exceeds character size limit of 64.\n",line_number);
                     error++;
                     while( *textptr != 0x0a ) textptr++;
                     break;
@@ -1255,7 +1255,7 @@ char parsecommand(void)
             k = *(scriptptr-1);
             if(k >= NUM_SOUNDS)
             {
-                printf("  * ERROR!(L%ld) Exceeded sound limit of %ld.\n",line_number,NUM_SOUNDS);
+                sys_printf("  * ERROR!(L%ld) Exceeded sound limit of %ld.\n",line_number,NUM_SOUNDS);
                 error++;
             }
             scriptptr--;
@@ -1269,8 +1269,8 @@ char parsecommand(void)
                 textptr++,i++;
                 if(i >= 13)
                 {
-                    puts(sounds[k]);
-                    printf("  * ERROR!(L%ld) Sound filename exceeded limit of 13 characters.\n",line_number);
+                    sys_puts(sounds[k]);
+                    sys_printf("  * ERROR!(L%ld) Sound filename exceeded limit of 13 characters.\n",line_number);
                     error++;
                     while( *textptr != ' ' ) textptr++;
                     break;
@@ -1298,14 +1298,14 @@ char parsecommand(void)
         case 4:
             if( parsing_actor == 0 )
             {
-                printf("  * ERROR!(L%ld) Found 'enda' without defining 'actor'.\n",line_number);
+                sys_printf("  * ERROR!(L%ld) Found 'enda' without defining 'actor'.\n",line_number);
                 error++;
             }
 //            else
             {
                 if( num_squigilly_brackets > 0 )
                 {
-                    printf("  * ERROR!(L%ld) Found more '{' than '}' before 'enda'.\n",line_number);
+                    sys_printf("  * ERROR!(L%ld) Found more '{' than '}' before 'enda'.\n",line_number);
                     error++;
                 }
                 parsing_actor = 0;
@@ -1414,7 +1414,7 @@ void passone(void)
     while( parsecommand() == 0 );
 
     if( (error+warning) > 12)
-        puts(  "  * ERROR! Too many warnings or errors.");
+        sys_puts(  "  * ERROR! Too many warnings or errors.");
 
 }
 
@@ -1463,8 +1463,8 @@ void loadefs(char *filenam,char *mptr)
 
     if(!SafeFileExists(filenam) && loadfromgrouponly == 0)
     {
-        puts("Missing external con file(s).");
-        puts("COPY INTERNAL DEFAULTS TO DIRECTORY(Y/n)?");
+        sys_puts("Missing external con file(s).");
+        sys_puts("COPY INTERNAL DEFAULTS TO DIRECTORY(Y/n)?");
 
         KB_FlushKeyboardQueue();
         while( KB_KeyWaiting() );
@@ -1472,7 +1472,7 @@ void loadefs(char *filenam,char *mptr)
         i = KB_Getch();
         if(i == 'y' || i == 'Y' )
         {
-            puts(" Yes");
+            sys_puts(" Yes");
             copydefaultcons();
         }
     }
@@ -1488,7 +1488,7 @@ void loadefs(char *filenam,char *mptr)
     }
     else
     {
-        printf("Compiling: '%s'.\n",filenam);
+        sys_printf("Compiling: '%s'.\n",filenam);
 
         fs = kfilelength(fp);
 
@@ -1515,15 +1515,15 @@ void loadefs(char *filenam,char *mptr)
     *script = (intptr_t) scriptptr;
 
     if(warning|error)
-        printf("Found %ld warning(s), %ld error(s).\n",warning,error);
+        sys_printf("Found %ld warning(s), %ld error(s).\n",warning,error);
 
     if( error == 0 && warning != 0)
     {
         if( groupfile != -1 && loadfromgrouponly == 0 )
         {
-            printf("\nWarnings found in %s file.  You should backup the original copies before\n",filenam);
-            puts("before attempting to modify them.  Do you want to use the");
-            puts("INTERNAL DEFAULTS (y/N)?");
+            sys_printf("\nWarnings found in %s file.  You should backup the original copies before\n",filenam);
+            sys_puts("before attempting to modify them.  Do you want to use the");
+            sys_puts("INTERNAL DEFAULTS (y/N)?");
 
             KB_FlushKeyboardQueue();
             while( KB_KeyWaiting() );
@@ -1531,7 +1531,7 @@ void loadefs(char *filenam,char *mptr)
             if(i == 'y' || i == 'Y' )
             {
                 loadfromgrouponly = 1;
-                puts(" Yes");
+                sys_puts(" Yes");
                 return;
             }
         }
@@ -1548,9 +1548,9 @@ void loadefs(char *filenam,char *mptr)
         {
             if( groupfile != -1 && loadfromgrouponly == 0 )
             {
-                printf("\nErrors found in %s file.  You should backup the original copies\n",filenam);
-                puts("before attempting to modify them.  Do you want to use the");
-                puts("internal defaults (Y/N)?");
+                sys_printf("\nErrors found in %s file.  You should backup the original copies\n",filenam);
+                sys_puts("before attempting to modify them.  Do you want to use the");
+                sys_puts("internal defaults (Y/N)?");
 
                 KB_FlushKeyboardQueue();
                 while( !KB_KeyWaiting() );
@@ -1558,7 +1558,7 @@ void loadefs(char *filenam,char *mptr)
                 i = KB_Getch();
                 if( i == 'y' || i == 'Y' )
                 {
-                    puts(" Yes");
+                    sys_puts(" Yes");
                     loadfromgrouponly = 1;
                     return;
                 }
@@ -1569,7 +1569,7 @@ void loadefs(char *filenam,char *mptr)
     else
     {
         total_lines += line_number;
-        printf("Code Size:%ld bytes(%ld labels).\n",(int32_t)((scriptptr-script)<<2)-4,labelcnt);
+        sys_printf("Code Size:%ld bytes(%ld labels).\n",(int32_t)((scriptptr-script)<<2)-4,labelcnt);
     }
 }
 
@@ -2401,7 +2401,7 @@ char parse(void)
             break;
         case 68:
             insptr++;
-            printf("%ld\n",*insptr);
+            sys_printf("%ld\n",*insptr);
             insptr++;
             break;
         case 69:

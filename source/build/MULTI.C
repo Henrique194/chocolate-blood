@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include "compat.h"
+#include "system.h"
 #include "multi.h"
 
 #define COMBUFSIZ 16384
@@ -204,8 +205,8 @@ void initmultiplayers(char damultioption, char dacomrateoption, char dapriority)
 	{
 		if ((i = neton()) != 0)
 		{
-			if (i == -1) printf("IPX driver not found\n");
-			if (i == -2) printf("Socket could not be opened\n");
+			if (i == -1) sys_printf("IPX driver not found\n");
+			if (i == -2) sys_printf("Socket could not be opened\n");
 			exit(0);
 		}
 	}
@@ -230,7 +231,7 @@ int neton()
 	if ((simulateint(0x2f,(int32_t)0x7a00,0L,0L,0L,0L,0L)&255) != 255) return(-1);
 	if (*(int32_t *)(0x7a<<2) == 0)
 	{
-		printf("Faking int 0x7a to call IPX entry at: %4x:%4x\n",RMI.ES,RMI.EDI&65535);
+		sys_printf("Faking int 0x7a to call IPX entry at: %4x:%4x\n",RMI.ES,RMI.EDI&65535);
 		my7a = convalloc32(16L);
 		*(short *)((0x7a<<2)+0) = (my7a&15);
 		*(short *)((0x7a<<2)+2) = (my7a>>4);
@@ -245,7 +246,7 @@ int neton()
 
 		//Special stuff for WATCOM C
 	if ((rmoffset32 = convalloc32(1380L+NETCODEBYTES+COMBUFSIZ)) == 0)
-		{ printf("Can't allocate memory for IPX\n"); exit; }
+		{ sys_printf("Can't allocate memory for IPX\n"); exit; }
 	rmsegment16 = (rmoffset32>>4);
 
 	i = rmoffset32;
@@ -940,7 +941,7 @@ void installbicomhandlers()
 
 		//Allocate memory in low memory to store real mode handler
 	if ((lowp = convalloc32(COMCODEBYTES+(COMBUFSIZ<<1))) == 0)
-		{ printf("Can't allocate conventional memory.\n"); exit; }
+		{ sys_printf("Can't allocate conventional memory.\n"); exit; }
 
 	inbufplc = (short *)(lowp+0);
 	inbufend = (short *)(lowp+2);

@@ -8,6 +8,7 @@
 #include <sys\stat.h>
 #include <sys\types.h>
 #include "compat.h"
+#include "system.h"
 #include "types.h"
 #include "develop.h"
 #include "fixed.h"
@@ -35,7 +36,7 @@ void Error(char* error, ...)
         va_start(va, error);
         vprintf(error, va);
         va_end(va);
-        printf("\n");
+        sys_printf("\n");
         exit(1);
     }
 }

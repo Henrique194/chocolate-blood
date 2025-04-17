@@ -461,7 +461,7 @@ void CONTROL_ExternalStartup(void)
     parm = CheckParm("control");
     if (!parm)
     {
-        printf("CONTROL_Startup: %s parameter is not present on the command line\n", "control");
+        sys_printf("CONTROL_Startup: %s parameter is not present on the command line\n", "control");
         return;
     }
     parm++;
@@ -470,10 +470,10 @@ void CONTROL_ExternalStartup(void)
     CONTROL_External = ext;
     if (CONTROL_External->id != CONTROLID)
     {
-        printf("CONTROL_Startup: External API is incompatible with this version. id=%ld\n", CONTROL_External->id);
+        sys_printf("CONTROL_Startup: External API is incompatible with this version. id=%ld\n", CONTROL_External->id);
         return;
     }
-    printf("CONTROL_Startup: External controller found on vector %x\n", CONTROL_External->intnum);
+    sys_printf("CONTROL_Startup: External controller found on vector %x\n", CONTROL_External->intnum);
     CONTROL_ExternalEnabled = true;
 #endif
 }
@@ -654,13 +654,13 @@ void CONTROL_PrintKeyMap(void)
     int i;
     for (i = 0; i < CONTROL_NUM_FLAGS; i++)
     {
-        printf("function %2ld key1=%3x key2=%3x\n", i, CONTROL_KeyMapping[i].key1, CONTROL_KeyMapping[i].key2);
+        sys_printf("function %2ld key1=%3x key2=%3x\n", i, CONTROL_KeyMapping[i].key1, CONTROL_KeyMapping[i].key2);
     }
 }
 
 void CONTROL_PrintControlFlag(int32 i)
 {
-    printf("function %2ld active=%ld used=%ld toggle=%ld buttonheld=%ld cleared=%ld\n",
+    sys_printf("function %2ld active=%ld used=%ld toggle=%ld buttonheld=%ld cleared=%ld\n",
         i, CONTROL_Flags[i].active, CONTROL_Flags[i].used, CONTROL_Flags[i].toggle,
         CONTROL_Flags[i].buttonheld, CONTROL_Flags[i].cleared);
 }
@@ -668,10 +668,10 @@ void CONTROL_PrintControlFlag(int32 i)
 void CONTROL_PrintAxes(void)
 {
     int i;
-    printf("numaxes=%ld\n", CONTROL_NumAxes);
+    sys_printf("numaxes=%ld\n", CONTROL_NumAxes);
     for (i = 0; i < MAXAXES; i++)
     {
-        printf("axis=%ld analog=%ld digital1=%ld digital2=%ld\n", i, CONTROL_AxesMap[i].analogmap, 
+        sys_printf("axis=%ld analog=%ld digital1=%ld digital2=%ld\n", i, CONTROL_AxesMap[i].analogmap, 
             CONTROL_AxesMap[i].minmap, CONTROL_AxesMap[i].maxmap);
     }
 }
@@ -1194,18 +1194,18 @@ void CONTROL_Startup
     switch (which)
     {
         case controltype_keyboard:
-            printf("CONTROL_Startup: Keyboard Mode\n");
+            sys_printf("CONTROL_Startup: Keyboard Mode\n");
             break;
         case controltype_keyboardandmouse:
             CONTROL_MousePresent = CONTROL_StartMouse();
             if (!CONTROL_MousePresent)
             {
-                printf("CONTROL_Startup: Mouse not Found!\n");
-                printf("CONTROL_Startup: Using Keyboard Mode\n");
+                sys_printf("CONTROL_Startup: Mouse not Found!\n");
+                sys_printf("CONTROL_Startup: Using Keyboard Mode\n");
             }
             else
             {
-                printf("CONTROL_Startup: Mouse Present\n");
+                sys_printf("CONTROL_Startup: Mouse Present\n");
                 CONTROL_NumAxes = 2;
                 CONTROL_MouseEnabled = true;
             }
@@ -1213,7 +1213,7 @@ void CONTROL_Startup
         case controltype_keyboardandflightstick:
             if (CONTROL_StartJoy(CONTROL_JoystickPort))
             {
-                printf("CONTROL_Startup: FlightStick Present\n");
+                sys_printf("CONTROL_Startup: FlightStick Present\n");
                 CONTROL_FlightStickMode = true;
                 CONTROL_ThrottleEnabled = true;
                 CONTROL_NumAxes = 4;
@@ -1221,48 +1221,48 @@ void CONTROL_Startup
             }
             else
             {
-                printf("CONTROL_Startup: FlighStick not Found!\n");
-                printf("CONTROL_Startup: Using Keyboard Mode\n");
+                sys_printf("CONTROL_Startup: FlighStick not Found!\n");
+                sys_printf("CONTROL_Startup: Using Keyboard Mode\n");
             }
             break;
         case controltype_keyboardandgamepad:
             if (CONTROL_StartJoy(CONTROL_JoystickPort))
             {
-                printf("CONTROL_Startup: GamePad Present\n");
+                sys_printf("CONTROL_Startup: GamePad Present\n");
                 CONTROL_NumAxes = 2;
                 CONTROL_JoystickEnabled = true;
             }
             else
             {
-                printf("CONTROL_Startup: GamePad not Found!\n");
-                printf("CONTROL_Startup: Using Keyboard Mode\n");
+                sys_printf("CONTROL_Startup: GamePad not Found!\n");
+                sys_printf("CONTROL_Startup: Using Keyboard Mode\n");
             }
             break;
         case controltype_keyboardandjoystick:
             if (CONTROL_StartJoy(CONTROL_JoystickPort))
             {
-                printf("CONTROL_Startup: Joystick Present\n");
+                sys_printf("CONTROL_Startup: Joystick Present\n");
                 CONTROL_NumAxes = 4;
                 CONTROL_JoystickEnabled = true;
             }
             else
             {
-                printf("CONTROL_Startup: Joystick not Found!\n");
-                printf("CONTROL_Startup: Using Keyboard Mode\n");
+                sys_printf("CONTROL_Startup: Joystick not Found!\n");
+                sys_printf("CONTROL_Startup: Using Keyboard Mode\n");
             }
             break;
         case controltype_keyboardandthrustmaster:
             if (CONTROL_StartJoy(CONTROL_JoystickPort))
             {
-                printf("CONTROL_Startup: ThrustMaster Present\n");
+                sys_printf("CONTROL_Startup: ThrustMaster Present\n");
                 CONTROL_HatEnabled = true;
                 CONTROL_NumAxes = 4;
                 CONTROL_JoystickEnabled = true;
             }
             else
             {
-                printf("CONTROL_Startup: ThrustMaster not Found!\n");
-                printf("CONTROL_Startup: Using Keyboard Mode\n");
+                sys_printf("CONTROL_Startup: ThrustMaster not Found!\n");
+                sys_printf("CONTROL_Startup: Using Keyboard Mode\n");
             }
             break;
         case controltype_keyboardandexternal:
