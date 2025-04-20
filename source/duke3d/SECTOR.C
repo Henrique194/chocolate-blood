@@ -2322,6 +2322,7 @@ void checkhitsprite(short i,short sn)
                             SA = (sprite[sn].ang+1024)&2047;
                         sprite[i].xvel = -(sprite[sn].extra<<2);
                         j = SECT;
+                        if ((unsigned int)j < MAXSECTORS) // FIX: OOB secnum
                         pushmove(&SX,&SY,&SZ,&j,128L,(4L<<8),(4L<<8),CLIPMASK0);
                         if(j != SECT && j >= 0 && j < MAXSECTORS)
                             changespritesect(i,j);

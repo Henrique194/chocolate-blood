@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern char kb_byte;
 
 void Sys_Init(int argc, char** argv);
@@ -10,3 +14,7 @@ void Sys_GetMouseDelta(float* dx, float* dy);
 int Sys_GetMouseButtons();
 void sys_puts(const char* s);
 void sys_printf(const char* s, ...);
+
+#ifdef __cplusplus
+}
+#endif

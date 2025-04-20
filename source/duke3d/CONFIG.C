@@ -88,9 +88,9 @@ static int32 setupread=0;
 #define MAXSETUPFILES 20
 void CONFIG_GetSetupFilename( void )
    {
-#if _WIN32
+#ifdef _WIN32
    HANDLE h;
-   WIN32_FIND_DATA fd;
+   WIN32_FIND_DATAA fd;
 #else
    struct find_t fblock;
 #endif
@@ -114,7 +114,7 @@ void CONFIG_GetSetupFilename( void )
    extension[0] = '*';
 
    numfiles=0;
-#if _WIN32
+#ifdef _WIN32
    if ((h = FindFirstFileA(extension, &fd)) != INVALID_HANDLE_VALUE)
       {
       do

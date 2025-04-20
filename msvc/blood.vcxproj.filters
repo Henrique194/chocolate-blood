@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Исходные файлы\qtools">
+      <UniqueIdentifier>{9751f96f-9df3-4c9a-af41-e89b9948782a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\qtools">
+      <UniqueIdentifier>{cb835104-deb0-4ea3-86c9-577cbb6ba70d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\source\blood\qtools\src\trig.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\resource.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\qheap.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\crc32_asm.c">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\error.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\getopt.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\debug4g.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\gfx.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\helix.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\inifile.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\iob.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\key.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\pqueue.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\misc.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\blood\qtools\src\qmouse.cpp">
+      <Filter>Исходные файлы\qtools</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\blood\qtools\include\crc32.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\resource.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\misc.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\qheap.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\trig.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\typedefs.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\gfx.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\helix.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\error.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\getopt.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\debug4g.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\inifile.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\iob.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\key.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\qmouse.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\pqueue.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\blood\qtools\include\textio.h">
+      <Filter>Файлы заголовков\qtools</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

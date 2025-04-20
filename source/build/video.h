@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern char video_palette[768];
 extern char* video_buffer;
 extern int video_pages;
@@ -14,3 +18,7 @@ void Video_Set(int graphics, int w, int h);
 void Video_BlitPage(int32_t page);
 void Video_Blit();
 void Video_Text_Puts(const char* s);
+
+#ifdef __cplusplus
+}
+#endif
