@@ -25,10 +25,10 @@ extern int tioScreenCols;
 void tioInit(int a1);
 void tioCursorOff(void);
 byte tioSetAttribute(byte);
-void tioCenterString(int a1, int a2, int a3, char* a4, byte a5);
+void tioCenterString(int a1, int a2, int a3, const char* a4, byte a5);
 void tioWindow(int, int, int, int);
 void tioClearWindow(void);
 void tioTerm(void);
-void tioPrint(char *s, ...);
+void tioPrint(const char *s, ...);
 
 #endif

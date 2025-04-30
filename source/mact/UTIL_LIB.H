@@ -19,9 +19,9 @@ void RegisterShutdownFunction( void shutdown(void) );
 void RegisterShutdownFunction( void (* shutdown) (void) );
 #endif
 
-void   Error (char *error, ...);
+void   Error (const char *error, ...);
 
-char   CheckParm (char *check);
+char   CheckParm (const char *check);
 
 void   *SafeMalloc (int32 size);
 int32  SafeMallocSize (void * ptr);

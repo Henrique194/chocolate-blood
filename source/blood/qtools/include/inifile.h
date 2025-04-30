@@ -28,27 +28,27 @@ struct IniNode {
 class IniFile
 {
 public:
-    IniFile(char *);
+    IniFile(const char *);
     IniFile(void *, int dummy);
     void Load(void *);
     void Load(void);
     void Save(void);
-    QBOOL FindSection(char *);
-    QBOOL FindKey(char*);
-    void AddSection(char *);
-    void AddKeyString(char *, char *);
-    void ChangeKeyString(char *, char *);
-    QBOOL SectionExists(char *);
-    QBOOL KeyExists(char *, char *);
-    void PutKeyString(char *, char *, char *);
-    char *GetKeyString(char *, char *, char *);
-    void PutKeyInt(char *, char *, int);
-    int GetKeyInt(char *, char *, int);
-    QBOOL GetKeyBool(char *, char *, int);
-    void PutKeyHex(char *, char *, int);
-    int GetKeyHex(char *, char *, int);
-    void RemoveKey(char *, char *);
-    void RemoveSection(char *);
+    QBOOL FindSection(const char *);
+    QBOOL FindKey(const char*);
+    void AddSection(const char *);
+    void AddKeyString(const char *, const char *);
+    void ChangeKeyString(const char *, const char *);
+    QBOOL SectionExists(const char *);
+    QBOOL KeyExists(const char *, const char *);
+    void PutKeyString(const char *, const char *, const char *);
+    const char *GetKeyString(const char *, const char *, const char *);
+    void PutKeyInt(const char *, const char *, int);
+    int GetKeyInt(const char *, const char *, int);
+    QBOOL GetKeyBool(const char *, const char *, int);
+    void PutKeyHex(const char *, const char *, int);
+    int GetKeyHex(const char *, const char *, int);
+    void RemoveKey(const char *, const char *);
+    void RemoveSection(const char *);
     ~IniFile(void);
 
     IniNode f_0;

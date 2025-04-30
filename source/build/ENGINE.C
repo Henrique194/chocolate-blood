@@ -2361,7 +2361,7 @@ void loadtile (short tilenume)
 	artfilplc = tilefileoffs[tilenume]+dasiz;
 }
 
-int32_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz)
+intptr_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz)
 {
 	int32_t i, j, x, y, dasiz;
 

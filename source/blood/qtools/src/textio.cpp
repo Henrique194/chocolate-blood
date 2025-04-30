@@ -20,6 +20,7 @@
 #include "typedefs.h"
 #include "misc.h"
 #include "textio.h"
+#include "video.h"
 
 int tioScreenRows;
 int tioScreenCols;
@@ -41,7 +42,7 @@ static struct {
 
 byte nAttribute;
 
-static char* Frames[] = {
+static const char* Frames[] = {
     "\xDA\xC4\xBF\xB3\x20\xB3\xC0\xC4\xD9",
     "\xC9\xCD\xBB\xBA\x20\xBA\xC8\xCD\xBC",
     "\xDB\xDF\xDB\xDB\x20\xDB\xDB\xDC\xDB"
@@ -68,7 +69,7 @@ byte ShadeTable[] = {
 
 static inline byte * tioVideoAddress(int x,int y)
 {
-    return (byte*)0xb8000 + (x * tioScreenCols + y) * 2;
+    return (byte*)video_text_buffer + (x * tioScreenCols + y) * 2;
 }
 
 void WriteString(int a1, int a2, char *s, byte a4)
@@ -210,7 +211,7 @@ void tioFrame(int a1, int a2, int a3, int a4, byte a5, byte a6)
     *va++ = Frames[a5][6];
     *va++ = a6;
 
-    for (i = 0; i < a4 - 2; i++)
+    for (int i = 0; i < a4 - 2; i++)
     {
         *va++ = Frames[a5][7];
         *va++ = a6;
@@ -250,7 +251,7 @@ void tioLeftString(int a1, int a2, int a3, char *a4, byte a5)
     WriteString(window.f_0 + a1, window.f_4 + a2, buf, a5);
 }
 
-void tioCenterString(int a1, int a2, int a3, char *a4, byte a5)
+void tioCenterString(int a1, int a2, int a3, const char *a4, byte a5)
 {
     char buf[256];
     memset(buf, 32, tioScreenCols);
@@ -284,12 +285,10 @@ void tioWindow(int a1, int a2, int a3, int a4)
     window.f_c = a4;
 }
 
-void tioCursorPos(int dh, int dl);
-#pragma aux tioCursorPos = \
-"mov ah,2" \
-"mov bh,0" \
-"int 0x10" \
-parm nomemory [dh] [dl]
+void tioCursorPos(int dh, int dl)
+{
+    Video_Text_SetCursor(dh, dl);
+}
 
 void tioSetPos(int a1, int a2)
 {
@@ -298,11 +297,10 @@ void tioSetPos(int a1, int a2)
     tioCursorPos(a1 + window.f_0, a2 + window.f_4);
 }
 
-void tioScroll(int a1, byte a2, int a3, int a4, int a5, int a6);
-#pragma aux tioScroll = \
-"mov ah,6" \
-"int 0x10" \
-parm nomemory [al] [bh] [ch] [cl] [dh] [dl]
+void tioScroll(int a1, byte a2, int a3, int a4, int a5, int a6)
+{
+    Video_Text_Scroll(a1, a2, a3, a4, a5, a6);
+}
 
 void tioClearWindow(void)
 {
@@ -317,7 +315,7 @@ byte tioSetAttribute(byte a1)
     return old;
 }
 
-void tioPrint(char *s, ...)
+void tioPrint(const char *s, ...)
 {
     char buf[256];
     va_list arg;

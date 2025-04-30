@@ -24,7 +24,7 @@ void RegisterShutdownFunction(void (*shutdown) (void))
     ShutDown = shutdown;
 }
 
-void Error(char* error, ...)
+void Error(const char* error, ...)
 {
     va_list va;
     static boolean inerror = false;
@@ -41,7 +41,7 @@ void Error(char* error, ...)
     }
 }
 
-char CheckParm(char* check)
+char CheckParm(const char* check)
 {
     char i;
     char t[] = "\\-/";

@@ -212,7 +212,7 @@ void TOKEN_Free( int32 tokenhandle );
 ==============
 */
 
-int32 TOKEN_Parse ( char *data, int32 length, char * name );
+int32 TOKEN_Parse ( const char *data, int32 length, const char * name );
 
 /*
 ==============
@@ -224,7 +224,7 @@ int32 TOKEN_Parse ( char *data, int32 length, char * name );
 ==============
 */
 
-int32 TOKEN_Load ( char * filename );
+int32 TOKEN_Load ( const char * filename );
 
 #ifdef __cplusplus
 };

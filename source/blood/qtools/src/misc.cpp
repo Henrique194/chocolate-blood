@@ -98,10 +98,10 @@ struct MEMINFO {
     char __f_20[0x10];
 };
 
-void AddExtension(char *name, char *ext)
+void AddExtension(char *name, const char *ext)
 {
     char buf[_MAX_PATH];
-    char *dir, *fn, *oext;
+    const char *dir, *fn, *oext;
     MySplitPath(name, buf, &dir, &fn, &oext);
     if (!*oext)
         oext = ext;
@@ -110,10 +110,10 @@ void AddExtension(char *name, char *ext)
     strcat(name, oext);
 }
 
-void ChangeExtension(char *name, char *ext)
+void ChangeExtension(char *name, const char *ext)
 {
     char buf[148];
-    char *dir, *fn, *oext, *drive;
+    const char *dir, *fn, *oext, *drive;
     MySplitPath(name, buf, &dir, &fn, &oext);
     oext = ext;
     strcpy(name, dir);

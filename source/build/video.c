@@ -288,3 +288,46 @@ void Video_Text_Puts(const char* s)
 	}
 }
 
+void Video_Text_SetCursor(int x, int y)
+{
+	video_text_x = x;
+	video_text_y = y;
+}
+
+void Video_Text_Scroll(int lines, int attr, int x1, int y1, int x2, int y2)
+{
+	if (lines == 0)
+	{
+		for (int y = y1; y <= y2; y++)
+		{
+			for (int x = x1; x <= x2; x++)
+			{
+				video_text_buffer[y * 160 + x * 2] = '\0';
+				video_text_buffer[y * 160 + x * 2 + 1] = attr;
+			}
+		}
+	}
+	else
+	{
+		for (int y = y1; y <= y2; y++)
+		{
+			int cy = y + lines;
+			if (cy > y2)
+			{
+				for (int x = x1; x <= x2; x++)
+				{
+					video_text_buffer[y * 160 + x * 2] = '\0';
+					video_text_buffer[y * 160 + x * 2 + 1] = attr;
+				}
+			}
+			else
+			{
+				memcpy(video_text_buffer + y * 160 + x1 * 2, video_text_buffer + cy * 160 + x1 * 2,
+					(x2 - x1 + 1) * 2);
+			}
+		}
+		video_text_y -= lines;
+		if (video_text_y < y1)
+			video_text_y = y1;
+	}
+}

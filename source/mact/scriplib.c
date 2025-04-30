@@ -116,7 +116,7 @@ void SCRIPT_Free(int32 scripthandle)
     SCRIPT_Delete(scripthandle);
 }
 
-int32 SCRIPT_Parse(char* data, int32 length, char* name)
+int32 SCRIPT_Parse(const char* data, int32 length, const char* name)
 {
     boolean end = 0;
     int tokenhandle;
@@ -144,7 +144,7 @@ int32 SCRIPT_Parse(char* data, int32 length, char* name)
     return scripthandle;
 }
 
-int32 SCRIPT_Load(char* filename)
+int32 SCRIPT_Load(const char* filename)
 {
     int len;
     int scripthandle;
@@ -467,7 +467,7 @@ char* SCRIPT_Section(int32 scripthandle, int32 which)
     return s->name;
 }
 
-int32 SCRIPT_NumberEntries(int32 scripthandle, char* sectionname)
+int32 SCRIPT_NumberEntries(int32 scripthandle, const char* sectionname)
 {
     int num;
     ScriptSectionType* s;
@@ -488,7 +488,7 @@ int32 SCRIPT_NumberEntries(int32 scripthandle, char* sectionname)
     return num;
 }
 
-char* SCRIPT_Entry(int32 scripthandle, char* sectionname, int32 which)
+const char* SCRIPT_Entry(int32 scripthandle, const char* sectionname, int32 which)
 {
     int num;
     ScriptSectionType* s;
@@ -512,7 +512,7 @@ char* SCRIPT_Entry(int32 scripthandle, char* sectionname, int32 which)
     return e->name;
 }
 
-char* SCRIPT_GetRaw(int32 scripthandle, char* sectionname, char* entryname)
+const char* SCRIPT_GetRaw(int32 scripthandle, char* sectionname, char* entryname)
 {
     ScriptSectionType* s;
     ScriptEntryType* e;
@@ -563,8 +563,8 @@ void SCRIPT_GetString
 void SCRIPT_GetDoubleString
 (
     int32 scripthandle,
-    char* sectionname,
-    char* entryname,
+    const char* sectionname,
+    const char* entryname,
     char* dest1,
     char* dest2
 )
@@ -752,10 +752,10 @@ void SCRIPT_PutString
 void SCRIPT_PutDoubleString
 (
     int32 scripthandle,
-    char* sectionname,
-    char* entryname,
-    char* string1,
-    char* string2
+    const char* sectionname,
+    const char* entryname,
+    const char* string1,
+    const char* string2
 )
 {
     char buf[80];

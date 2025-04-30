@@ -295,7 +295,7 @@ int32_t initmouse();
 void getmousevalues(short *mousx, short *mousy, short *bstatus);
 int32_t loadpics(char *filename);
 void qloadkvx(int32_t voxindex, char *filename);
-int32_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz);
+intptr_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz);
 void copytilepiece(int32_t tilenume1, int32_t sx1, int32_t sy1, int32_t xsiz, int32_t ysiz,
 				  int32_t tilenume2, int32_t sx2, int32_t sy2);
 void makepalookup(int32_t palnum, char *remapbuf, signed char r, signed char g, signed char b, char dastat);

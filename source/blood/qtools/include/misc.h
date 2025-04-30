@@ -25,7 +25,7 @@ char *ReadLine(char *, int, char **);
 QBOOL FileRead(int, void*, uint32_t);
 QBOOL FileLoad(char*, void*, uint32_t);
 
-void ChangeExtension(char *name, char *ext);
+void ChangeExtension(char *name, const char *ext);
 
 uint32_t qrand(void);
 
@@ -231,7 +231,7 @@ static inline int divscale24(int a, int b)
     return (int)d;
 }
 
-static inline int divscale24(int a, int b, int c)
+static inline int divscale(int a, int b, int c)
 {
     int64_t d = ((int64_t)a << c) / b;
     return (int)d;
@@ -342,15 +342,15 @@ inline int Random3(int a1)
     return mulscale(rand()+rand(), a1, 15) - a1;
 }
 
-static inline void MySplitPath(const char* s, char *buf, char** dir, char** name, char** ext)
+static inline void MySplitPath(const char* s, char *buf, const char** dir, const char** name, const char** ext)
 {
     int l = strlen(s);
 
     *buf = '\0';
-    if (ext)
-        *ext = buf;
+    if (dir)
+        *dir = buf;
     if (name)
-        *ext = buf;
+        *name = buf;
     if (ext)
         *ext = buf;
     buf++;

@@ -71,10 +71,9 @@ void Resource::Init(const char *filename, const char *external)
 #else
     struct find_t info;
 #endif
-    char *type;
-    char *dir;
-    char *node;
-    char *fname;
+    const char *type;
+    const char *dir;
+    const char *fname;
     RFFHeader header;
     dassert(heap != NULL, 63);
 

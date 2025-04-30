@@ -136,7 +136,7 @@ void KB_ClearKeysDown(void)
 	memset(KB_KeyDown, 0, sizeof(KB_KeyDown));
 }
 
-char* KB_ScanCodeToString(kb_scancode scancode)
+const char* KB_ScanCodeToString(kb_scancode scancode)
 {
 	if (scancode >= 110)
 		scancode = 0;
@@ -144,7 +144,7 @@ char* KB_ScanCodeToString(kb_scancode scancode)
 	return ScanStrings[scancode];
 }
 
-kb_scancode KB_StringToScanCode(char* string)
+kb_scancode KB_StringToScanCode(const char* string)
 {
 	kb_scancode s;
 	for (s = 0; s < 110; s++)

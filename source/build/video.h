@@ -18,6 +18,8 @@ void Video_Set(int graphics, int w, int h);
 void Video_BlitPage(int32_t page);
 void Video_Blit();
 void Video_Text_Puts(const char* s);
+void Video_Text_SetCursor(int x, int y);
+void Video_Text_Scroll(int lines, int attr, int x1, int y1, int x2, int y2);
 
 #ifdef __cplusplus
 }

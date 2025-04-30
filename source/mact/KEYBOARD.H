@@ -184,8 +184,8 @@ char    KB_Getch( void );              // Gets the next keypress
 void    KB_Addch( char ch );           // Adds key to end of queue
 void    KB_FlushKeyboardQueue( void ); // Empties the keyboard queue of all waiting characters.
 void    KB_ClearKeysDown( void );      // Clears all keys down flags.
-char *  KB_ScanCodeToString( kb_scancode scancode ); // convert scancode into a string
-kb_scancode KB_StringToScanCode( char * string );  // convert a string into a scancode
+const char *  KB_ScanCodeToString( kb_scancode scancode ); // convert scancode into a string
+kb_scancode KB_StringToScanCode( const char * string );  // convert a string into a scancode
 void    KB_TurnKeypadOn( void );       // turn the keypad on
 void    KB_TurnKeypadOff( void );      // turn the keypad off
 boolean KB_KeypadActive( void );       // check whether keypad is active

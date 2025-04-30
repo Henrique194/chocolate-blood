@@ -312,7 +312,7 @@ void TOKEN_Free(int32 tokenhandle)
     tokenfiles[tokenhandle] = NULL;
 }
 
-int32 TOKEN_Parse(char* data, int32 length, char* name)
+int32 TOKEN_Parse(const char* data, int32 length, const char* name)
 {
     int32 tokenhandle;
 
@@ -325,7 +325,7 @@ int32 TOKEN_Parse(char* data, int32 length, char* name)
     return tokenhandle;
 }
 
-int32 TOKEN_Load(char* filename)
+int32 TOKEN_Load(const char* filename)
 {
     void* ptr;
     int32 len;
