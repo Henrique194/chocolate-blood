@@ -404,3 +404,5 @@ void EventQLoadSave::Save()
     Write(rxBucket, sizeof(rxBucket));
     Write(bucketHead, sizeof(bucketHead));
 }
+
+void eventq_hook() { myLoadSave.Hook(); }

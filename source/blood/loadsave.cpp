@@ -57,8 +57,44 @@ unsigned int int_27AA3C = 0;
 unsigned int int_27AA40 = 0;
 byte *int_27AA44 = NULL;
 
-LoadSave LoadSave::head(123);
+LoadSave LoadSave::head;
 int LoadSave::hFile = -1;
+
+void ChainLoadSave()
+{
+    void actor_hook();
+    void ai_hook();
+    void blood_hook();
+    void controls_hook();
+    void endgame_hook();
+    void eventq_hook();
+    void levels_hook();
+    void messages_hook();
+    void mirrors_hook();
+    void player_hook();
+    void seq_hook();
+    void triggers_hook();
+    void view_hook();
+    void warp_hook();
+    void weapon_hook();
+
+    LoadSave::head.HookRoot();
+    blood_hook();
+    view_hook();
+    endgame_hook();
+    levels_hook();
+    controls_hook();
+    actor_hook();
+    player_hook();
+    triggers_hook();
+    eventq_hook();
+    weapon_hook();
+    seq_hook();
+    mirrors_hook();
+    warp_hook();
+    messages_hook();
+    ai_hook();
+}
 
 short short_27AA54 = 0;
 

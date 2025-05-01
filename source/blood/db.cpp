@@ -664,6 +664,8 @@ void PropagateMarkerReferences(void)
 
 QBOOL char_1A76C6, char_1A76C7, char_1A76C8;
 
+#pragma pack(push, 1)
+
 struct MAPSIGNATURE {
     char signature[4];
     short version;
@@ -684,6 +686,8 @@ struct MAPHEADER{
     ushort at21; // numwalls
     ushort at23; // numsprites
 };
+
+#pragma pack(pop)
 
 uint32_t dbReadMapCRC(char *pPath)
 {

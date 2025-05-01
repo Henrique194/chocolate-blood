@@ -293,15 +293,18 @@ void initengine();
 void faketimerhandler();
 int32_t initmouse();
 void getmousevalues(short *mousx, short *mousy, short *bstatus);
-int32_t loadpics(char *filename);
+int32_t loadpics_real(char *filename);
+extern int32_t(*loadpics)(char*);
 void qloadkvx(int32_t voxindex, char *filename);
-intptr_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz);
+intptr_t allocatepermanenttile_real(short tilenume, int32_t xsiz, int32_t ysiz);
+extern intptr_t (*allocatepermanenttile)(short, int32_t, int32_t);
 void copytilepiece(int32_t tilenume1, int32_t sx1, int32_t sy1, int32_t xsiz, int32_t ysiz,
 				  int32_t tilenume2, int32_t sx2, int32_t sy2);
 void makepalookup(int32_t palnum, char *remapbuf, signed char r, signed char g, signed char b, char dastat);
 void printext256(int32_t xpos, int32_t ypos, short col, short backcol, char name[82], char fontsize);
 void nextpage();
-void uninitengine();
+void uninitengine_real();
+extern void (*uninitengine)();
 void setvmode(int a);
 int32_t nextsectorneighborz(short sectnum, int32_t thez, short topbottom, short direction);
 int32_t krand();
@@ -338,7 +341,7 @@ int32_t getceilzofslope(short sectnum, int32_t dax, int32_t day);
 int32_t getflorzofslope(short sectnum, int32_t dax, int32_t day);
 int32_t neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange, short *neartagsector, short *neartagwall, short *neartagsprite, int32_t *neartaghitdist, int32_t neartagrange, char tagsearch);
 int32_t inside(int32_t x, int32_t y, short sectnum);
-int32_t getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
+void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
 			 int32_t *ceilz, int32_t *ceilhit, int32_t *florz, int32_t *florhit,
 			 int32_t walldist, uint32_t cliptype);
 void flushperms();
@@ -361,7 +364,8 @@ void setbrightness(char dabrightness, char *dapal);
 void clearallviews(int32_t dacol);
 int VBE_setPalette(int32_t start, int32_t num, char *dapal);
 void updatesector(int32_t x, int32_t y, short* sectnum);
-void loadtile(short tilenume);
+void loadtile_real(short tilenume);
+extern void (*loadtile)(short);
 void drawline256(int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col);
 void *kmalloc_real(size_t size);
 void kfree_real(void* buffer);

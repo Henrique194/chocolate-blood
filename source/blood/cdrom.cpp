@@ -629,8 +629,11 @@ void CCDAudio::SetVolume(int a1)
 
 int CCDAudio::GetVolume(void)
 {
+    return 0;
+#if 0
     cd_get_volume(&f_b);
     return f_b.f_2;
+#endif
 }
 
 void CCDAudio::func_82BB4(void)

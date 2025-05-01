@@ -270,3 +270,5 @@ void EndGameLoadSave::Save(void)
 }
 
 static EndGameLoadSave myLoadSave;
+
+void endgame_hook() { myLoadSave.Hook(); }

@@ -57,7 +57,7 @@ QHeap::QHeap(int heapSize)
     dassert(heapSize > 0, 67);
     size = heapSize;
     void *p = malloc(0x200000);
-    while (size > 0 && (heapPtr = malloc(size + 1024)) == NULL)
+    while (size > 0 && (heapPtr = malloc(size + 1024*1024)) == NULL)
     {
         size -= 0x1000;
     }
@@ -68,7 +68,7 @@ QHeap::QHeap(int heapSize)
     }
 
     basePtr = heapPtr;
-    extraPtr = (char*)p + size;
+    extraPtr = (char*)heapPtr + size;
 
     heap = (HEAPNODE*)AllocExtra(sizeof(HEAPNODE));
     freeHeap = (HEAPNODE*)AllocExtra(sizeof(HEAPNODE));

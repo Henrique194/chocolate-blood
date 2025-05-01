@@ -6369,3 +6369,5 @@ void ActorLoadSave::Save(void)
 }
 
 static ActorLoadSave myLoadSave;
+
+void actor_hook() { myLoadSave.Hook(); }

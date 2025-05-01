@@ -542,3 +542,5 @@ void SeqLoadSave::Save(void)
 }
 
 static SeqLoadSave myLoadSave;
+
+void seq_hook() { myLoadSave.Hook(); }

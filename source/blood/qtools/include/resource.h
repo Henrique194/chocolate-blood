@@ -34,7 +34,7 @@ struct RFFHeader
 
 struct CACHENODE
 {
-    void* ptr;
+    QPtr<void> ptr;
     QPtr<CACHENODE> prev;
     QPtr<CACHENODE> next;
     int lockCount;
@@ -64,8 +64,8 @@ enum {
 class Resource
 {
 public:
-    Resource(void);
-    ~Resource(void);
+    Resource();
+    ~Resource();
 
     void Init(const char *filename, const char *external);
     static void Flush(CACHENODE *h);

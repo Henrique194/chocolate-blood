@@ -2231,3 +2231,5 @@ void TriggersLoadSave::Save()
 }
 
 static TriggersLoadSave myLoadSave;
+
+void triggers_hook() { myLoadSave.Hook(); }

@@ -32,13 +32,14 @@ public:
     static int hFile;
     LoadSave *prev;
     LoadSave *next;
-    LoadSave() {
+    LoadSave() { prev = next = nullptr; }
+    void Hook() {
         prev = head.prev;
         prev->next = this;
         next = &head;
         next->prev = this;
     }
-    LoadSave(int dummy)
+    void HookRoot()
     {
 #if 0
         next = prev = &head;

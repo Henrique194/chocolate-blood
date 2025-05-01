@@ -266,3 +266,5 @@ void WarpLoadSave::Save()
 
 static WarpLoadSave myLoadSave;
 
+void warp_hook() { myLoadSave.Hook(); }
+

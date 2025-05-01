@@ -34,7 +34,7 @@
 CACHENODE *Resource::purgeHead;// = { NULL, &purgeHead, &purgeHead, 0 };
 QHeap *Resource::heap;
 
-Resource::Resource(void)
+Resource::Resource()
 {
     dict = NULL;
     indexName = NULL;
@@ -46,7 +46,7 @@ Resource::Resource(void)
     ext[0] = 0;
 }
 
-Resource::~Resource(void)
+Resource::~Resource()
 {
     if (dict)
     {
@@ -451,7 +451,7 @@ void Resource::Read(DICTNODE *n, void *p)
         }
         if (n->flags & kResourceFlag5)
         {
-            Crypt((byte*)n->ptr, n->size > 256 ? 256 : n->size, 0);
+            Crypt((byte*)(void*)n->ptr, n->size > 256 ? 256 : n->size, 0);
         }
     }
 }

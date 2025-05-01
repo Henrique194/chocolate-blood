@@ -3149,3 +3149,5 @@ void ViewLoadSave::Save(void)
 }
 
 static ViewLoadSave myLoadSave;
+
+void view_hook() { myLoadSave.Hook(); }

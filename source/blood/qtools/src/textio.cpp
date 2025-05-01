@@ -291,7 +291,7 @@ void tioWindow(int a1, int a2, int a3, int a4)
 
 void tioCursorPos(int dh, int dl)
 {
-    Video_Text_SetCursor(dh, dl);
+    Video_Text_SetCursor(dl, dh);
 }
 
 void tioSetPos(int a1, int a2)

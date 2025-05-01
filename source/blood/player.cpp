@@ -2142,3 +2142,5 @@ void PlayerLoadSave::Save(void)
 }
 
 static PlayerLoadSave myLoadSave;
+
+void player_hook() { myLoadSave.Hook(); }

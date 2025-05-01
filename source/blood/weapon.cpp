@@ -2393,3 +2393,5 @@ void WeaponLoadSave::Save()
 }
 
 static WeaponLoadSave myLoadSave;
+
+void weapon_hook() { myLoadSave.Hook(); }

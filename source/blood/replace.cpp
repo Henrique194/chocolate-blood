@@ -51,7 +51,7 @@ extern "C" void kfree_replace(void *pMem)
     Resource::Free(pMem);
 }
 
-extern "C" int loadpics_replace()
+extern "C" int loadpics_replace(char*)
 {
     return tileInit(0, NULL) ? 0 : - 1;
 }
@@ -151,6 +151,12 @@ extern "C"
     extern int32_t(*deletesprite)(short);
     extern int32_t(*changespritesect)(short, short);
     extern int32_t(*changespritestat)(short, short);
+    extern int32_t(*loadpics)(char*);
+    extern void (*loadtile)(short);
+    extern intptr_t(*allocatepermanenttile)(short, int32_t, int32_t);
+    extern void (*uninitengine)();
+    extern void (*loadpalette)();
+    extern int32_t(*getpalookup)(int32_t, int32_t);
 }
 
 void replace_hook()
@@ -166,4 +172,11 @@ void replace_hook()
     deletesprite = deletesprite_replace;
     changespritesect = changespritesect_replace;
     changespritestat = changespritestat_replace;
+    loadpics = loadpics_replace;
+    loadtile = loadtile_replace;
+    allocatepermanenttile = allocatepermanenttile_replace;
+    animateoffs = animateoffs_replace;
+    uninitengine = uninitengine_replace;
+    loadpalette = loadpalette_replace;
+    getpalookup = getpalookup_replace;
 }

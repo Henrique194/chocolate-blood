@@ -3174,6 +3174,8 @@ int MV_Shutdown
 
    MV_KillAllVoices();
 
+   SDL_UnlockMutex(snd_mutex);
+
    MV_Installed = FALSE;
 
    // Stop the sound recording engine
@@ -3215,8 +3217,6 @@ int MV_Shutdown
       #endif
 #endif
       }
-
-   SDL_UnlockMutex(snd_mutex);
 
    // Free any voices we allocated
    USRHOOKS_FreeMem( MV_Voices );

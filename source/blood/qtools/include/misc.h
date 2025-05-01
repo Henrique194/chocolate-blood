@@ -363,7 +363,8 @@ static inline void MySplitPath(const char* s, char *buf, const char** dir, const
             {
                 *ext = buf;
                 memcpy(buf, s + i, l - i);
-                buf += l - i;
+                buf[l - i] = '\0';
+                buf += l - i + 1;
             }
             l = i;
         }
@@ -373,12 +374,14 @@ static inline void MySplitPath(const char* s, char *buf, const char** dir, const
             {
                 *name = buf;
                 memcpy(buf, s + i + 1, l - i - 1);
-                buf += l - i - 1;
+                buf[l - i - 1] = '\0';
+                buf += l - i;
             }
             if (dir)
             {
                 *dir = buf;
                 memcpy(buf, s, i + 1);
+                buf[i + 1] = '\0';
             }
             return;
         }
@@ -387,6 +390,7 @@ static inline void MySplitPath(const char* s, char *buf, const char** dir, const
     {
         *name = buf;
         memcpy(buf, s, l);
+        buf[l] = '\0';
     }
 }
 

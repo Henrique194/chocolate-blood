@@ -56,7 +56,7 @@ extern "C" void loadvoxel_replace(int nVoxel)
     }
 }
 
-CACHENODE tileNode[kMaxTiles];
+CACHENODE *tileNode;
 
 int tileStart[256];
 int tileEnd[256];
@@ -110,6 +110,12 @@ void CalcPicsiz(int a1, int a2, int a3)
 
 int tileInit(QBOOL a1, char *a2)
 {
+    if (!tileNode)
+    {
+        tileNode = (CACHENODE*)Resource::heap->AllocExtra(sizeof(CACHENODE) * kMaxTiles);
+        memset(tileNode, 0, sizeof(CACHENODE) * kMaxTiles);
+    }
+
     int i;
     int hFile;
     char filename[20];
@@ -370,7 +376,7 @@ byte *tileLoadTile(int nTile)
     CACHENODE *node = &tileNode[nTile];
     if (node->ptr)
     {
-        waloff[nTile] = (byte*)node->ptr;
+        waloff[nTile] = (byte*)(void*)node->ptr;
         if (node->lockCount == 0)
         {
             Resource::RemoveMRU(node);
@@ -385,7 +391,7 @@ byte *tileLoadTile(int nTile)
     gCacheMiss = gGameClock + 30;
     dassert(node->lockCount == 0, 508);
     node->ptr = Resource::Alloc(nSize);
-    waloff[nTile] = (byte*)node->ptr;
+    waloff[nTile] = (byte*)(void*)node->ptr;
     Resource::AddMRU(node);
     int hFile = hTileFile[tilefilenum[nTile]];
     lseek(hFile, tilefileoffs[nTile], SEEK_SET);

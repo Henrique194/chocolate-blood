@@ -481,3 +481,5 @@ void ControlsLoadSave::Save(void)
 
 static ControlsLoadSave myLoadSave;
 
+void controls_hook() { myLoadSave.Hook(); }
+

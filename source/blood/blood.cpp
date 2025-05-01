@@ -1240,10 +1240,12 @@ void func_86910(void)
 }
 
 void replace_hook();
+void ChainLoadSave();
 
 void main(int argc, char** argv)
 {
     replace_hook();
+    ChainLoadSave();
 
     Sys_Init(argc, argv);
     Sound_Init(44100);
@@ -1594,4 +1596,6 @@ void BloodLoadSave::Save(void)
 }
 
 static BloodLoadSave myLoadSave;
+
+void blood_hook() { myLoadSave.Hook(); }
 

@@ -52,8 +52,8 @@ template<typename Type> struct QPtr
 {
     uint32_t offset;
 
-    Type* operator =(Type* ptr) { offset = (uint32_t)((char*)ptr - (char*)basePtr); return ptr; }
-    operator Type*() { return (Type*)((char*)basePtr + offset); }
+    Type* operator =(Type* ptr) { if (ptr) offset = (uint32_t)((char*)ptr - (char*)basePtr + 1); else offset = 0; return ptr; }
+    operator Type*() { if (offset) return (Type*)((char*)basePtr + offset - 1); else return (Type*)nullptr; }
 };
 
 #pragma pack(push, 1)

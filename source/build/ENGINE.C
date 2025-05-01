@@ -399,17 +399,20 @@ void dorotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum, si
 void fillpolygon(int32_t npoints);
 int32_t bunchfront(int32_t b1, int32_t b2);
 int32_t wallmost(short *mostbuf, int32_t w, int32_t sectnum, char dastat);
-int32_t animateoffs(short tilenum, short fakevar);
 void initstereo();
 void uninitstereo();
 void stereonextpage();
 
+int32_t animateoffs_real(short tilenum, short fakevar);
 void initspritelists_real();
+int32_t getpalookup_real(int32_t davis, int32_t dashade);
 void (*initspritelists)() = initspritelists_real;
 int32_t(*insertsprite)(short, short) = insertsprite_real;
 int32_t(*deletesprite)(short) = deletesprite_real;
 int32_t(*changespritesect)(short, short) = changespritesect_real;
 int32_t(*changespritestat)(short, short) = changespritestat_real;
+int32_t(*animateoffs)(short, short) = animateoffs_real;
+int32_t(*getpalookup)(int32_t, int32_t) = getpalookup_real;
 
 void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 			 short daang, int32_t dahoriz, short dacursectnum)
@@ -1890,7 +1893,7 @@ void loadtables()
 	}
 }
 
-void loadpalette()
+void loadpalette_real()
 {
 	int32_t i, j, k, dist, fil;
 	char *ptr;
@@ -1939,6 +1942,7 @@ void loadpalette()
 		}
 	}
 }
+void (*loadpalette)() = loadpalette_real;
 
 static char screenalloctype = 255;
 int32_t setgamemode(char davidoption, int32_t daxdim, int32_t daydim)
@@ -2200,10 +2204,11 @@ void initengine()
 	visibility = 512;
 	parallaxvisibility = 512;
 
-	loadpalette();
+	loadpalette(); 
 }
 
-void uninitengine()
+void (*uninitengine)() = uninitengine_real;
+void uninitengine_real()
 {
 	int32_t i;
 
@@ -2325,7 +2330,8 @@ void nextpage()
 }
 
 char cachedebug = 0;
-void loadtile (short tilenume)
+void (*loadtile)(short) = loadtile_real;
+void loadtile_real (short tilenume)
 {
 	char *ptr;
 	int32_t i, dasiz;
@@ -2367,7 +2373,8 @@ void loadtile (short tilenume)
 	artfilplc = tilefileoffs[tilenume]+dasiz;
 }
 
-intptr_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz)
+intptr_t(*allocatepermanenttile)(short, int32_t, int32_t) = allocatepermanenttile_real;
+intptr_t allocatepermanenttile_real(short tilenume, int32_t xsiz, int32_t ysiz)
 {
 	int32_t i, j, x, y, dasiz;
 
@@ -2391,7 +2398,8 @@ intptr_t allocatepermanenttile(short tilenume, int32_t xsiz, int32_t ysiz)
 	return(waloff[tilenume]);
 }
 
-int32_t loadpics(char *filename)
+int32_t (*loadpics)(char*) = loadpics_real;
+int32_t loadpics_real(char *filename)
 {
 	int32_t offscount, siz, localtilestart, localtileend, dasiz;
 	short fil, i, j, k;
@@ -4208,7 +4216,7 @@ int32_t setsprite(short spritenum, int32_t newx, int32_t newy, int32_t newz)
 	return(0);
 }
 
-int32_t animateoffs(short tilenum, short fakevar)
+int32_t animateoffs_real(short tilenum, short fakevar)
 {
 	int32_t i, k, offs;
 
@@ -6195,7 +6203,7 @@ int32_t krand()
 	return(((uint32_t)randomseed)>>16);
 }
 
-int32_t getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
+void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
 			 int32_t *ceilz, int32_t *ceilhit, int32_t *florz, int32_t *florhit,
 			 int32_t walldist, uint32_t cliptype)
 {
@@ -8390,7 +8398,7 @@ void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, char dastat)
 	}
 }
 
-int32_t getpalookup(int32_t davis, int32_t dashade)
+int32_t getpalookup_real(int32_t davis, int32_t dashade)
 {
 	return(min(max(dashade+(davis>>8),0),numpalookups-1));
 }

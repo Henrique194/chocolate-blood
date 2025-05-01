@@ -1612,3 +1612,5 @@ void AILoadSave::Save(void)
 }
 
 static AILoadSave myLoadSave;
+
+void ai_hook() { myLoadSave.Hook(); }

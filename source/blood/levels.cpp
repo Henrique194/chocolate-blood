@@ -372,6 +372,8 @@ class LevelsLoadSave : public LoadSave
 
 static LevelsLoadSave myLoadSave;
 
+void levels_hook() { myLoadSave.Hook(); }
+
 void LevelsLoadSave::Load(void)
 {
     Read(&gNextLevel, sizeof(gNextLevel));

@@ -780,3 +780,5 @@ void MessagesLoadSave::Save()
 }
 
 static MessagesLoadSave myLoadSave;
+
+void messages_hook() { myLoadSave.Hook(); }

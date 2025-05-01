@@ -421,3 +421,5 @@ void MirrorLoadSave::Save(void)
 }
 
 static MirrorLoadSave myLoadSave;
+
+void mirrors_hook() { myLoadSave.Hook(); }

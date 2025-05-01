@@ -190,12 +190,12 @@ extern byte *waloff[kMaxTiles];
 
 void fixtransluscence(void);
 void initengine(void);
-void uninitengine(void);
+extern void (*uninitengine)(void);
 int setgamemode(byte, int, int);
 void clearview(int);
 void nextpage(void);
 void setview(int, int, int, int);
-int getpalookup(int, int);
+extern int (*getpalookup)(int, int);
 
 extern void (*initspritelists)(void);
 extern int (*insertsprite)(short, short);
@@ -205,7 +205,7 @@ extern int (*changespritestat)(short, short);
 
 void printext256(int, int, short, short, char *, char);
 
-int animateoffs(short a1, ushort a2);
+extern int (*animateoffs)(short a1, ushort a2);
 
 void rotatesprite(int, int, int, int, int, signed char, char, char, int, int, int, int);
 
