@@ -157,6 +157,7 @@ extern "C"
     extern void (*uninitengine)();
     extern void (*loadpalette)();
     extern int32_t(*getpalookup)(int32_t, int32_t);
+    extern int engine_revision;
 }
 
 void replace_hook()
@@ -179,4 +180,5 @@ void replace_hook()
     uninitengine = uninitengine_replace;
     loadpalette = loadpalette_replace;
     getpalookup = getpalookup_replace;
+    engine_revision = 19961006;
 }

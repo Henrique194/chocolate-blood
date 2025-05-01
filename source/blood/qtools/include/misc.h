@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "typedefs.h"
+#include "system.h"
 
 char *ReadLine(char *, int, char **);
 QBOOL FileRead(int, void*, uint32_t);
@@ -324,22 +325,22 @@ inline int QRandom2(int n)
 
 inline QBOOL Chance(int a1)
 {
-    return rand() < (a1>>1);
+    return wrand() < (a1>>1);
 }
 
 inline uint Random(int a1)
 {
-    return mulscale(rand(), a1, 15);
+    return mulscale(wrand(), a1, 15);
 }
 
 inline int Random2(int a1)
 {
-    return mulscale(rand(), a1, 14)-a1;
+    return mulscale(wrand(), a1, 14)-a1;
 }
 
 inline int Random3(int a1)
 {
-    return mulscale(rand()+rand(), a1, 15) - a1;
+    return mulscale(wrand()+wrand(), a1, 15) - a1;
 }
 
 static inline void MySplitPath(const char* s, char *buf, const char** dir, const char** name, const char** ext)

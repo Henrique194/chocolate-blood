@@ -130,7 +130,7 @@ void CDemo::Write(QINPUT *pPlayerInputs)
     }
     for (int p = connecthead; p >= 0; p = connectpoint2[p])
     {
-        memcpy(&at1aa[atb&1023], &pPlayerInputs[p], sizeof(INPUT));
+        memcpy(&at1aa[atb&1023], &pPlayerInputs[p], sizeof(QINPUT));
         atb++;
         if((atb&1023)==0)
             write(at7,at1aa,sizeof(at1aa));
@@ -142,7 +142,7 @@ void CDemo::Close(void)
     if (RecordStatus())
     {
         if (atb&1023)
-            write(at7,at1aa,sizeof(INPUT)*(atb&1023));
+            write(at7,at1aa,sizeof(QINPUT)*(atb&1023));
         atf.nInputCount = atb;
         lseek(at7, 0, SEEK_SET);
         write(at7, &atf, sizeof(DEMOHEADER));
@@ -288,12 +288,12 @@ _DEMOPLAYBACK:
             {
                 if ((v4&1023) == 0)
                 {
-                    unsigned int nSize = sizeof(INPUT)*(atb-v4);
+                    unsigned int nSize = sizeof(QINPUT)*(atb-v4);
                     if (nSize > sizeof(at1aa))
                         nSize = sizeof(at1aa);
                     read(at7, at1aa, nSize);
                 }
-                memcpy(&gFifoInput[gNetFifoHead[p]&255][p], &at1aa[v4&1023], sizeof(INPUT));
+                memcpy(&gFifoInput[gNetFifoHead[p]&255][p], &at1aa[v4&1023], sizeof(QINPUT));
                 gNetFifoHead[p]++;
                 v4++;
                 if (v4 >= atf.nInputCount)

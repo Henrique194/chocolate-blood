@@ -1526,7 +1526,7 @@ void displayweapon(short snum)
             if(*kb > 0)
                 gun_pos -= sintable[(*kb)<<7]>>12;
 
-            if(*kb > 0 && sprite[p->i].pal != 1) weapon_xoffset += 1-(rand()&3);
+            if(*kb > 0 && sprite[p->i].pal != 1) weapon_xoffset += 1-(wrand()&3);
 
             myospal(weapon_xoffset+168-(p->look_ang>>1),looking_arc+260-gun_pos,
                 CHAINGUN,gs,o,pal);
@@ -1540,16 +1540,16 @@ void displayweapon(short snum)
                     if(*kb > 4 && *kb < 12)
                     {
                         i = 0;
-                        if(sprite[p->i].pal != 1) i = rand()&7;
+                        if(sprite[p->i].pal != 1) i = wrand()&7;
                         myospal(i+weapon_xoffset-4+140-(p->look_ang>>1),i+looking_arc-((*kb)>>1)+208-gun_pos,
                             CHAINGUN+5+((*kb-4)/5),gs,o,pal);
-                        if(sprite[p->i].pal != 1) i = rand()&7;
+                        if(sprite[p->i].pal != 1) i = wrand()&7;
                         myospal(i+weapon_xoffset-4+184-(p->look_ang>>1),i+looking_arc-((*kb)>>1)+208-gun_pos,
                             CHAINGUN+5+((*kb-4)/5),gs,o,pal);
                     }
                     if(*kb < 8)
                     {
-                        i = rand()&7;
+                        i = wrand()&7;
                         myospal(i+weapon_xoffset-4+162-(p->look_ang>>1),i+looking_arc-((*kb)>>1)+208-gun_pos,
                             CHAINGUN+5+((*kb-2)/5),gs,o,pal);
                         myospal(weapon_xoffset+178-(p->look_ang>>1),looking_arc+233-gun_pos,
@@ -1693,8 +1693,8 @@ void displayweapon(short snum)
 
                 if(sprite[p->i].pal != 1)
                 {
-                    weapon_xoffset += rand()&3;
-                    looking_arc += rand()&3;
+                    weapon_xoffset += wrand()&3;
+                    looking_arc += wrand()&3;
                 }
                 gun_pos -= 16;
                 myospal(weapon_xoffset+210-(p->look_ang>>1),looking_arc+261-gun_pos,FREEZE+2,-32,o,pal);
@@ -1739,8 +1739,8 @@ void displayweapon(short snum)
             {
                 if(sprite[p->i].pal != 1)
                 {
-                    weapon_xoffset += rand()&3;
-                    gun_pos += (rand()&3);
+                    weapon_xoffset += wrand()&3;
+                    gun_pos += (wrand()&3);
                 }
 
                 if(cw == GROW_WEAPON)
@@ -2194,7 +2194,7 @@ char doincrements(struct player_struct *p)
             if(totalclock > 1024)
                 if(snum == screenpeek || ud.coop == 1)
             {
-                if(rand()&1)
+                if(wrand()&1)
                     spritesound(DUKE_CRACK,p->i);
                 else spritesound(DUKE_CRACK2,p->i);
             }
@@ -4080,11 +4080,11 @@ void computergetinput(int32_t snum, input *syn)
     {
         syn->bits |= (1<<2);
 
-        if ((p->curr_weapon == HANDBOMB_WEAPON) && (!(rand()&7)))
+        if ((p->curr_weapon == HANDBOMB_WEAPON) && (!(wrand()&7)))
             syn->bits &= ~(1<<2);
 
         if (p->curr_weapon == TRIPBOMB_WEAPON)
-            syn->bits |= ((rand()%MAX_WEAPONS)<<8);
+            syn->bits |= ((wrand()%MAX_WEAPONS)<<8);
 
         if (p->curr_weapon == RPG_WEAPON)
         {
@@ -4264,7 +4264,7 @@ void computergetinput(int32_t snum, input *syn)
         {
             for(k=0;k<4;k++)
             {
-                i = (rand()%numsectors);
+                i = (wrand()%numsectors);
                 for(j=headspritesect[i];j>=0;j=nextspritesect[j])
                 {
                     if ((sprite[j].xrepeat <= 0) || (sprite[j].yrepeat <= 0)) continue;

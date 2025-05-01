@@ -5171,7 +5171,7 @@ void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
                 if(camsprite >= 0 && hittype[OW].temp_data[0] == 1)
                 {
                     t->picnum = STATIC;
-                    t->cstat |= (rand()&12);
+                    t->cstat |= (wrand()&12);
                     t->xrepeat += 8;
                     t->yrepeat += 8;
                 }
@@ -9032,7 +9032,7 @@ void dobonus(char bonusonly)
                         {
                             bonuscnt++;
                             sound(SHOTGUN_COCK);
-                            switch(rand()&3)
+                            switch(wrand()&3)
                             {
                                 case 0:
                                     sound(BONUS_SPEECH1);

@@ -1130,16 +1130,22 @@ static void FireTommy(int nTrigger, PLAYER *pPlayer)
     {
     case 1:
     {
-        actFireVector(pPlayer->pSprite, 0, pPlayer->at6f-pPlayer->pSprite->z, aim->dx+Random3(1200), aim->dy+Random3(1200), aim->dz+Random3(400), VECTOR_TYPE_5);
+        int r1 = Random3(400);
+        int r2 = Random3(1200);
+        actFireVector(pPlayer->pSprite, 0, pPlayer->at6f-pPlayer->pSprite->z, aim->dx+Random3(1200), aim->dy+r2, aim->dz+r1, VECTOR_TYPE_5);
         SpawnBulletEject(pPlayer, -15, -45);
         pPlayer->at362 = 20;
         break;
     }
     case 2:
     {
-        actFireVector(pPlayer->pSprite, -120, pPlayer->at6f-pPlayer->pSprite->z, aim->dx+Random3(1200), aim->dy+Random3(1200), aim->dz+Random3(400), VECTOR_TYPE_5);
+        int r1 = Random3(400);
+        int r2 = Random3(1200);
+        actFireVector(pPlayer->pSprite, -120, pPlayer->at6f-pPlayer->pSprite->z, aim->dx+Random3(1200), aim->dy+r2, aim->dz+r1, VECTOR_TYPE_5);
         SpawnBulletEject(pPlayer, -140, -45);
-        actFireVector(pPlayer->pSprite, 120, pPlayer->at6f-pPlayer->pSprite->z, aim->dx+Random3(1200), aim->dy+Random3(1200), aim->dz+Random3(400), VECTOR_TYPE_5);
+        r1 = Random3(400);
+        r2 = Random3(1200);
+        actFireVector(pPlayer->pSprite, 120, pPlayer->at6f-pPlayer->pSprite->z, aim->dx+Random3(1200), aim->dy+r2, aim->dz+r1, VECTOR_TYPE_5);
         SpawnBulletEject(pPlayer, 140, 45);
         pPlayer->at362 = 30;
         break;
@@ -1160,8 +1166,11 @@ static void FireSpread(int nTrigger, PLAYER *pPlayer)
     int dy = Sin(angle)>>16;
     SPRITE *pSprite = pPlayer->pSprite;
     sfxPlay3DSound(pSprite, 431);
-    actFireVector(pPlayer->pSprite, 0, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+Random3(600), aim->dz+Random3(300), VECTOR_TYPE_3);
-    SpawnBulletEject(pPlayer, Random2(30), Random2(90));
+    int r1 = Random3(300);
+    int r2 = Random3(600);
+    actFireVector(pPlayer->pSprite, 0, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+r2, aim->dz+r1, VECTOR_TYPE_3);
+    r1 = Random2(90);
+    SpawnBulletEject(pPlayer, Random2(30), r1);
     pPlayer->at362 = 20;
     UseAmmo(pPlayer, pPlayer->atc7, 1);
     pPlayer->at37b = 1;
@@ -1176,10 +1185,16 @@ static void AltFireSpread(int nTrigger, PLAYER *pPlayer)
     int dy = Sin(angle)>>16;
     SPRITE *pSprite = pPlayer->pSprite;
     sfxPlay3DSound(pSprite, 431);
-    actFireVector(pPlayer->pSprite, -120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+Random3(600), aim->dz+Random3(300), VECTOR_TYPE_3);
-    SpawnBulletEject(pPlayer, Random2(120), Random2(45));
-    actFireVector(pPlayer->pSprite, 120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+Random3(600), aim->dz+Random3(300), VECTOR_TYPE_3);
-    SpawnBulletEject(pPlayer, Random2(-120), Random2(-45));
+    int r1 = Random3(300);
+    int r2 = Random3(600);
+    actFireVector(pPlayer->pSprite, -120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+r2, aim->dz+r1, VECTOR_TYPE_3);
+    r1 = Random2(45);
+    SpawnBulletEject(pPlayer, Random2(120), r1);
+    r1 = Random3(300);
+    r2 = Random3(600);
+    actFireVector(pPlayer->pSprite, 120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+r2, aim->dz+r1, VECTOR_TYPE_3);
+    r1 = Random2(-45);
+    SpawnBulletEject(pPlayer, Random2(-120), r1);
     pPlayer->at35e = 20;
     pPlayer->at362 = 30;
     UseAmmo(pPlayer, pPlayer->atc7, 2);
@@ -1197,18 +1212,27 @@ static void AltFireSpread2(int nTrigger, PLAYER *pPlayer)
     sfxPlay3DSound(pSprite, 431);
     if (powerupCheck(pPlayer, 17) && func_4B2C8(pPlayer, 3, 2))
     {
-        actFireVector(pPlayer->pSprite, -120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+Random3(600), aim->dz+Random3(300), VECTOR_TYPE_3);
-        SpawnBulletEject(pPlayer, Random2(120), Random2(45));
-        actFireVector(pPlayer->pSprite, 120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+Random3(600), aim->dz+Random3(300), VECTOR_TYPE_3);
-        SpawnBulletEject(pPlayer, Random2(-120), Random2(-45));
+        int r1 = Random3(300);
+        int r2 = Random3(600);
+        actFireVector(pPlayer->pSprite, -120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+r2, aim->dz+r1, VECTOR_TYPE_3);
+        r1 = Random2(45);
+        SpawnBulletEject(pPlayer, Random2(120), r1);
+        r1 = Random3(300);
+        r2 = Random3(600);
+        actFireVector(pPlayer->pSprite, 120, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+r2, aim->dz+r1, VECTOR_TYPE_3);
+        r1 = Random2(-45);
+        SpawnBulletEject(pPlayer, Random2(-120), r1);
         pPlayer->at35e = 30;
         pPlayer->at362 = 45;
         UseAmmo(pPlayer, pPlayer->atc7, 2);
     }
     else
     {
-        actFireVector(pPlayer->pSprite, 0, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+Random3(600), aim->dz+Random3(300), VECTOR_TYPE_3);
-        SpawnBulletEject(pPlayer, Random2(30), Random2(90));
+        int r1 = Random3(300);
+        int r2 = Random3(600);
+        actFireVector(pPlayer->pSprite, 0, pPlayer->at6f-pPlayer->pSprite->z, dx+Random3(600), dy+r2, aim->dz+r1, VECTOR_TYPE_3);
+        r1 = Random2(90);
+        SpawnBulletEject(pPlayer, Random2(30), r1);
         pPlayer->at35e = 20;
         pPlayer->at362 = 30;
         UseAmmo(pPlayer, pPlayer->atc7, 1);
@@ -1803,7 +1827,7 @@ QBOOL func_4F484(PLAYER *pPlayer)
 
 inline int VoodooAnim(int *a)
 {
-    int v = rand() << 1;
+    int v = wrand() << 1;
     int i;
     for (i = 0; a[i] < v; i++) {}
     return i;

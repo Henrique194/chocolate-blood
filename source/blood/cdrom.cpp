@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "typedefs.h"
+#include "system.h"
 #include "cdrom.h"
 #include "globals.h"
 #include "view.h"
@@ -545,7 +546,7 @@ short CCDAudio::play_song(short a1)
         cd_set_track(f_19);
     }
     else
-        cd_set_track((rand() % cdrom_data.f_b) + 1);
+        cd_set_track((wrand() % cdrom_data.f_b) + 1);
     if (cdrom_data.f_9 == 0x40)
         return 0;
 

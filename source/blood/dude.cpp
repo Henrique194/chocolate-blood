@@ -18,7 +18,9 @@
 #include "db.h"
 #include "dude.h"
 
-DUDEINFO dudeInfo[kDudeMax-kDudeBase] = 
+DUDEINFOACCESS dudeInfo;
+
+DUDEINFO dudeInfo2[kDudeMax-kDudeBase] = 
 {
     {
         0,

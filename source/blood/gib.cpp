@@ -462,7 +462,9 @@ void GibFX(int nWall, GIBFX * pGFX, int a3, int a4, int a5, int a6, CGibVelocity
     int nCount = ChanceToCount(pGFX->chance, pGFX->at9);
     for (int i = 0; i < nCount; i++)
     {
-        SPRITE *pGib = gFX.fxSpawn(pGFX->at0, nSector, pWall->x+Random(a4), pWall->y+Random(a5), a3+Random(a6), 0);
+        int r1 = Random(a6);
+        int r2 = Random(a5);
+        SPRITE *pGib = gFX.fxSpawn(pGFX->at0, nSector, pWall->x+Random(a4), pWall->y+r2, a3+r1, 0);
         if (pGib)
         {
             if (pGFX->at1 < 0)

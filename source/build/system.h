@@ -15,6 +15,11 @@ int Sys_GetMouseButtons();
 void sys_puts(const char* s);
 void sys_printf(const char* s, ...);
 
+#define WRAND_MAX 0x7fff
+
+void wsrand(int seed);
+int wrand();
+
 #ifdef __cplusplus
 }
 #endif

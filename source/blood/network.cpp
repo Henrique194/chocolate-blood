@@ -16,6 +16,7 @@
  */
 #include <stdio.h>
 #include "typedefs.h"
+#include "system.h"
 #include "engine.h"
 #include "config.h"
 #include "controls.h"
@@ -203,7 +204,7 @@ uint32_t inline Checksum(char *p, int l)
 void CalcGameChecksum(void)
 {
     memset(gChecksum, 0, sizeof(gChecksum));
-    gChecksum[0] = rand();
+    gChecksum[0] = wrand();
     for (int p = connecthead; p >= 0; p = connectpoint2[p])
     {
         gChecksum[1] ^= Checksum((char*)&gPlayer[p].at22, 216*4);

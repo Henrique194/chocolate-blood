@@ -15,6 +15,7 @@
  *
  */
 #include "typedefs.h"
+#include "system.h"
 #include "ai.h"
 #include "aighost.h"
 #include "engine.h"
@@ -100,7 +101,7 @@ static void BlastSeqCallback(int, int nXSprite)
     XSPRITE *pXSprite = &xsprite[nXSprite];
     int nSprite = pXSprite->reference;
     SPRITE *pSprite = &sprite[nSprite];
-    rand(); // ???
+    wrand(); // ???
     SPRITE *pTarget = &sprite[pXSprite->target];
     int height = (pSprite->yrepeat*dudeInfo[pSprite->type-kDudeBase].atb) << 2;
     int dx = pXSprite->at20_0-pSprite->x;

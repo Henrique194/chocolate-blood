@@ -166,10 +166,16 @@ static void thinkPonder(SPRITE *pSprite, XSPRITE *pXSprite)
     DUDEINFO *pDudeInfo = &dudeInfo[pSprite->type - kDudeBase];
     dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 288);
     SPRITE *pTarget = &sprite[pXSprite->target];
-    XSPRITE *pXTarget = &xsprite[pTarget->extra];
     int dx = pTarget->x-pSprite->x;
     int dy = pTarget->y-pSprite->y;
     aiChooseDirection(pSprite, pXSprite, getangle(dx, dy));
+    // FIX: pTarget->extra == -1 OOB
+    if (pTarget->extra < 0)
+    {
+        aiNewState(pSprite, pXSprite, &zombieASearch);
+        return;
+    }
+    XSPRITE* pXTarget = &xsprite[pTarget->extra];
     if (pXTarget->health == 0)
     {
         aiNewState(pSprite, pXSprite, &zombieASearch);

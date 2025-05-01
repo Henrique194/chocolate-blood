@@ -21,7 +21,7 @@
 
 #include "weather.h"
 
-enum GAMETYPE : int32_t
+enum GAMETYPE : uint8_t
 {
     GAMETYPE_0 = 0,
     GAMETYPE_1,
@@ -29,7 +29,7 @@ enum GAMETYPE : int32_t
     GAMETYPE_3,
 };
 
-enum DIFFICULTY : int32_t
+enum DIFFICULTY : uint8_t
 {
     DIFFICULTY_0 = 0,
     DIFFICULTY_1,
@@ -38,14 +38,14 @@ enum DIFFICULTY : int32_t
     DIFFICULTY_4,
 };
 
-enum MONSTERSETTINGS : int32_t
+enum MONSTERSETTINGS : uint8_t
 {
     MONSTERSETTINGS_0 = 0,
     MONSTERSETTINGS_1,
     MONSTERSETTINGS_2,
 };
 
-enum WEAPONSETTINGS : int32_t
+enum WEAPONSETTINGS : uint8_t
 {
     WEAPONSETTINGS_0 = 0,
     WEAPONSETTINGS_1,
@@ -53,19 +53,19 @@ enum WEAPONSETTINGS : int32_t
     WEAPONSETTINGS_3,
 };
 
-enum ITEMSETTINGS : int32_t
+enum ITEMSETTINGS : uint8_t
 {
     ITEMSETTINGS_0 = 0,
     ITEMSETTINGS_1,
     ITEMSETTINGS_2,
 };
 
-enum RESPAWNSETTINGS : int32_t
+enum RESPAWNSETTINGS : uint8_t
 {
     RESPAWNSETTINGS_0 = 0,
 };
 
-enum TEAMSETTINGS : int32_t
+enum TEAMSETTINGS : uint8_t
 {
     TEAMSETTINGS_0 = 0,
     TEAMSETTINGS_1,
@@ -75,14 +75,15 @@ enum TEAMSETTINGS : int32_t
 #define kMaxFileKeyLen 16
 #define kMaxMessages 32
 
+#pragma pack(push, 1)
 struct GAMEOPTIONS
 {
     GAMETYPE        nGameType;
     DIFFICULTY      nDifficulty;
     int             nEpisode;
     int             nLevel;
-    char            zLevelName[_MAX_PATH];
-    char            zLevelSong[_MAX_PATH];
+    char            zLevelName[WMAX_PATH];
+    char            zLevelSong[WMAX_PATH];
     int             nTrackNumber;
     char            szSaveGameName[kMaxFileKeyLen];
     char            szUserGameName[kMaxFileKeyLen];
@@ -135,6 +136,8 @@ struct EPISODEINFO
     char at9030[144];
     char at90c0[144];
 };
+
+#pragma pack(pop)
 
 extern EPISODEINFO gEpisodeInfo[];
 extern GAMEOPTIONS gGameOptions;

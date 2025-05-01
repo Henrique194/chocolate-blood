@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "typedefs.h"
+#include "system.h"
 #include "error.h"
 #include "fire.h"
 #include "globals.h"
@@ -42,7 +43,7 @@ void InitSeedBuffers(void)
     for (int i = 0; i < 16; i++)
         for (int j = 0; j < fireSize; j += 2)
         {
-            byte v = rand();
+            byte v = wrand();
             SeedBuffer[i][j] = v;
             SeedBuffer[i][j + 1] = v;
         }

@@ -48,7 +48,19 @@ struct DUDEINFO {
     int at90;
 };
 
-extern DUDEINFO dudeInfo[];
+extern DUDEINFO dudeInfo2[];
+
+struct DUDEINFOACCESS {
+    DUDEINFO oobDude;
+    DUDEINFO& operator[](int index) {
+        if (index >= 0 && index < kDudeMax - kDudeBase)
+            return dudeInfo2[index];
+        return oobDude;
+    };
+};
+
+extern DUDEINFOACCESS dudeInfo;
+
 extern DUDEINFO gPlayerTemplate[];
 
 #endif

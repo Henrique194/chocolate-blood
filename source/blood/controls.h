@@ -19,17 +19,19 @@
 
 #include "typedefs.h"
 
+#pragma pack(push, 1)
+
 union BUTTONFLAGS
 {
     char            byte;
     struct
     {
-        unsigned jump           : 1;    // player is jumping (once!)
-        unsigned crouch         : 1;    // player is crouching
-        unsigned shoot          : 1;    // normal attack
-        unsigned shoot2         : 1;    // alternate attack
-        unsigned lookUp         : 1;    // > glance or aim up/down
-        unsigned lookDown       : 1;    // > if glancing then lookCenter is set
+        unsigned int jump           : 1;    // player is jumping (once!)
+        unsigned int crouch         : 1;    // player is crouching
+        unsigned int shoot          : 1;    // normal attack
+        unsigned int shoot2         : 1;    // alternate attack
+        unsigned int lookUp         : 1;    // > glance or aim up/down
+        unsigned int lookDown       : 1;    // > if glancing then lookCenter is set
     };
 };
 
@@ -38,23 +40,23 @@ union KEYFLAGS
     short           word;
     struct
     {
-        unsigned action         : 1;    // open or activate
-        unsigned jab            : 1;    // quick attack
-        unsigned prevItem       : 1;    // next inventory item
-        unsigned nextItem       : 1;    // prev inventory item
-        unsigned useItem        : 1;    // use inventory item
-        unsigned prevWeapon     : 1;    // prev useable weapon
-        unsigned nextWeapon     : 1;    // next useable weapon
-        unsigned holsterWeapon  : 1;    // holster current weapon
+        unsigned int action         : 1;    // open or activate
+        unsigned int jab            : 1;    // quick attack
+        unsigned int prevItem       : 1;    // next inventory item
+        unsigned int nextItem       : 1;    // prev inventory item
+        unsigned int useItem        : 1;    // use inventory item
+        unsigned int prevWeapon     : 1;    // prev useable weapon
+        unsigned int nextWeapon     : 1;    // next useable weapon
+        unsigned int holsterWeapon  : 1;    // holster current weapon
 
-        unsigned lookCenter     : 1;    // used for lookUp/lookDown only
-        unsigned lookLeft       : 1;    // > glance or aim up/down
-        unsigned lookRight      : 1;    // > if glancing then lookCenter is set
-        unsigned spin180        : 1;    // spin 180 degrees
+        unsigned int lookCenter     : 1;    // used for lookUp/lookDown only
+        unsigned int lookLeft       : 1;    // > glance or aim up/down
+        unsigned int lookRight      : 1;    // > if glancing then lookCenter is set
+        unsigned int spin180        : 1;    // spin 180 degrees
 
-        unsigned pause          : 1;    // pause the game
-        unsigned quit           : 1;    // quit the game
-        unsigned restart        : 1;    // restart the level
+        unsigned int pause          : 1;    // pause the game
+        unsigned int quit           : 1;    // quit the game
+        unsigned int restart        : 1;    // restart the level
     };
 };
 
@@ -63,10 +65,10 @@ union USEFLAGS
     char            byte;
     struct
     {
-        unsigned useBeastVision     : 1;
-        unsigned useCrystalBall     : 1;
-        unsigned useJumpBoots       : 1;
-        unsigned useMedKit          : 1;
+        unsigned int useBeastVision     : 1;
+        unsigned int useCrystalBall     : 1;
+        unsigned int useJumpBoots       : 1;
+        unsigned int useMedKit          : 1;
     };
 };
 
@@ -75,12 +77,12 @@ union SYNCFLAGS
     char            byte;
     struct
     {
-        unsigned buttonChange   : 1;
-        unsigned keyChange      : 1;
-        unsigned useChange      : 1;
-        unsigned weaponChange   : 1;
-        unsigned mlookChange    : 1;
-        unsigned run            : 1;    // player is running
+        unsigned int buttonChange   : 1;
+        unsigned int keyChange      : 1;
+        unsigned int useChange      : 1;
+        unsigned int weaponChange   : 1;
+        unsigned int mlookChange    : 1;
+        unsigned int run            : 1;    // player is running
     };
 };
 
@@ -98,6 +100,8 @@ struct QINPUT
     uchar           newWeapon;      // sent as 0 every frame unless changed
     schar           mlook;
 };
+
+#pragma pack(pop)
 
 extern QINPUT gInput;
 extern QBOOL bSilentAim;

@@ -5055,18 +5055,25 @@ void actProcessSprites(void)
                     {
                         if (pSprite->type == 431 && pXSprite->target == -1)
                         {
-                            int nOwner = actOwnerIdToSpriteId(pSprite->owner);
-                            SPRITE *pOwner = &sprite[nOwner];
-                            PLAYER *pPlayer = &gPlayer[pOwner->type-kDudePlayer1];
                             PLAYER *pPlayer2 = NULL;
                             if (IsPlayerSprite(pSprite2))
                                 pPlayer2 = &gPlayer[pSprite2->type-kDudePlayer1];
+                            int nOwner = actOwnerIdToSpriteId(pSprite->owner);
                             if (nSprite2 == nOwner || pSprite2->type == 205 || pSprite2->type == 220 || pSprite2->type == 219)
-                                continue;
-                            if (gGameOptions.nGameType == GAMETYPE_3 && pPlayer2 && pPlayer->at2ea == pPlayer2->at2ea)
                                 continue;
                             if (gGameOptions.nGameType == GAMETYPE_1 && pPlayer2)
                                 continue;
+                            //FIX: nOwner = -1 OOB
+                            if (nOwner >= 0)
+                            {
+                                SPRITE *pOwner = &sprite[nOwner];
+                                if (IsPlayerSprite(pSprite))
+                                {
+                                    PLAYER *pPlayer = &gPlayer[pOwner->type-kDudePlayer1];
+                                    if (gGameOptions.nGameType == GAMETYPE_3 && pPlayer2 && pPlayer->at2ea == pPlayer2->at2ea)
+                                        continue;
+                                }
+                            }
                             v1b0 = 512;
                         }
                         if (CheckProximity(pSprite2, pSprite->x, pSprite->y, pSprite->z, pSprite->sectnum, v1b0))

@@ -1469,9 +1469,9 @@ void viewInit(void)
 
     for (int i = 0; i < 16; i++)
     {
-        int_172CE0[i][0] = mulscale(rand(), 2048, 15);
-        int_172CE0[i][2] = mulscale(rand(), 2048, 15);
-        int_172CE0[i][1] = mulscale(rand(), 2048, 15);
+        int_172CE0[i][0] = mulscale(wrand(), 2048, 15);
+        int_172CE0[i][2] = mulscale(wrand(), 2048, 15);
+        int_172CE0[i][1] = mulscale(wrand(), 2048, 15);
     }
     gViewMap.func_25C38(0, 0, gZoom, 0, gFollowMap);
 }
@@ -2032,7 +2032,8 @@ void viewProcessSprites(int cX, int cY, int cZ)
         int nShade = pTSprite->shade;
         SECTOR *pSector = &sector[pTSprite->sectnum];
 #if 1
-        XSECTOR *pXSector = pSector->extra ? &xsector[pSector->extra] : NULL;
+        // FIX: extra == -1 OOB
+        XSECTOR *pXSector = pSector->extra >= 0 ? &xsector[pSector->extra] : NULL;
 #else
         XSECTOR* pXSector;
         if (pSector->extra)

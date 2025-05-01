@@ -359,3 +359,15 @@ void sys_printf(const char* s, ...)
 	Video_Text_Puts(buf);
 	printf("%s", buf);
 }
+
+static int wseed = 1;
+void wsrand(int seed)
+{
+	wseed = seed;
+}
+
+int wrand()
+{
+	wseed = 1103515245 * wseed + 12345;
+	return (wseed >> 16) & WRAND_MAX;
+}

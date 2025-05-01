@@ -46,7 +46,7 @@ int blaster_type = BLASTER_TYPE_16;
 
 SDL_Mutex *snd_mutex;
 
-#define MUSIC_GAIN 2.f
+#define MUSIC_GAIN 3.f
 
 static bool Adlib_Callback(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
 {

@@ -11,3 +11,5 @@
 #define stricmp _stricmp
 #endif
 
+#define WMAX_PATH 144
+

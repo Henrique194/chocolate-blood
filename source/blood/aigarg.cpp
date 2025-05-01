@@ -87,8 +87,10 @@ static void SlashFSeqCallback(int, int nXSprite)
     int dy = Sin(pSprite->ang)>>16;
     int dz = height-height2;
     actFireVector(pSprite, 0, 0, dx, dy, dz, VECTOR_TYPE_13);
-    actFireVector(pSprite, 0, 0, dx+Random(50), dy-Random(50), dz, VECTOR_TYPE_13);
-    actFireVector(pSprite, 0, 0, dx-Random(50), dy+Random(50), dz, VECTOR_TYPE_13);
+    int r1 = Random(50);
+    actFireVector(pSprite, 0, 0, dx+Random(50), dy-r1, dz, VECTOR_TYPE_13);
+    r1 = Random(50);
+    actFireVector(pSprite, 0, 0, dx-Random(50), dy+r1, dz, VECTOR_TYPE_13);
 }
 
 static void ThrowFSeqCallback(int, int nXSprite)

@@ -130,7 +130,9 @@ static void ShotSeqCallback(int, int nXSprite)
     dz += Random2(2500-gGameOptions.nDifficulty*500);
     for (int i = 0; i < 8; i++)
     {
-        actFireVector(pSprite, 0, 0, dx+Random3(1000), dy+Random3(1000), dz+Random3(500), VECTOR_TYPE_1);
+        int r1 = Random3(500);
+        int r2 = Random3(1000);
+        actFireVector(pSprite, 0, 0, dx+Random3(1000), dy+r2, dz+r1, VECTOR_TYPE_1);
     }
     if (Chance(0x8000))
         sfxPlay3DSound(pSprite, 1001);

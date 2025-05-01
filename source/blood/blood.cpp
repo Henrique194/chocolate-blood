@@ -524,7 +524,7 @@ void StartLevel(GAMEOPTIONS *gameOptions)
     memset(sprite,0,sizeof(sprite));
     func_5A828();
     dbLoadMap(gameOptions->zLevelName,&startposx,&startposy,&startposz,&startang,&startsectnum,&gameOptions->uMapCRC);
-    srand(gameOptions->uMapCRC);
+    wsrand(gameOptions->uMapCRC);
     gKillMgr.Clear();
     gSecretMgr.Clear();
     automapping = 1;

@@ -21,6 +21,8 @@
 #include "globals.h"
 #include "levels.h"
 
+#pragma pack(push, 1)
+
 struct DEMOHEADER
 {
     uint32_t signature;
@@ -33,6 +35,8 @@ struct DEMOHEADER
     short connectPoints[8];
     GAMEOPTIONS gameOptions;
 };
+
+#pragma pack(pop)
 
 class CDemo {
 public:

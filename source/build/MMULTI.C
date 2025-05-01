@@ -101,7 +101,7 @@ void initmultiplayers(char damultioption, char dacomrateoption, char dapriority)
 	numplayers = gcom->numplayers;
 	myconnectindex = gcom->myconnectindex-1;
 #if (SIMULATEERRORS != 0)
-	srand(myconnectindex*24572457+345356);
+	wsrand(myconnectindex*24572457+345356);
 #endif
 	connecthead = 0;
 	for(i=0;i<numplayers-1;i++) connectpoint2[i] = i+1;
@@ -276,8 +276,8 @@ void dosendpackets(int32_t other)
 #endif
 
 #if (SIMULATEERRORS != 0)
-	if (!(rand()&SIMULATEERRORS)) gcom->buffer[rand()%gcom->numbytes] = (rand()&255);
-	if (rand()&SIMULATEERRORS)
+	if (!(wrand()&SIMULATEERRORS)) gcom->buffer[wrand()%gcom->numbytes] = (wrand()&255);
+	if (wrand()&SIMULATEERRORS)
 #endif
 		{ gcom->command = 1; callcommit(); }
 }
