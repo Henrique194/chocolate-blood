@@ -852,6 +852,14 @@ int tenBnStart(void);
 
 void TenButtonCommand(char *);
 
+void tenBnSetCommandLine(void (*a1)(char*))
+{
+}
+int tenBnStart(void)
+{
+    return 0xed9;
+}
+
 void TenProcess(CGameMenuItemChain *)
 {
     tenBnSetCommandLine(TenButtonCommand);

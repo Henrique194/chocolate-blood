@@ -23,7 +23,7 @@
 void DefaultHandler(const Error& err);
 ErrorHandler curHandler = DefaultHandler;
 
-char *module;
+const char *module;
 int line;
 QBOOL inHandler;
 char char_3DF0C4[80];
@@ -43,13 +43,13 @@ void DefaultHandler(const Error &err)
     _exit(1);
 }
 
-void _SetErrorLoc(char *_module, int _line)
+void _SetErrorLoc(const char *_module, int _line)
 {
     module = _module;
     line = _line;
 }
 
-void _ThrowError(char *s, ...)
+void _ThrowError(const char *s, ...)
 {
     char buffer[256];
     char_3DF114 = TRUE;

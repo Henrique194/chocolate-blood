@@ -308,10 +308,14 @@ int32_t krand();
 int32_t loadboard(char *filename, int32_t *daposx, int32_t *daposy, int32_t *daposz,
 			 short *daang, short *dacursectnum);
 int32_t lastwall(short point);
-int32_t insertsprite(short sectnum, short statnum);
-int32_t deletesprite(short spritenum);
-int32_t changespritesect(short spritenum, short newsectnum);
-int32_t changespritestat(short spritenum, short newstatnum);
+int32_t insertsprite_real(short sectnum, short statnum);
+int32_t deletesprite_real(short spritenum);
+int32_t changespritesect_real(short spritenum, short newsectnum);
+int32_t changespritestat_real(short spritenum, short newstatnum);
+extern int32_t (*insertsprite)(short, short);
+extern int32_t (*deletesprite)(short);
+extern int32_t (*changespritesect)(short, short);
+extern int32_t (*changespritestat)(short, short);
 void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 int32_t hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum, int32_t vx, int32_t vy, int32_t vz,
 	short *hitsect, short *hitwall, short *hitsprite,
@@ -359,6 +363,8 @@ int VBE_setPalette(int32_t start, int32_t num, char *dapal);
 void updatesector(int32_t x, int32_t y, short* sectnum);
 void loadtile(short tilenume);
 void drawline256(int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col);
-void *kmalloc(size_t size);
-void kfree(void *buffer);
+void *kmalloc_real(size_t size);
+void kfree_real(void* buffer);
+extern void *(*kmalloc)(size_t size);
+extern void (*kfree)(void *buffer);
 void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z);

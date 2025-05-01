@@ -29,39 +29,39 @@ void uninitcache()
 {
 }
 
-extern "C" void agecache()
+extern "C" void agecache_replace()
 {
 }
 
-extern "C" void initcache()
+extern "C" void initcache_replace(intptr_t, int32_t)
 {
 }
 
-extern "C" void allocache()
+extern "C" void allocache_replace(intptr_t*, int32_t, char*)
 {
 }
 
-extern "C" void *kmalloc(int32_t size)
+extern "C" void *kmalloc_replace(size_t size)
 {
     return Resource::Alloc(size);
 }
 
-extern "C" void kfree(void *pMem)
+extern "C" void kfree_replace(void *pMem)
 {
     Resource::Free(pMem);
 }
 
-extern "C" int loadpics()
+extern "C" int loadpics_replace()
 {
     return tileInit(0, NULL) ? 0 : - 1;
 }
 
-extern "C" void loadtile(short nTile)
+extern "C" void loadtile_replace(short nTile)
 {
     tileLoadTile(nTile);
 }
 
-extern "C" intptr_t allocatepermanenttile(short a1, int a2, int a3)
+extern "C" intptr_t allocatepermanenttile_replace(short a1, int a2, int a3)
 {
     return (intptr_t)tileAllocTile(a1, a2, a3);
 }
@@ -79,7 +79,7 @@ enum {
     kFakevarMask = 0xc000,
 };
 
-extern "C" int animateoffs(short a1, ushort a2)
+extern "C" int animateoffs_replace(short a1, ushort a2)
 {
     int offset = 0;
     int frames;
@@ -111,20 +111,59 @@ extern "C" int animateoffs(short a1, ushort a2)
     return offset;
 }
 
-extern "C" void uninitengine()
+extern "C" void uninitengine_replace()
 {
     tileTerm();
 }
 
-extern "C" void loadpalette()
+extern "C" void loadpalette_replace()
 {
     scrLoadPalette();
 }
 
-extern "C" int getpalookup(int a1, int a2)
+extern "C" int getpalookup_replace(int a1, int a2)
 {
     if (gFogMode)
         return ClipHigh(a1>>8, 15)*16+ClipRange(a2>>2, 0, 15);
     else
         return ClipRange((a1>>8)+a2, 0, 63);
+}
+
+extern "C"
+{
+    void loadvoxel_replace(int nVoxel);
+    void initspritelists_replace(void);
+    int insertsprite_replace(short a1, short a2);
+    int deletesprite_replace(short a1);
+    int changespritesect_replace(short nSprite, short nSector);
+    int changespritestat_replace(short nSprite, short nStatus);
+
+
+    extern void* (*kmalloc)(size_t);
+    extern void (*kfree)(void*);
+    extern void (*loadvoxel)(int32_t);
+    extern void (*initcache)(intptr_t, int32_t);
+    extern void (*allocache)(intptr_t*, int32_t, char*);
+    extern void (*suckcache)(int32_t*);
+    extern void (*agecache)();
+    extern void (*initspritelists)();
+    extern int32_t(*insertsprite)(short, short);
+    extern int32_t(*deletesprite)(short);
+    extern int32_t(*changespritesect)(short, short);
+    extern int32_t(*changespritestat)(short, short);
+}
+
+void replace_hook()
+{
+    kmalloc = kmalloc_replace;
+    kfree = kfree_replace;
+    loadvoxel = loadvoxel_replace;
+    initcache = initcache_replace;
+    allocache = allocache_replace;
+    agecache = agecache_replace;
+    initspritelists = initspritelists_replace;
+    insertsprite = insertsprite_replace;
+    deletesprite = deletesprite_replace;
+    changespritesect = changespritesect_replace;
+    changespritestat = changespritestat_replace;
 }

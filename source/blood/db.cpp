@@ -242,7 +242,7 @@ void RemoveSpriteStat(int nSprite)
     gStatCount[nStat]--;
 }
 
-void initspritelists(void)
+extern "C" void initspritelists_replace(void)
 {
     for (short i = 0; i <= kMaxSectors; i++)
     {
@@ -261,7 +261,7 @@ void initspritelists(void)
     memset(gStatCount, 0, sizeof(gStatCount));
 }
 
-int insertsprite(short a1, short a2)
+extern "C" int insertsprite_replace(short a1, short a2)
 {
     return InsertSprite(a1, a2);
 }
@@ -290,9 +290,10 @@ int InsertSprite(int nSector, int nStat)
     return nSprite;
 }
 
-void deletesprite(short a1)
+extern "C" int deletesprite_replace(short a1)
 {
     DeleteSprite(a1);
+    return 0;
 }
 
 void DeleteSprite(int nSprite)
@@ -308,7 +309,7 @@ void DeleteSprite(int nSprite)
     InsertSpriteStat(nSprite, kMaxStatus);
 }
 
-int changespritesect(short nSprite, short nSector)
+extern "C" int changespritesect_replace(short nSprite, short nSector)
 {
     return ChangeSpriteSect(nSprite, nSector);
 }
@@ -324,7 +325,7 @@ int ChangeSpriteSect(int nSprite, int nSector)
     return 0;
 }
 
-int changespritestat(short nSprite, short nStatus)
+extern "C" int changespritestat_replace(short nSprite, short nStatus)
 {
     return ChangeSpriteStat(nSprite, nStatus);
 }

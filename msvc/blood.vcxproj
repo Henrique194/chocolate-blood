@@ -109,6 +109,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(ProjectDir)/sdl/lib/x64/SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -125,6 +126,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(ProjectDir)/sdl/lib/x64/SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,6 +154,7 @@
     <ClCompile Include="..\source\blood\asound.cpp" />
     <ClCompile Include="..\source\blood\blood.cpp" />
     <ClCompile Include="..\source\blood\callback.cpp" />
+    <ClCompile Include="..\source\blood\cdrom.cpp" />
     <ClCompile Include="..\source\blood\choke.cpp" />
     <ClCompile Include="..\source\blood\config.cpp" />
     <ClCompile Include="..\source\blood\controls.cpp" />
@@ -209,6 +212,7 @@
     <ClCompile Include="..\source\blood\warp.cpp" />
     <ClCompile Include="..\source\blood\weapon.cpp" />
     <ClCompile Include="..\source\blood\weather.cpp" />
+    <ClCompile Include="..\source\build\MMULTI.C" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\blood\actor.h" />
@@ -294,6 +298,17 @@
     <ClInclude Include="..\source\blood\weapon.h" />
     <ClInclude Include="..\source\blood\weather.h" />
     <ClInclude Include="..\source\blood\_functio.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="audiolib.vcxproj">
+      <Project>{e14321a6-d029-48a8-8463-a87f51eceffb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="build.vcxproj">
+      <Project>{50ab6d81-baae-49c5-9198-02d0698e1b96}</Project>
+    </ProjectReference>
+    <ProjectReference Include="mact.vcxproj">
+      <Project>{937f0c17-b6f1-41fb-ba18-b53aca44131d}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -16,7 +16,7 @@
  */
 #include <ctype.h>
 #include "typedefs.h"
-#include "build.h"
+#include "engine.h"
 #include "cdrom.h"
 #include "credits.h"
 #include "debug4g.h"
@@ -31,7 +31,7 @@ QBOOL exitCredits = FALSE;
 
 QBOOL Wait(int nTicks)
 {
-    gGameClock = 0;
+    gGameClock_set(0);
     while (gGameClock < nTicks)
     {
         BYTE key = keyGet();
@@ -49,7 +49,8 @@ QBOOL DoFade(byte r, byte g, byte b, int nTicks)
 {
     dassert(nTicks > 0, 59);
     scrSetupFade(r, g, b);
-    gGameClock = gFrameClock = 0;
+    gFrameClock = 0;
+    gGameClock_set(0);
     do
     {
         while (gGameClock < gFrameClock) { }
@@ -66,7 +67,8 @@ QBOOL DoUnFade(int nTicks)
 {
     dassert(nTicks > 0, 79);
     scrSetupUnfade();
-    gGameClock = gFrameClock = 0;
+    gFrameClock = 0;
+    gGameClock_set(0);
     do
     {
         while (gGameClock < gFrameClock) { }

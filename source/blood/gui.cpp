@@ -295,7 +295,7 @@ void Panel::Paint(int x, int y, char a3)
     Container::Paint(x, y, a3);
 }
 
-TitleBar::TitleBar(int a1, int a2, int a3, int a4, char *a5) : Widget(a1, a2, a3, a4)
+TitleBar::TitleBar(int a1, int a2, int a3, int a4, const char *a5) : Widget(a1, a2, a3, a4)
 {
     strcpy(at24, a5);
     at124 = strlen(at24);
@@ -329,7 +329,7 @@ void TitleBar::HandleEvent(GEVENT *event)
     }
 }
 
-Window::Window(int a1, int a2, int a3, int a4, char* a5) : Panel(a1, a2, a3, a4, 1, 1, -1)
+Window::Window(int a1, int a2, int a3, int a4, const char* a5) : Panel(a1, a2, a3, a4, 1, 1, -1)
 {
     at62 = new TitleBar(3, 3, a3-6, 12, a5);
     at5e = new Container(3, 15, a3-6, a4-18);
@@ -891,7 +891,7 @@ int GetStringBox(char *a1, char *a2)
     return 1;
 }
 
-int GetNumberBox(char *a1, int a2, int a3)
+int GetNumberBox(const char *a1, int a2, int a3)
 {
     Window window(0, 0, 168, 40, a1);
     EditNumber* editnumber = new EditNumber(4, 4, 154, 16, a2);

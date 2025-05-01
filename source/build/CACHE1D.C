@@ -51,7 +51,12 @@ static int32_t lockrecip[200];
 
 void reportandexit();
 
-void initcache(intptr_t dacachestart, int32_t dacachesize)
+void (*initcache)(intptr_t, int32_t) = initcache_real;
+void (*allocache)(intptr_t*, int32_t, char*) = allocache_real;
+void (*suckcache)(int32_t*) = suckcache_real;
+void (*agecache)() = agecache_real;
+
+void initcache_real(intptr_t dacachestart, int32_t dacachesize)
 {
 	int32_t i;
 
@@ -65,7 +70,7 @@ void initcache(intptr_t dacachestart, int32_t dacachesize)
 	cacnum = 1;
 }
 
-void allocache (intptr_t *newhandle, int32_t newbytes, char *newlockptr)
+void allocache_real(intptr_t *newhandle, int32_t newbytes, char *newlockptr)
 {
 	int32_t i, j, z, zz, bestz, daval, bestval, besto, o1, o2, sucklen, suckz;
 
@@ -147,7 +152,7 @@ void allocache (intptr_t *newhandle, int32_t newbytes, char *newlockptr)
 	cac[bestz].lock = &zerochar;
 }
 
-void suckcache (int32_t *suckptr)
+void suckcache_real(int32_t *suckptr)
 {
 	int32_t i;
 
@@ -173,7 +178,7 @@ void suckcache (int32_t *suckptr)
 		}
 }
 
-void agecache()
+void agecache_real()
 {
 	int32_t cnt;
 	char ch;

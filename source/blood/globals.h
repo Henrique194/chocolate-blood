@@ -42,7 +42,11 @@ extern Resource gSysRes;
 
 extern QBOOL gUse8250;
 
-extern int32_t volatile gGameClock;
+int32_t gGameClock_get();
+void gGameClock_set(int32_t value);
+void gGameClock_add(int32_t value);
+void gGameClock_sub(int32_t value);
+#define gGameClock gGameClock_get()
 
 extern int32 gGamma;
 

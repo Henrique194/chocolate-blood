@@ -81,7 +81,7 @@ SAMPLE2D *FindChannel(void)
     return &Channel[i];
 }
 
-void sndPlaySong(char *songName, QBOOL bLoop)
+void sndPlaySong(const char *songName, QBOOL bLoop)
 {
     if (MusicDevice == -1)
         return;
@@ -159,7 +159,7 @@ void SoundCallback(uintptr_t val)
     *(int*)val = 0;
 }
 
-void sndStartSample(char *pzSound, int nVolume, int nChannel)
+void sndStartSample(const char *pzSound, int nVolume, int nChannel)
 {
     if (FXDevice == -1)
         return;
@@ -255,7 +255,7 @@ void sndKillSound(SAMPLE2D *pChannel)
     FX_StopSound(pChannel->at0);
 }
 
-void sndStartWavDisk(char *pzFile, int nVolume, int nChannel)
+void sndStartWavDisk(const char *pzFile, int nVolume, int nChannel)
 {
     if (FXDevice == -1)
         return;

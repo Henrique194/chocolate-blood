@@ -15,6 +15,7 @@
  *
  */
 #include <stdio.h>
+#include <SDL3/SDL.h>
 #include "typedefs.h"
 #include "types.h"
 #include "engine.h"
@@ -27,7 +28,29 @@ int gOldDisplayMode;
 int32_t gFrameClock;
 int gFrameTicks;
 int gFrame;
-int32_t volatile gGameClock;
+
+SDL_AtomicInt gGameClock_val;
+
+int32_t gGameClock_get()
+{
+    return SDL_GetAtomicInt(&gGameClock_val);
+}
+
+void gGameClock_set(int32_t value)
+{
+    SDL_SetAtomicInt(&gGameClock_val, value);
+}
+
+void gGameClock_add(int32_t value)
+{
+    SDL_AddAtomicInt(&gGameClock_val, value);
+}
+
+void gGameClock_sub(int32_t value)
+{
+    SDL_AddAtomicInt(&gGameClock_val, -value);
+}
+
 int gCacheMiss;
 int gFrameRate;
 int32 gGamma;
@@ -58,8 +81,8 @@ QBOOL gAdultContent = 1;
 
 void ClockStrobe(void)
 {
-    ++gGameClock;
-    totalclock = gGameClock;
+    gGameClock_add(1);
+    totalclock_set(gGameClock);
 }
 
 void CLOCK_STROBE_END(void) {}

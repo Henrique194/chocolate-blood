@@ -205,7 +205,7 @@ void viewSetFont(int id, int tile, int space)
     pFont->space = space;
 }
 
-void viewGetFontInfo(int nFont, char* pString, int* pXSize, int* pYSize)
+void viewGetFontInfo(int nFont, const char* pString, int* pXSize, int* pYSize)
 {
     if (nFont < 0 || nFont >= 5)
         return;
@@ -220,7 +220,7 @@ void viewGetFontInfo(int nFont, char* pString, int* pXSize, int* pYSize)
     else
     {
         int width = -pFont->space;
-        for (char *pBuf = pString; *pBuf; pBuf++)
+        for (const char *pBuf = pString; *pBuf; pBuf++)
         {
             int tile = ((*pBuf-32)&127)+pFont->tile;
             if (tilesizx[tile] != 0 && tilesizy[tile] != 0)
@@ -1040,9 +1040,9 @@ void viewDrawChar(QFONT *pFont, char chr, int x, int y, byte *pLookup)
     }
 }
 
-void viewDrawText(int nFont, char *pString, int x, int y, int nShade, int nPalette, int position, QBOOL shadow)
+void viewDrawText(int nFont, const char *pString, int x, int y, int nShade, int nPalette, int position, QBOOL shadow)
 {
-    char *s;
+    const char *s;
 
     if (nFont < 0 || nFont >= 5 || !pString) return;
     FONT *pFont = &gFont[nFont];
@@ -1188,6 +1188,10 @@ int gPackIcons[6] = {
 };
 
 void tenPlayerDebugInfo(char *a1, int pid);
+
+void tenPlayerDebugInfo(char* a1, int pid)
+{
+}
 
 void viewDrawPack(PLAYER *pPlayer, int x, int y)
 {
@@ -2544,7 +2548,7 @@ void viewBurnTime(int gScale)
     }
 }
 
-void viewSetMessage(char *pMessage)
+void viewSetMessage(const char *pMessage)
 {
     gGameMessageMgr.Add(pMessage, 15);
 }
@@ -2554,7 +2558,7 @@ void viewDisplayMessage(void)
     gGameMessageMgr.Display();
 }
 
-void viewSetErrorMessage(char *pMessage)
+void viewSetErrorMessage(const char *pMessage)
 {
     if (pMessage == NULL)
     {
@@ -3087,7 +3091,7 @@ void viewDrawScreen(void)
     UpdateDacs(arg);
 }
 
-void func_1EC78(int nTile, char *pText, char *pText2, char *pText3)
+void func_1EC78(int nTile, const char *pText, const char *pText2, const char *pText3)
 {
     int vc;
     int v8 = -128;

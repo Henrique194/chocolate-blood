@@ -29,6 +29,26 @@ PAGE_STRUCT gPageTable[4];
 int gYLookup[1200];
 int nTextMode;
 
+int gGetMode(void)
+{
+    return video_graphics;
+}
+int gSetMode(int m)
+{
+    if (m == 0x13)
+        Video_Set(m, 320, 200);
+    else
+        Video_Set(m, 0, 0);
+    return 0;
+}
+
+void gSetDACRange(int s, int e, byte *pal)
+{
+    s *= 3;
+    e *= 3;
+    memcpy(video_palette + s, pal, e - s);
+}
+
 const char *ModelName[] = {
     "0:MONO",
     "1:PLANAR",

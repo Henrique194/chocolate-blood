@@ -1,6 +1,10 @@
 #pragma once
 #include <SDL3/SDL.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern SDL_Mutex* snd_mutex;
 
 typedef enum
@@ -29,3 +33,7 @@ int Music_GetVolume();
 void Music_SetVolume(int vol);
 void Music_SetTimer(int divider, void (*handler)());
 void Adlib_Write(int offset, int data);
+
+#ifdef __cplusplus
+}
+#endif

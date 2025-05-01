@@ -305,7 +305,7 @@ void CGameMessageMgr::SetState(byte state)
         at0 = 1;
 }
 
-void CGameMessageMgr::Add(char *a1, byte a2)
+void CGameMessageMgr::Add(const char *a1, byte a2)
 {
     if (a2 && at21)
     {

@@ -60,12 +60,13 @@ void TimerSetup(void)
     }
     timeradjust = -gGameClock;
 }
+#endif
 
 void timerRemove(void)
 {
-    union REGS regs;
-    regs.w.ax = 0x1600;
-    int386(0x2f, &regs, &regs);
+    //union REGS regs;
+    //regs.w.ax = 0x1600;
+    //int386(0x2f, &regs, &regs);
     if (timerActive)
     {
         for (int i = 0; i < nClients; i++)
@@ -75,30 +76,29 @@ void timerRemove(void)
         TS_Shutdown();
         nClients = 0;
         timerActive = FALSE;
-        if (regs.h.al <= 1 || regs.h.ah == 0x80)
-        {
-            TimerDone();
-        }
+        //if (regs.h.al <= 1 || regs.h.ah == 0x80)
+        //{
+        //    TimerDone();
+        //}
     }
 }
 
 void timerInstall(void)
 {
-    union REGS regs;
-    regs.w.ax = 0x1600;
-    int386(0x2f, &regs, &regs);
+    //union REGS regs;
+    //regs.w.ax = 0x1600;
+    //int386(0x2f, &regs, &regs);
     if (!timerActive)
     {
         timerActive = TRUE;
         TS_Dispatch();
-        if (regs.h.al <= 1 || regs.h.ah == 0x80)
-        {
-            TimerSetup();
-        }
+        //if (regs.h.al <= 1 || regs.h.ah == 0x80)
+        //{
+        //    TimerSetup();
+        //}
         atexit(timerRemove);
     }
 }
-#endif
 
 typedef void (*task_cast)(task*);
 

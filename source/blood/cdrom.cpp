@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  */
-#include <i86.h>
+//#include <i86.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,13 +73,14 @@ stop_request_t *stop_request;
 int stop_request_descriptor;
 unsigned char *cd_mode;
 int cd_mode_descriptor;
-REGS inregs;
-REGS outregs;
-struct SREGS sregs;
+//REGS inregs;
+//REGS outregs;
+//struct SREGS sregs;
 int cdmem_allocated;
 void *cdmem_ptr;
 unsigned short cdmem_segment;
 
+#if 0
 struct rminfo {
     unsigned int edi, esi, ebp, reserved, ebx, edx, ecx, eax;
     unsigned short flags, es, ds, fs, gs, ip, cs, sp, ss;
@@ -111,9 +112,13 @@ int dpmiFree(int segment);
 parm nomemory [edx] \
 modify exact [eax edx]
 
+#endif
+
 
 short CCDAudio::cdrom_setup(void)
 {
+    return 0;
+#if 0
     int status = 0;
 
     status |= dpmiAlloc((void**)&tray_request, &tray_request_descriptor, 30);
@@ -133,10 +138,12 @@ short CCDAudio::cdrom_setup(void)
     status |= dpmiAlloc((void**)&vinfo, &vinfo_descriptor, 9);
 
     return status == 0;
+#endif
 }
 
 void CCDAudio::cdrom_shutdown(void)
 {
+#if 0
     while (int_295330)
     {
         cd_lock(0);
@@ -157,10 +164,12 @@ void CCDAudio::cdrom_shutdown(void)
     dpmiFree(track_control_descriptor);
     dpmiFree(vinfo_descriptor);
     dpmiFree(pinfo_descriptor);
+#endif
 }
 
 void CCDAudio::device_request(void *a1)
 {
+#if 0
     memset(&sregs, 0, sizeof(sregs));
     if (!cdmem_allocated)
     {
@@ -191,6 +200,7 @@ void CCDAudio::device_request(void *a1)
     inregs.x.edi = FP_OFF(&RMI);
     int386x(0x31, &inregs, &outregs, &sregs);
     memcpy(a1, cdmem_ptr, len);
+#endif
 }
 
 void CCDAudio::red_book(unsigned long a1, unsigned char *a2, unsigned char *a3, unsigned char *a4)
@@ -465,6 +475,8 @@ void CCDAudio::cd_getpos(playinfo *a1)
 
 short CCDAudio::cdrom_installed(void)
 {
+    return 0;
+#if 0
     inregs.h.ah = 0x15;
     inregs.h.al = 0;
     inregs.w.bx = 0;
@@ -476,6 +488,7 @@ short CCDAudio::cdrom_installed(void)
     cd_get_audio_info();
     int_148E14 = cdrom_data.f_2;
     return 1;
+#endif
 }
 
 short CCDAudio::cd_done_play(void)
@@ -667,12 +680,12 @@ int CCDAudio::preprocess(void)
             func_1EC78(0, "CD-Audio", "Restarting Track", NULL);
             break;
     }
-    long oc = gGameClock;
+    int32_t oc = gGameClock;
     short t = f_19;
     play_song(t);
     cd_status();
     f_e42 = cdrom_data.f_20;
-    gGameClock = oc;
+    gGameClock_set(oc);
     return 1;
 }
 

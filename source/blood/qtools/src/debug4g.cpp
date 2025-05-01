@@ -323,7 +323,7 @@ int dprintf(const char *, ...)
     return 0;
 }
 
-void __dassert(char *s, char *m, int l)
+void __dassert(const char *s, const char *m, int l)
 {
     switch (debugMode)
     {

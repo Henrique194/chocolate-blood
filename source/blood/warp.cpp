@@ -187,7 +187,7 @@ int CheckLink(SPRITE *pSprite)
     return 0;
 }
 
-int CheckLink(long *x, long *y, long *z, int *nSector)
+int CheckLink(int32_t *x, int32_t *y, int32_t *z, int *nSector)
 {
     int z1, z2;
     int nUpper = gUpperLink[*nSector];

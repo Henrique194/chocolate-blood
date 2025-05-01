@@ -34,7 +34,7 @@
 #include "screen.h"
 #include "tile.h"
 
-extern "C" void loadvoxel(int nVoxel)
+extern "C" void loadvoxel_replace(int nVoxel)
 {
     static int nLastVoxel = 0;
     dassert(nVoxel >= 0 && nVoxel < kMaxVoxels, 117);
@@ -489,7 +489,7 @@ void tilePreloadTile(int nTile)
             picanm[nTile].at3_4 = 0;
         }
         else
-            loadvoxel(voxelIndex[nTile]);
+            loadvoxel_replace(voxelIndex[nTile]);
         break;
     }
     for(; n > 0; n--, nTile += 1 + picanm[nTile].animframes)

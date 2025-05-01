@@ -44,7 +44,7 @@ public:
     void SetFont(int);
     void SetMaxMessages(int);
     void SetMessageTime(int);
-    void Add(char *, byte);
+    void Add(const char *, byte);
     void Display(void);
     void Clear();
     void SetMessageFlags(unsigned int nFlags);

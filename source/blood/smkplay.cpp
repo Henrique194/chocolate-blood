@@ -15,7 +15,7 @@
  *
  */
 #include "typedefs.h"
-#include "build.h"
+#include "engine.h"
 #include "controls.h"
 #include "key.h"
 #include "resource.h"

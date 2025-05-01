@@ -103,6 +103,22 @@ short func_83E44(int nDest, char *pBuffer, int nSize);
 void func_8364C(short nDest, char *pBuffer, short nSize);
 int tenBloodSendPacket(int nIndex, char *bufptr, int buflen);
 
+void func_83444(int nDest, char* pBuffer, int nSize)
+{
+}
+short func_83E44(int nDest, char* pBuffer, int nSize)
+{
+    return 0;
+}
+void func_8364C(short nDest, char* pBuffer, short nSize)
+{
+}
+
+int tenBloodSendPacket(int nIndex, char* bufptr, int buflen)
+{
+    return 0;
+}
+
 void netsendpacket(int nDest, char *pBuffer, int nSize)
 {
     if (nSize > gNetSentSizeThreshold)
@@ -155,7 +171,8 @@ void netSendPacketAll(char *pBuffer, int nSize)
 
 void func_79760(void)
 {
-    gNetFifoClock = gFrameClock = gGameClock = 0;
+    gGameClock_set(0);
+    gNetFifoClock = gFrameClock = 0;
     gNetFifoMasterTail = 0;
     gPredictTail = 0;
     gNetFifoTail = 0;
@@ -196,6 +213,12 @@ void CalcGameChecksum(void)
 }
 
 byte func_86760(byte *);
+
+
+byte func_86760(byte*)
+{
+    return 0;
+}
 
 void netCheckSync(void)
 {
@@ -249,6 +272,24 @@ short func_8349C(short *pSource, char *pBuffer);
 short func_83EB0(short *pSource, char *pBuffer);
 short func_83700(short *pSource, char *pBuffer);
 short tenBloodGetPacket(short *pSource, char *pBuffer);
+
+
+short func_8349C(short* pSource, char* pBuffer)
+{
+    return 0;
+}
+short func_83EB0(short* pSource, char* pBuffer)
+{
+    return 0;
+}
+short func_83700(short* pSource, char* pBuffer)
+{
+    return 0;
+}
+short tenBloodGetPacket(short* pSource, char* pBuffer)
+{
+    return 0;
+}
 
 short netGetPacket(short *pSource, char *pMessage)
 {
@@ -568,6 +609,12 @@ void netWaitForEveryone(QBOOL a1)
 
 int tenBloodScore(char *);
 
+
+int tenBloodScore(char*)
+{
+    return 0;
+}
+
 void func_7AC28(char *pzString)
 {
     if (numplayers <= 1)
@@ -637,6 +684,15 @@ void func_7AE2C(QINPUT *pInput)
 
 int func_83500(void);
 void tenCalculateJitter(void);
+
+
+int func_83500(void)
+{
+    return 0;
+}
+void tenCalculateJitter(void)
+{
+}
 
 void netGetInput(void)
 {
@@ -727,7 +783,7 @@ void netGetInput(void)
                     }
                     else
                         t = ksgn(t);
-                    gGameClock -= t<<2;
+                    gGameClock_sub(t<<2);
                     otherMinLag += t;
                     myMinLag[connecthead] -= t;
                 }
@@ -811,7 +867,7 @@ void netGetInput(void)
                 }
                 else
                     t = ksgn(t);
-                gGameClock -= t<<2;
+                gGameClock_sub(t<<2);
                 otherMinLag += t;
                 myMinLag[connecthead] -= t;
             }
@@ -891,6 +947,11 @@ void netGetInput(void)
 }
 
 void tenBloodIdle(void);
+
+
+void tenBloodIdle(void)
+{
+}
 
 extern "C" void faketimerhandler(void)
 {

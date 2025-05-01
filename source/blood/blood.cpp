@@ -119,6 +119,24 @@ int func_83D80(void);
 int tenBloodInit(void);
 int func_835B0(void);
 
+
+int func_83370(void)
+{
+    return -1;
+}
+int func_83D80(void)
+{
+    return -1;
+}
+int tenBloodInit(void)
+{
+    return -1;
+}
+int func_835B0(void)
+{
+    return -1;
+}
+
 void func_10148(void)
 {
     char temp[20];
@@ -593,7 +611,7 @@ void StartLevel(GAMEOPTIONS *gameOptions)
     if (gGameOptions.nGameType == GAMETYPE_3)
         gGameMessageMgr.SetCoordinates(gViewX0S+1,gViewY0S+15);
     netWaitForEveryone(0);
-    gGameClock = 0;
+    gGameClock_set(0);
     gPaused = 0;
     gGameStarted = 1;
     ready2send = 1;
@@ -1217,8 +1235,16 @@ void ParseOptions(void)
 
 void func_86910(void);
 
+void func_86910(void)
+{
+}
+
+void replace_hook();
+
 void main(int argc, char** argv)
 {
+    replace_hook();
+
     Sys_Init(argc, argv);
     Sound_Init(44100);
 

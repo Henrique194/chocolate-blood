@@ -161,7 +161,7 @@ public:
 class TitleBar : public Widget
 {
 public:
-    TitleBar(int, int, int, int, char*);
+    TitleBar(int, int, int, int, const char*);
     virtual void Paint(int, int, char);
     virtual void HandleEvent(GEVENT*);
     char at24[256];
@@ -173,7 +173,7 @@ class Window : public Panel
 public:
     Container* at5e;
     TitleBar* at62;
-    Window(int, int, int, int, char*);
+    Window(int, int, int, int, const char*);
 };
 
 class Button : public Widget

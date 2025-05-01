@@ -33,17 +33,17 @@
 #define MAXCLIPDIST 1024
 
 	//MUST CALL MALLOC THIS WAY TO FORCE CALLS TO KMALLOC!
-void *kmalloc(size_t size) { return(malloc(size)); }
-void *(*kkmalloc)(size_t size) = kmalloc;
+void *kmalloc_real(size_t size) { return(malloc(size)); }
+void *(*kmalloc)(size_t) = kmalloc_real;
 
 	//MUST CALL FREE THIS WAY TO FORCE CALLS TO KFREE!
-void kfree(void *buffer) { free(buffer); }
-void (*kkfree)(size_t *buffer) = kfree;
+void kfree_real(void *buffer) { free(buffer); }
+void (*kfree)(void*) = kfree_real;
 
 #ifdef SUPERBUILD
 	//MUST CALL LOADVOXEL THIS WAY BECAUSE WATCOM STINKS!
-void loadvoxel(int32_t voxindex) { }
-void (*kloadvoxel)(int32_t voxindex) = loadvoxel;
+void loadvoxel_real(int32_t voxindex) { }
+void (*loadvoxel)(int32_t) = loadvoxel_real;
 
 	//These variables need to be copied into BUILD
 #define MAXXSIZ 128
@@ -393,7 +393,6 @@ void drawvox(int32_t dasprx, int32_t daspry, int32_t dasprz, int32_t dasprang,
 	signed char dashade, char dapal, int32_t* daumost, int32_t* dadmost);
 void ceilspritescan(int32_t x1, int32_t x2);
 void ceilspritehline(int32_t x2, int32_t y);
-void initspritelists();
 void keepaway(int32_t *x, int32_t *y, int32_t w);
 void dosetaspect();
 void dorotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum, signed char dashade, char dapalnum, char dastat, int32_t cx1, int32_t cy1, int32_t cx2, int32_t cy2);
@@ -404,6 +403,13 @@ int32_t animateoffs(short tilenum, short fakevar);
 void initstereo();
 void uninitstereo();
 void stereonextpage();
+
+void initspritelists_real();
+void (*initspritelists)() = initspritelists_real;
+int32_t(*insertsprite)(short, short) = insertsprite_real;
+int32_t(*deletesprite)(short) = deletesprite_real;
+int32_t(*changespritesect)(short, short) = changespritesect_real;
+int32_t(*changespritestat)(short, short) = changespritestat_real;
 
 void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 			 short daang, int32_t dahoriz, short dacursectnum)
@@ -1895,9 +1901,9 @@ void loadpalette()
 	kread(fil,palette,768);
 	kread(fil,&numpalookups,2);
 
-	if ((palookup[0] = (char *)kkmalloc(numpalookups<<8)) == NULL)
+	if ((palookup[0] = (char *)kmalloc(numpalookups<<8)) == NULL)
 		allocache(&palookup[0],numpalookups<<8,&permanentlock);
-	if ((transluc = (char *)kkmalloc(65536)) == NULL)
+	if ((transluc = (char *)kmalloc(65536)) == NULL)
 		allocache(&transluc,65536,&permanentlock);
 
 	globalpalwritten = palookup[0]; globalpal = 0;
@@ -1961,12 +1967,12 @@ int32_t setgamemode(char davidoption, int32_t daxdim, int32_t daydim)
 
 	if (screen != NULL)
 	{
-		if (screenalloctype == 0) kkfree((void *)screen);
+		if (screenalloctype == 0) kfree((void *)screen);
 		if (screenalloctype == 1) suckcache((int32_t *)screen);
 		screen = NULL;
 	}
 	screenalloctype = 0;
-	if ((screen = (char *)kkmalloc(i+(j<<1))) == NULL)
+	if ((screen = (char *)kmalloc(i+(j<<1))) == NULL)
 	{
 		 allocache((int32_t *)&screen,i+(j<<1),&permanentlock);
 		 screenalloctype = 1;
@@ -2204,16 +2210,16 @@ void uninitengine()
 	if (vidoption == 1) uninitvesa();
 	if (artfil != -1) kclose(artfil);
 
-	if (transluc != NULL) { kkfree(transluc); transluc = NULL; }
-	if (pic != NULL) { kkfree(pic); pic = NULL; }
+	if (transluc != NULL) { kfree(transluc); transluc = NULL; }
+	if (pic != NULL) { kfree(pic); pic = NULL; }
 	if (screen != NULL)
 	{
-		if (screenalloctype == 0) kkfree((void *)screen);
+		if (screenalloctype == 0) kfree((void *)screen);
 		//if (screenalloctype == 1) suckcache(screen);  //Cache already gone
 		screen = NULL;
 	}
 	for(i=0;i<MAXPALOOKUPS;i++)
-		if (palookup[i] != NULL) { kkfree(palookup[i]); palookup[i] = NULL; }
+		if (palookup[i] != NULL) { kfree(palookup[i]); palookup[i] = NULL; }
 }
 
 void nextpage()
@@ -2441,7 +2447,7 @@ int32_t loadpics(char *filename)
 	//try dpmi_DETERMINEMAXREALALLOC!
 
 	cachesize = max(artsize,1048576);
-	while ((pic = (char *)kkmalloc(cachesize)) == NULL)
+	while ((pic = (char *)kmalloc(cachesize)) == NULL)
 	{
 		cachesize -= 65536;
 		if (cachesize < 65536) return(-1);
@@ -3842,7 +3848,7 @@ void drawsprite (int32_t snum)
 		for(i=0;i<MAXVOXMIPS;i++)
 			if (!voxoff[tilenum][i])
 			{
-				kloadvoxel(tilenum);
+				loadvoxel(tilenum);
 				break;
 			}
 
@@ -4229,7 +4235,7 @@ int32_t animateoffs(short tilenum, short fakevar)
 	return(offs);
 }
 
-void initspritelists()
+void initspritelists_real()
 {
 	int32_t i;
 
@@ -4259,7 +4265,7 @@ void initspritelists()
 	nextspritestat[MAXSPRITES-1] = -1;
 }
 
-int32_t insertsprite(short sectnum, short statnum)
+int32_t insertsprite_real(short sectnum, short statnum)
 {
 	insertspritestat(statnum);
 	return(insertspritesect(sectnum));
@@ -4313,7 +4319,7 @@ int32_t insertspritestat(short statnum)
 	return(blanktouse);
 }
 
-int32_t deletesprite(short spritenum)
+int32_t deletesprite_real(short spritenum)
 {
 	deletespritestat(spritenum);
 	return(deletespritesect(spritenum));
@@ -4359,7 +4365,7 @@ int32_t deletespritestat (short deleteme)
 	return(0);
 }
 
-int32_t changespritesect(short spritenum, short newsectnum)
+int32_t changespritesect_real(short spritenum, short newsectnum)
 {
 	if ((newsectnum < 0) || (newsectnum > MAXSECTORS)) return(-1);
 	if (sprite[spritenum].sectnum == newsectnum) return(0);
@@ -4369,7 +4375,7 @@ int32_t changespritesect(short spritenum, short newsectnum)
 	return(0);
 }
 
-int32_t changespritestat(short spritenum, short newstatnum)
+int32_t changespritestat_real(short spritenum, short newstatnum)
 {
 	if ((newstatnum < 0) || (newstatnum > MAXSTATUS)) return(-1);
 	if (sprite[spritenum].statnum == newstatnum) return(0);
@@ -6989,7 +6995,7 @@ void makepalookup(int32_t palnum, char *remapbuf, signed char r, signed char g, 
 	if (palookup[palnum] == NULL)
 	{
 			//Allocate palookup buffer
-		if ((palookup[palnum] = (char *)kkmalloc(numpalookups<<8)) == NULL)
+		if ((palookup[palnum] = (char *)kmalloc(numpalookups<<8)) == NULL)
 			allocache(&palookup[palnum],numpalookups<<8,&permanentlock);
 	}
 

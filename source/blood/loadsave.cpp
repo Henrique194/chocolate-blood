@@ -156,7 +156,7 @@ void LoadSave::LoadGame(char *pzFile)
     gFrame = 0;
     gCacheMiss = 0;
     gFrameRate = 0;
-    gGameClock = 0;
+    gGameClock_set(0);
     gPaused = 0;
     gGameStarted = 1;
     if (!bNoCDAudio && gRedBookInstalled && Redbook.preprocess())
@@ -248,7 +248,7 @@ void MyLoadSave::Load(void)
     Read(&gFrame, sizeof(gFrame));
     int nGameClock;
     Read(&nGameClock, sizeof(nGameClock));
-    gGameClock = nGameClock;
+    gGameClock_set(nGameClock);
     Read(&gPaused, sizeof(gPaused));
     Read(&gAdultContent, sizeof(gAdultContent));
     Read(baseWall, sizeof(baseWall[0])*numwalls);

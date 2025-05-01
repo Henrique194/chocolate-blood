@@ -131,7 +131,7 @@ static int active_page;
 
 void Video_BlitPage(int32_t page)
 {
-	if (!video_graphics)
+	if (video_graphics != 0x13)
 		return;
 
 	active_page = page;

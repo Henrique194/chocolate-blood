@@ -23,7 +23,7 @@
 
 char *ReadLine(char *, int, char **);
 QBOOL FileRead(int, void*, uint32_t);
-QBOOL FileLoad(char*, void*, uint32_t);
+QBOOL FileLoad(const char*, void*, uint32_t);
 
 void ChangeExtension(char *name, const char *ext);
 

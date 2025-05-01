@@ -106,7 +106,7 @@ public:
 
 void gfxDrawText(int x, int y, int color, const char *pzText, QFONT *pFont);
 void gfxSetClip(int a1, int a2, int a3, int a4);
-int gfxGetLabelLen(char *a1, QFONT *a2);
+int gfxGetLabelLen(const char *a1, QFONT *a2);
 void gfxDrawLabel(int x, int y, int color, const char* pzLabel, QFONT* pFont);
 void gfxHLine(int a1, int a2, int a3);
 void gfxVLine(int a1, int a2, int a3);

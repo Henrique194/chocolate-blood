@@ -65,7 +65,7 @@ QBOOL FileWrite(int hFile, void *buffer, uint32_t length)
     return write(hFile, buffer, length) == length;
 }
 
-QBOOL FileLoad(char *name, void *buffer, uint32_t length)
+QBOOL FileLoad(const char *name, void *buffer, uint32_t length)
 {
     dassert(buffer != NULL, 98);
     int hFile = open(name, O_BINARY);
@@ -87,16 +87,15 @@ QBOOL FileSave(char *name, void *buffer, uint32_t length)
     return l == length;
 }
 
-struct MEMINFO {
-    uint f_0;
-    char __f_4[0x4];
-    uint f_8;
-    char __f_c[0x8];
-    uint f_14;
-    uint f_18;
-    uint f_1c;
-    char __f_20[0x10];
-};
+uint32_t func_A8B30(void)
+{
+    return 64 * 1024 * 1024;
+}
+
+uint32_t func_A8B50(void)
+{
+    return 64 * 1024 * 1024;
+}
 
 void AddExtension(char *name, const char *ext)
 {

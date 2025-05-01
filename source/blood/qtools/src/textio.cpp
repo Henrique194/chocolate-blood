@@ -84,13 +84,19 @@ void WriteString(int a1, int a2, char *s, byte a4)
 
 void tioInit(int a1)
 {
-    tioScreenCols = *(short*)0x44a;
-    tioScreenRows = *(byte*)0x484 + 1;
+    //tioScreenCols = *(short*)0x44a;
+    //tioScreenRows = *(byte*)0x484 + 1;
+    tioScreenCols = 80;
+    tioScreenRows = 25;
     tioStride = tioScreenCols * 2;
-    cursor.f_8 = *(byte*)0x460;
-    cursor.f_9 = *(byte*)0x461;
-    cursor.f_4 = *(byte*)0x450;
-    cursor.f_0 = *(byte*)0x451;
+    //cursor.f_8 = *(byte*)0x460;
+    //cursor.f_9 = *(byte*)0x461;
+    //cursor.f_4 = *(byte*)0x450;
+    //cursor.f_0 = *(byte*)0x451;
+    cursor.f_8 = 0;
+    cursor.f_9 = 0;
+    cursor.f_4 = 0;
+    cursor.f_0 = 0;
     tioCursorOff();
     tioSetAttribute(7);
     tioWindow(0, 0, tioScreenRows, tioScreenCols);
@@ -98,11 +104,9 @@ void tioInit(int a1)
         tioClearWindow();
 }
 
-void tioCursorSet(int ch, int cl);
-#pragma aux tioCursorSet = \
-"mov ah,1" \
-"int 0x10" \
-parm nomemory [ch] [cl]
+void tioCursorSet(int ch, int cl)
+{
+}
 
 void tioCursorOff(void)
 {

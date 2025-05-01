@@ -132,8 +132,12 @@ struct PICANM {
 #pragma pack(pop)
 
 extern "C" {
-
-extern volatile int totalclock;
+    
+int32_t totalclock_get();
+void totalclock_set(int32_t value);
+void totalclock_add(int32_t value);
+void totalclock_sub(int32_t value);
+#define totalclock totalclock_get()
 extern byte palette[768];
 extern byte *palookup[256];
 extern int parallaxvisibility;
@@ -193,11 +197,11 @@ void nextpage(void);
 void setview(int, int, int, int);
 int getpalookup(int, int);
 
-void initspritelists(void);
-int insertsprite(short, short);
-void deletesprite(short);
-int changespritesect(short, short);
-int changespritestat(short, short);
+extern void (*initspritelists)(void);
+extern int (*insertsprite)(short, short);
+extern int (*deletesprite)(short);
+extern int (*changespritesect)(short, short);
+extern int (*changespritestat)(short, short);
 
 void printext256(int, int, short, short, char *, char);
 

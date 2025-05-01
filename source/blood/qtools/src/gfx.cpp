@@ -241,25 +241,25 @@ void printChar(int x, int y, byte c)
     }
 }
 
-int gfxGetTextLen(char *a1, QFONT *a2)
+int gfxGetTextLen(const char *a1, QFONT *a2)
 {
     if (a2 == NULL)
         return strlen(a1) * 8;
 
     int l = -a2->at11;
-    for (char *s = a1; *s; s++)
+    for (const char *s = a1; *s; s++)
         l += a2->at20[*s].ox + a2->at11;
 
     return l;
 }
 
-int gfxGetTextNLen(char *a1, QFONT *a2, int a3)
+int gfxGetTextNLen(const char *a1, QFONT *a2, int a3)
 {
     if (a2 == NULL)
         return strlen(a1) * 8;
 
     int l = -a2->at11;
-    for (char *s = a1; *s && a3 > 0; s++, a3--)
+    for (const char *s = a1; *s && a3 > 0; s++, a3--)
         l += a2->at20[*s].ox + a2->at11;
 
     return l;
