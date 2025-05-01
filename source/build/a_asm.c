@@ -461,7 +461,7 @@ void mvlineasm4(int32_t ecx, intptr_t edi)
 					break;
 				case 10:
 					*(char*)(edi + 1) = col.b;
-					*(char*)(edi + 3) = col.c;
+					*(char*)(edi + 3) = col.d;
 					break;
 				case 11:
 					*(short*)(edi) = (short)col.m;

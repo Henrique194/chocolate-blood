@@ -46,7 +46,8 @@ void gSetDACRange(int s, int e, byte *pal)
 {
     s *= 3;
     e *= 3;
-    memcpy(video_palette + s, pal, e - s);
+    for (int i = s; i < e; i++)
+        video_palette[i] = pal[i - s] >> 2;
 }
 
 const char *ModelName[] = {

@@ -85,10 +85,10 @@ void QAV::Play(int32_t start, int32_t end, int nCallback, void *pData)
             SOUNDINFO *pSound = &pFrame->sound;
             if (pSound->sound > 0)
             {
-                if (!pSprite)
+                if (!nSprite)
                     PlaySound(pSound->sound);
                 else
-                    PlaySound3D(pSprite, pSound->sound, 16+pSound->at4, 6);
+                    PlaySound3D(&sprite[nSprite - 1], pSound->sound, 16 + pSound->at4, 6);
             }
             if (pFrame->nCallbackId > 0 && nCallback != -1)
             {

@@ -163,7 +163,7 @@ static inline int klabs(int a)
 
 static inline int isneg(int a)
 {
-    return (a < 0);
+    return (a < 0) ? -1 : 0;
 }
 
 static inline int kscale(int a, int b, int c)
@@ -210,7 +210,7 @@ static inline int mulscale28(int a, int b)
 static inline int mulscale30(int a, int b)
 {
     int64_t mul = (int64_t)a * (int64_t)b;
-    return (int)(mul >> 14);
+    return (int)(mul >> 30);
 }
 
 static inline int interpolate16(int a, int b, int c)

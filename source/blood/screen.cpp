@@ -185,7 +185,7 @@ void scrLoadPalette(void)
     if (!pTrans)
         ThrowError(238)("TRANS.TLU not found");
     transluc = (byte*)gSysRes.Lock(pTrans);
-    fixtransluscence();
+    fixtransluscence((intptr_t)transluc);
 }
 
 void scrSetMessage(char *pMessage)

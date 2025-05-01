@@ -188,13 +188,13 @@ extern byte gotpic[(kMaxTiles+7)>>3];
 
 extern byte *waloff[kMaxTiles];
 
-void fixtransluscence(void);
+void fixtransluscence(intptr_t);
 void initengine(void);
 extern void (*uninitengine)(void);
-int setgamemode(byte, int, int);
-void clearview(int);
+int32_t setgamemode(char davidoption, int32_t daxdim, int32_t daydim);
+void clearview(int32_t dacol);
 void nextpage(void);
-void setview(int, int, int, int);
+void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 extern int (*getpalookup)(int, int);
 
 extern void (*initspritelists)(void);
@@ -203,19 +203,20 @@ extern int (*deletesprite)(short);
 extern int (*changespritesect)(short, short);
 extern int (*changespritestat)(short, short);
 
-void printext256(int, int, short, short, char *, char);
+void printext256(int32_t xpos, int32_t ypos, short col, short backcol, char name[82], char fontsize);
 
 extern int (*animateoffs)(short a1, ushort a2);
 
-void rotatesprite(int, int, int, int, int, signed char, char, char, int, int, int, int);
+void rotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum, signed char dashade, char dapalnum, char dastat, int32_t cx1, int32_t cy1, int32_t cx2, int32_t cy2);
 
-void setviewtotile(int, int, int);
+void setviewtotile(short tilenume, int32_t xsiz, int32_t ysiz);
 
 void setviewback();
 
-void setaspect(int, int);
+void setaspect(int32_t daxrange, int32_t daaspect);
 
-void drawrooms(int, int, int, int, int, int);
+void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
+			 short daang, int32_t dahoriz, short dacursectnum);
 
 void drawmasks(void);
 
@@ -227,33 +228,40 @@ enum {
     kRSStat8 = 256,
 };
 
-int ksqrt(int);
+int32_t ksqrt(int32_t num);
 
-int getangle(int, int);
+int32_t getangle(int32_t xvect, int32_t yvect);
 
-int inside(int, int, int);
-void getzsofslope(int, int, int, int *, int *);
-int getflorzofslope(int, int, int);
-int getceilzofslope(int, int, int);
+int32_t inside(int32_t x, int32_t y, short sectnum);
+int32_t getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t* ceilz, int32_t* florz);
+int32_t getflorzofslope(short sectnum, int32_t dax, int32_t day);
+int32_t getceilzofslope(short sectnum, int32_t dax, int32_t day);
 
-QBOOL cansee(int, int, int, int, int, int, int, int);
+int32_t cansee(int32_t x1, int32_t y1, int32_t z1, short sect1, int32_t x2, int32_t y2, int32_t z2, short sect2);
 
 #define CLIPMASK0 (((1L)<<16)+1L)
 #define CLIPMASK1 (((256L)<<16)+64L)
 
 extern int hitscangoalx, hitscangoaly;
 
-int hitscan(int, int, int, int, int, int, int, short *, short *, short*, int *, int *, int *, uint32_t);
+int32_t hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum, int32_t vx, int32_t vy, int32_t vz,
+	short *hitsect, short *hitwall, short *hitsprite,
+	int32_t *hitx, int32_t *hity, int32_t *hitz, uint32_t cliptype);
 
-void getzrange(int, int, int, int, int32_t *, int32_t *, int32_t *, int32_t *, int, uint32_t);
+void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
+    int32_t* ceilz, int32_t* ceilhit, int32_t* florz, int32_t* florhit,
+    int32_t walldist, uint32_t cliptype);
 
-uint clipmove(int32_t *, int32_t *, int32_t *, short *, int32_t, int32_t, int, int, int, uint32_t);
+int32_t clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
+			 int32_t xvect, int32_t yvect,
+			 int32_t walldist, int32_t ceildist, int32_t flordist, uint32_t cliptype);
 
-int pushmove(int32_t *, int32_t *, int32_t *, short *, int32_t, int32_t, int32_t, uint32_t);
+int32_t pushmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
+			 int32_t walldist, int32_t ceildist, int32_t flordist, uint32_t cliptype);
 
-void updatesector(int, int, short *);
+void updatesector(int32_t x, int32_t y, short* sectnum);
 
-void setsprite(int, int, int, int);
+int32_t setsprite(short spritenum, int32_t newx, int32_t newy, int32_t newz);
 
 void getvalidvesamodes(void);
 
@@ -282,16 +290,16 @@ extern byte showinvisibility;
 extern int parallaxyoffs;
 extern int parallaxyscale;
 
-void drawline256(int, int, int, int, int);
-void drawmapview(int32_t cposx, int32_t cposy, int32_t czoom, short cang);
+void drawline256(int32_t x1, int32_t y1, int32_t x2, int32_t y2, char col);
+void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang);
 
-short lastwall(int);
-void alignflorslope(int, int, int, int);
-void alignceilslope(int, int, int, int);
-int sectorofwall(int);
+int32_t lastwall(short point);
+void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z);
+void alignceilslope(short dasect, int32_t x, int32_t y, int32_t z);
+int32_t sectorofwall(short theline);
 
-void preparemirror(int, int, int, int, int, int, int, int *, int *, short *);
-void completemirror(void);
+void preparemirror(int32_t dax, int32_t day, int32_t daz, short daang, int32_t dahoriz, short dawall, short dasector, int32_t* tposx, int32_t* tposy, short* tang);
+void completemirror();
 
 extern int32_t startposx;
 extern int32_t startposy;

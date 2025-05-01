@@ -238,7 +238,7 @@ CGameMenu::~CGameMenu()
         return;
     for (int i = 0; i < m_nItems; i++)
     {
-        if (pItemList[i] != &itemBloodQAV)
+        if (pItemList[i] != &itemBloodQAV && pItemList[i] != &itemSorryPicCycle)
             delete pItemList[i];
         pItemList[i] = NULL;
     }

@@ -372,3 +372,5 @@ void kfree_real(void* buffer);
 extern void *(*kmalloc)(size_t size);
 extern void (*kfree)(void *buffer);
 void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z);
+void alignceilslope(short dasect, int32_t x, int32_t y, int32_t z);
+int32_t sectorofwall(short theline);

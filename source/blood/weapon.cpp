@@ -233,7 +233,7 @@ void WeaponPlay(PLAYER *pPlayer)
         return;
     QAV *pQAV = weaponQAV[pPlayer->at26];
     int nTicks = pQAV->at10 - pPlayer->atbf;
-    pQAV->pSprite = pPlayer->pSprite;
+    pQAV->nSprite = pPlayer->pSprite - sprite + 1;
     pQAV->Play(nTicks-4, nTicks, pPlayer->at2a, pPlayer);
 }
 
